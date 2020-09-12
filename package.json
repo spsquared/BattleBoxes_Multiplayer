@@ -1,0 +1,23 @@
+{
+  "name": "battleboxes_multiplayer",
+  "version": "0.0.1",
+  "description": "Multiplayer BattleBoxes",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer.git"
+  },
+  "author": "Radioactive64",
+  "license": "GNU-3.0",
+  "bugs": {
+    "url": "https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues"
+  },
+  "homepage": "https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
+}

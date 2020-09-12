@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>BattleBoxes Multiplayer</title>
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scal=1.0">
+        <meta charset="utf-8">
+        <script src="/socket.io/socket.io.js"></script>
+        <style>
+            /* menuContainer */
+            .menuContainer {
+                display: block;
+            }
+
+            /* mainmenuContainer */
+            .mainmenuContainer {
+                display: none;
+            }
+            /* play button */
+            .play {
+                cursor: pointer;
+                transition: all .1s ease-in-out;
+                -webkit-user-drag: none;
+            }
+            .play:hover {
+                transform: scale(1.1) perspective(1px);
+                transform: translateY(-5px);
+            }
+            .play:active {
+                transform: translateY(10px);
+            }
+            /* settings button */
+            .settings {
+                padding: 10px 10px;
+                border-color: black;
+                border-width: 4px;
+                font-size: 32px;
+                color: black;
+                background-color: lime;
+                cursor: pointer;
+                transition: all .1s ease-in-out;
+            }
+            .settings:hover {
+                transform: scale(1.1) perspective(1px);
+                transform: translateY(-5px);
+            }
+            .settings:active {
+                transform: translateY(10px);
+            }
+            /* achievements button */
+            .achievements {
+                padding: 10px 10px;
+                border-color: black;
+                border-width: 4px;
+                font-size: 32px;
+                color: black;
+                background-color: orange;
+                cursor: pointer;
+                transition: all .1s ease-in-out;
+            }
+            .achievements:hover {
+                transform: scale(1.1) perspective(1px);
+                transform: translateY(-5px);
+            }
+            .achievements:active {
+                transform: translateY(10px);
+            }
+            /* exitgame button */
+            .exitgame {
+                padding: 8px 8px;
+                border-color: black;
+                border-width: 4px;
+                font-size: 24px;
+                color: black;
+                background-color: red;
+                cursor: pointer;
+                transition: all .1s ease-in-out;
+            }
+            .exitgame:hover {
+                transform: scale(1.1) perspective(1px);
+                transform: translateY(-5px);
+            }
+            .exitgame:active {
+                transform: translateY(10px);
+            }
+
+            /* login container */
+            .loginContainer {
+                display: none;
+            }
+            /* login buttons/inputs */
+            .usrnameLabel {
+                font-size: 16px;
+                font: message-box;
+            }
+            .usrname {
+                font-size: 16px;
+                font: message-box;
+                cursor: text;
+            }
+            .pswordLabel {
+                font-size: 16px;
+                font: message-box;
+            }
+            .psword {
+                font-size: 16px;
+                font: message-box;
+                cursor: text;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            .login {
+                padding: 4px 4px;
+                border-color: rgb(0, 130, 0);
+                border-width: 2px;
+                border-radius: 4px;
+                font-size: 16;
+                color: black;
+                background-color: rgb(0, 160, 0);
+                color: pointer;
+            }
+            .login:active {
+                background-color: rgb(0, 100, 0);
+                border-color: rgb(0, 70, 0);
+            }
+
+            /* disconnected container */
+            .disconnectedContainer {
+                display: inline-block;
+            }
+            /* disconnected message */
+            .disconnected {
+                padding: 20px 20px;
+                border-color: black;
+                border-width: 8px;
+                font-size: 64px;
+                color: black;
+                background-color: rgba(255, 0, 0, 0.5);
+                cursor: wait;
+                transition: all .2s ease-in-out;
+            }
+            .disconnected:hover {
+                transform: scale(2) perspective(2px);
+            }
+        </style>
+    </head>
+    <body>
+        <h5>v0.1.0</h5>
+        <div class="menuContainer"id="menuContainer" style="text-align: center;">
+            <div class="loginContainer" id="loginContainer">
+                <br></br><br></br>
+                <label for="usrname" class="usrnameLabel">Username: </label>
+                <input type="text" class="usrname" id="usrname" name="usrname"><br></br>
+                <label for="psword" class="pswordLabel">Password: </label>
+                <input type="password" class="psword" id="psword" name="psword"><br></br>
+                <input type="button" class="login" value="Log in" onclick="login()">
+            </div>
+            <div class="mainmenuContainer" id="mainmenuContainer" style="text-align:center;">
+                <input type="image" src="client/img/start-button.png" class="play" onclick="play()"><br></br>
+                <input type="button" class="settings" value="SETTINGS" onclick="settings()"><br></br>
+                <input type="button" class="achievements" value="ACHIEVEMENTS" onclick="achievements()"><br></br>
+                <input type="button" class="exitgame" value="EXIT" onclick="disconnectclient()">
+            </div>
+            <div class="disconnectedContainer" id="disconnectedContainer" style = "text-align:center">
+                <br></br><br></br><br></br><br></br><br></br>
+                <input type="button" class="disconnected" value="DISCONNECTED" onclick="window.location.reload()">
+            </div>
+        </div>
+        <script>
+            var socket = io();
+
+            /* login functions */
+            function login() {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainmenuContainer').style.display = 'inline-block';
+                socket.emit('login', {
+                    usrname: document.getElementById('usrname').value,
+                    psword: document.getElementById('psword').value
+                });
+            }
+
+            /* menu functions */
+            function play() {
+                socket.emit('join-game', {
+                    id: document.getElementById('usrname').value
+                });
+                document.getElementById('mainmenuContainer').style.display = 'none';
+            };
+            function settings() {
+                document.getElementById('mainmenuContainer').style.display = 'none';
+            }
+            function achievements() {
+                document.getElementById('mainmenuContainer').style.display = 'none';
+            }
+            function exit() {
+                document.getElementById('mainmenuContainer').style.display = 'inline-block';
+            }
+            function disconnectclient() {
+                socket.emit('disconnectclient', {
+                    id: document.getElementById('usrname').value
+                });
+            }
+
+            /* handlers */
+            socket.on('getID', function() {
+                document.getElementById('disconnectedContainer').style.display = 'none';
+                document.getElementById('mainmenuContainer').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'inline-block';
+            });
+            socket.on('disconnected', function() {
+                document.getElementById('mainmenuContainer').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('disconnectedContainer').style.display = 'inline-block'
+            });
+        </script>
+    </body>
+</html>

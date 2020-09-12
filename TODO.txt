@@ -1,0 +1,6 @@
+1. Implement gameplay
+2. Implement settings
+3. Implement accounts
+4. Implement scoring
+5. Implement achievements
+6. Brush up code and asthetics
