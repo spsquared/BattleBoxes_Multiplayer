@@ -1,11 +1,17 @@
 // start server
+console.log('\nThis server is running BattleBoxes Server v-0.1.1');
+const { time } = require('console');
 var express = require('express');
+const { abort } = require('process');
 var app = express();
 var server = require('http').Server(app);
-
-app.get('/',function(req, res) {
-    res.sendFile(__dirname + '/client/index.html');
+const readline = require('readline');
+const prompt = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
 });
+
+app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
 server.listen(2000);
@@ -16,6 +22,7 @@ var SOCKET_LIST = {};
 // enable connection
 var io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
+    socket.emit('init');
     socket.emit('getID');
     socket.id = Math.random();
     console.log('Client connection made. Waiting for login...\n');
@@ -54,3 +61,62 @@ setInterval(function() {
         var socket = SOCKET_LIST[i]
     }
 }, 1000/20);
+
+// Stop server code
+prompt.on('line', (input) => {
+    if (input=='stop') {
+        queryStop(true);
+    } else if (input=='Purple') {
+        console.log('Purple exception detected. Purpling...')
+        console.log('---------------------------------------------------');
+        setTimeout(function() {}, 1000/20);
+        while (true) {
+            console.log('purple');
+            console.warn('purple');
+            console.error('purple');
+        }
+    } else {
+        console.error('Error: ' + input + ' is not a valid input.\n');
+    }
+});
+function queryStop(firstrun) {
+    if (firstrun==true) {
+        prompt.question('\nAre you sure you want to stop the server? y/n\n', (answer) => {
+            if (answer=='y') {
+                console.log('\nClosing server...');
+                // request for velocity and positions of players
+                io.emit('disconnected');
+                // disconnect all players
+                console.log('Saving players and bullets...');
+                // save positions, health, velocity of bullets and players
+                console.log('Stopping server...');
+                console.log('Server stopped.');
+                process.exit();
+            } else if (answer=='n') {
+                console.log('Server stop cancelled.\n');
+            } else {
+                console.warn(answer + ' is not a valid answer.');
+                queryStop(false);
+            }
+        });
+    } else {
+        prompt.question('Please enter y or n.\n', (answer) => {
+            if (answer=='y') {
+                console.log('Closing server...');
+                // request for velocity and positions of players
+                io.emit('disconnected');
+                // disconnect all players
+                console.log('Saving players and bullets...');
+                // save positions, health, velocity of bullets and players
+                console.log('Stopping server...');
+                console.log('Server stopped.');
+                process.exit();
+            } else if (answer=='n') {
+                console.log('Server stop cancelled.\n');
+            } else {
+                console.warn(answer + ' is not a valid answer.');
+                queryStop(false);
+            }
+        });
+    }
+}
