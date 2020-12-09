@@ -1,22 +1,20 @@
-var socket = io();
-
 /* login functions */
 function login() {
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('mainmenuContainer').style.display = 'inline-block';
-    socket.emit('login', {
-        usrname: document.getElementById('usrname').value,
-        psword: document.getElementById('psword').value
-    });
+    if (document.getElementById('usrname').value == '') {
+        window.alert('Please provide a Username.');
+    } else {
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('mainmenuContainer').style.display = 'inline-block';
+        socket.emit('login', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
+    }
 }
 
 /* menu functions */
 function play() {
-    socket.emit('join-game', {
-        id: document.getElementById('usrname').value
-    });
+    socket.emit('join-game');
     document.getElementById('mainmenuContainer').style.display = 'none';
-    document.getElementById('gameContainer').style.display = 'block';
+    document.getElementById('gameContainer').style.display = 'inline-block';
+    document.getElementById('loading').style.display = 'inline-block';
 };
 function settings() {
     document.getElementById('mainmenuContainer').style.display = 'none';
@@ -32,9 +30,10 @@ function back() {
     document.getElementById('mainmenuContainer').style.display = 'inline-block';
 }
 function disconnectclient() {
-    socket.emit('disconnectclient', {
-        id: document.getElementById('usrname').value
-    });
+    socket.emit('disconnectclient', {id: document.getElementById('usrname').value});
+    document.getElementById('mainmenuContainer').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('disconnectedContainer').style.display = 'inline-block'
 }
 
 /* handlers */
@@ -50,6 +49,6 @@ socket.on('getID', function() {
 });
 socket.on('disconnected', function() {
     document.getElementById('mainmenuContainer').style.display = 'none';
-    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'none';
     document.getElementById('disconnectedContainer').style.display = 'inline-block'
 });

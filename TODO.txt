@@ -2,5 +2,6 @@
 2. Implement settings
 3. Implement accounts
 4. Implement scoring
-5. Implement achievements
-6. Brush up code and asthetics
+5. Implement game saves when server shuts down
+6. Implement achievements
+7. Brush up code and asthetics

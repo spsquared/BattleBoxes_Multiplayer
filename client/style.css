@@ -1,18 +1,18 @@
 /* font */
 @font-face {
     font-family: "Pixel";
-    src: url(/client/assets/miniset2-webfont.woff2) format('woff2');
+    src: url(/client/assets/miniset2-webfont.woff),
+         url(/client/assets/miniset2-webfont.woff2) format('woff2');
 }
 
 /* menuContainer */
 #menuContainer {
     display: block;
     text-align: center;
-    position:absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
 }
 
 /* mainmenuContainer */
@@ -118,18 +118,23 @@
 #gameContainer {
     display: none;
     text-align: center;
-    position:absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    position: fixed;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+}
+/* loading screen */
+#loading {
+    display: none;
+    position: relative;
+    top: 186px;
+    height: 128px;
+    width: 128px;
 }
 /* game canvas */
 #gameCanvas {
-    padding: 0;
-    margin: 0;
-    display: inline;
+    display: none;
+    text-align: center;
 }
 
 /* login container */
@@ -169,7 +174,7 @@
     font-size: 20;
     color: black;
     background-color: rgb(0, 160, 0);
-    color: pointer;
+    cursor: pointer;
 }
 #login:active {
     background-color: rgb(0, 100, 0);

@@ -4,14 +4,17 @@
         <title>BattleBoxes Multiplayer</title>
         <meta id="viewport" name="viewport" content="initial-scale=1.0">
         <meta charset="utf-8">
-        <link rel="icon" href="/favicon-32x32.png">
-        <link rel="stylesheet" href="/client/assets/miniset2-webfont.woff2">
+        <link rel="icon" href="/favicon-32x32.png" type="image/png" async>
         <link rel="stylesheet" href="/client/style.css">
         <script src="/socket.io/socket.io.js"></script>
-        <script src="/client/menu.js"></script>
+        <script>var socket = io();</script>
+        <script src="/client/js/menu.js"></script>
+        <script src="/client/js/entity.js" defer></script>
+        <style>#JavascriptDisabled {font-size: 50px; font-family: 'Pixel';}</style>
     </head>
     <body>
-        <h5>v0.1.1</h5>
+        <h5>v0.2.0</h5>
+        <noscript id="JavascriptDisabled">Javascript is disabled. Please enable it for this site to run. There is no malicious software :).</noscript>
         <div id="menuContainer">
             <div id="loginContainer">
                 <br></br><br></br><br></br><br></br><br>
@@ -29,10 +32,12 @@
                 <input type="button" id="exitgame" value="EXIT" onclick="disconnectclient()">
             </div>
             <div id="settingsmenuContainer">
+                <p style='font-family: Pixel;'>Settings have not been implemented yet</p>
                 <!--Back button is at top-right corner of the screen-->
                 <input type="button" id="back" value="BACK" onclick="back()">
             </div>
             <div id="achievementsmenuContainer">
+                <p style='font-family: Pixel;'>Achievements have not been implemented yet</p>
                 <!--Back button is at top-right corner of the screen-->
                 <input type="button" id="back" value="BACK" onclick="back()">
             </div>
@@ -42,7 +47,8 @@
             </div>
         </div>
         <div id="gameContainer">
-            <canvas id="gameCanvas" width="0" height="0"></canvas>
+            <img src="client/img/loading.gif" alt="Loading..." id="loading">
+            <canvas id="gameCanvas" width="0" height="0">
         </div>
     </body>
 </html>

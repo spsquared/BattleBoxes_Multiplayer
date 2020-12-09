@@ -1,10 +1,8 @@
 // start server
 console.log('\nThis server is running BattleBoxes Server v-0.1.1');
-const { time } = require('console');
-var express = require('express');
-const { abort } = require('process');
-var app = express();
-var server = require('http').Server(app);
+const express = require('express');
+const app = express();
+const server = require('http').Server(app);
 const readline = require('readline');
 const prompt = readline.createInterface({
     input: process.stdin,
@@ -14,10 +12,61 @@ const prompt = readline.createInterface({
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
-server.listen(2000);
-console.log('Server started, listening to port 2000.\n');
+var port = 0;
+function setup() {
+    prompt.question('Enter the port you want the server to listen to:\n> ', (answer) => {
+        if (answer>0 && answer<65536) {
+            port = answer;
+            server.listen(port);
+            console.log('Server started, listening to port ' + port + '.\nTo play, enter your computers name followed by a ":" and then "' + port + '" in the browser. You can find your computers name by going into the "about" settings in the Windows settings.\n\n------------------------------------------------------------------\n');
+        } else {
+            console.error('Error: Invalid port');
+            setup();
+        }
+    });
+}
+setup();
 
 var SOCKET_LIST = {};
+var PLAYER_LIST = {};
+
+// player code
+var Player = function(id) {
+    var self = {
+        x:200,
+        y:500,
+        id:id,
+        name:null,
+        ingame:false,
+        Wpressed:false,
+        Apressed:false,
+        Dpressed:false,
+        Clicked:false,
+        xspeed:0,
+        yspeed:0
+    }
+    self.updatePos = function() {
+        if (self.Dpressed) {
+            self.xspeed += 2;
+        }
+        if (self.Apressed) {
+            self.xspeed -= 2;
+        }
+        if (self.Wpressed) {
+            //collisions
+            self.yspeed = 10;
+        }
+        self.x += self.xspeed;
+        self.y -= self.yspeed;
+        self.yspeed -= 1;
+        self.x *= 0.9;
+        if (self.y > 500) {
+            self.y=500;
+            self.yspeed=0;
+        }
+    }
+    return self;
+}
 
 // enable connection
 var io = require('socket.io') (server, {});
@@ -25,42 +74,58 @@ io.on('connection', function(socket) {
     socket.emit('init');
     socket.emit('getID');
     socket.id = Math.random();
-    console.log('Client connection made. Waiting for login...\n');
+    SOCKET_LIST[socket.id] = socket;
+    var player = Player(socket.id);
+    PLAYER_LIST[socket.id] = player;
+    console.log('Client connection made. Waiting for login...');
 
     // connection handlers
     socket.on('disconnect', function() {
-        console.log('Client disconnected.\n');
+        console.log('Player "' + PLAYER_LIST[socket.id].name + '" has disconnected. Player id is ' + socket.id + '.');
+        delete SOCKET_LIST[socket.id];
+        delete PLAYER_LIST[socket.id];
     });
     socket.on('timeout', function() {
-        console.log('socket ' + socket.id + 'timed out.')
+        console.log('Player "' + PLAYER_LIST[socket.id].name + '" timed out. Socket id is ' + socket.id + '.');
         socket.disconnect();
-    })
-    socket.on('disconnectclient', function(data) {
+    });
+    socket.on('disconnectclient', function() {
         socket.emit('disconnected');
-        console.log('Client ' + data.id + ' has disconnected.');
         socket.disconnect();
     });
 
     //login handlers
-    socket.on('login', function(data) {
-        console.log('Client with username "' + data.usrname + '" and password "' + data.psword + '" attempted to login.');
-        console.log('Client ID is ' + data.usrname + '.\n');
-        SOCKET_LIST[socket.id] = data.id;
+    socket.on('login', function(cred) {
+        console.log('Client with username "' + cred.usrname + '" and password "' + cred.psword + '" attempted to login. Client ID is ' + socket.id + '.');
+        PLAYER_LIST[socket.id].name = cred.usrname
     });
 
     // game handlers
-    socket.on('join-game',function(data) {
-        console.log('Player ' + data.id + ' attempted to join game.\n');
-        socket.emit('game joined', {pos: 'position'});
+    socket.on('join-game', function() {
+        console.log('Player "' + PLAYER_LIST[socket.id].name + '" attempted to join game.');
+        player.ingame = true;
+        socket.emit('game-joined');
+    });
+    socket.on('keyPress', function(key) {
+        if (key.key == 'W') {player.Wpressed = key.state;}
+        if (key.key == 'A') {player.Apressed = key.state;}
+        if (key.key == 'D') {player.Dpressed = key.state;}
     });
 });
 
 // Server-side tps
 setInterval(function() {
-    for (var i in SOCKET_LIST) {
-        var socket = SOCKET_LIST[i]
+    var pack = [];
+    for (var i in PLAYER_LIST) {
+        var localplayer = PLAYER_LIST[i];
+        if (localplayer.ingame) {localplayer.updatePos();}
+        pack.push({x:localplayer.x, y:localplayer.y, name:PLAYER_LIST[localplayer.id].name});
     }
-}, 1000/20);
+    for (var i in SOCKET_LIST) {
+        var localsocket = SOCKET_LIST[i];
+        localsocket.emit('pkg', pack);
+    }
+}, 1000/30);
 
 // Stop server code
 prompt.on('line', (input) => {
@@ -75,20 +140,27 @@ prompt.on('line', (input) => {
             console.warn('purple');
             console.error('purple');
         }
+    } else if (input=='disconnect') {
+        for (var i in SOCKET_LIST) {
+            var localsocket = SOCKET_LIST[i];
+            SOCKET_LIST = {};
+            localsocket.emit('disconnected');
+        }
+        console.log('Clients disconnected');
     } else {
-        console.error('Error: ' + input + ' is not a valid input.\n');
+        console.error('Error: ' + input + ' is not a valid input.');
     }
 });
 function queryStop(firstrun) {
     if (firstrun==true) {
-        prompt.question('\nAre you sure you want to stop the server? y/n\n', (answer) => {
+        prompt.question('\nAre you sure you want to stop the server? y/n\n> ', (answer) => {
             if (answer=='y') {
-                console.log('\nClosing server...');
+                console.log('Closing server...');
                 // request for velocity and positions of players
                 io.emit('disconnected');
                 // disconnect all players
-                console.log('Saving players and bullets...');
-                // save positions, health, velocity of bullets and players
+                console.log('Saving players and projectiles...');
+                // save positions, health, velocity of projectiles and players
                 console.log('Stopping server...');
                 console.log('Server stopped.');
                 process.exit();
@@ -100,14 +172,14 @@ function queryStop(firstrun) {
             }
         });
     } else {
-        prompt.question('Please enter y or n.\n', (answer) => {
+        prompt.question('Please enter y or n.\n> ', (answer) => {
             if (answer=='y') {
                 console.log('Closing server...');
                 // request for velocity and positions of players
                 io.emit('disconnected');
                 // disconnect all players
-                console.log('Saving players and bullets...');
-                // save positions, health, velocity of bullets and players
+                console.log('Saving players and projectiles...');
+                // save positions, health, velocity of projectiles and players
                 console.log('Stopping server...');
                 console.log('Server stopped.');
                 process.exit();
