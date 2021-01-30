@@ -1,18 +1,44 @@
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.1.1');
+console.log('\nThis server is running BattleBoxes Server v-0.2.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
+const os = require('os');
+const fs = require('fs');
 const readline = require('readline');
-const prompt = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
+const lineReader = require('line-reader');
 
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
-var port = 0;
+var port;
+
+// initialize
+fs.open('./server/PORTS.txt', 'a+', function(err) {
+    if (err) throw err;
+    lineReader.open('./server/PORTS.txt', function (err, reader) {
+        if (err) throw err;
+        reader.nextLine(function(err, line) {
+            if (err) throw err;
+            if (line >=100) {
+                console.warn('\n------------------------------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n------------------------------------------------------------------------------------------------------\n');
+                process.abort();
+            }
+            ports = parseInt(line)+1;
+            console.log('There are ' + ports + ' servers running on this host.');
+            var portsstring = ports.toString();
+            fs.writeFileSync('./server/PORTS.txt', portsstring);
+            var i;
+            port = 1000
+            for (i = 1; i < ports; i++) {port += 100;}
+            server.listen(port);
+            console.log('Server started, listening to port ' + port + '.');
+        });
+    });
+});
+
+/*
 function setup() {
     prompt.question('Enter the port you want the server to listen to:\n> ', (answer) => {
         if (answer>0 && answer<65536) {
@@ -26,7 +52,7 @@ function setup() {
     });
 }
 setup();
-
+*/
 var SOCKET_LIST = {};
 var PLAYER_LIST = {};
 
@@ -143,7 +169,6 @@ prompt.on('line', (input) => {
     } else if (input=='disconnect') {
         for (var i in SOCKET_LIST) {
             var localsocket = SOCKET_LIST[i];
-            SOCKET_LIST = {};
             localsocket.emit('disconnected');
         }
         console.log('Clients disconnected');
@@ -156,14 +181,24 @@ function queryStop(firstrun) {
         prompt.question('\nAre you sure you want to stop the server? y/n\n> ', (answer) => {
             if (answer=='y') {
                 console.log('Closing server...');
-                // request for velocity and positions of players
+                // request for positions of players
                 io.emit('disconnected');
-                // disconnect all players
                 console.log('Saving players and projectiles...');
                 // save positions, health, velocity of projectiles and players
                 console.log('Stopping server...');
-                console.log('Server stopped.');
-                process.exit();
+                fs.open('./server/PORTS.txt', 'a+', function(err) {
+                    lineReader.open('./server/PORTS.txt', function (err, reader) {
+                        if (err) throw err;
+                        reader.nextLine(function(err, line) {
+                            if (err) throw err;
+                            ports = parseInt(line)-1;
+                            var portsstring = ports.toString();
+                            fs.writeFileSync('./server/PORTS.txt', portsstring);
+                            console.log('Server stopped.');
+                            process.exit();
+                        });
+                    });
+                });
             } else if (answer=='n') {
                 console.log('Server stop cancelled.\n');
             } else {
@@ -175,14 +210,25 @@ function queryStop(firstrun) {
         prompt.question('Please enter y or n.\n> ', (answer) => {
             if (answer=='y') {
                 console.log('Closing server...');
-                // request for velocity and positions of players
+                // request for positions of players
                 io.emit('disconnected');
-                // disconnect all players
                 console.log('Saving players and projectiles...');
                 // save positions, health, velocity of projectiles and players
                 console.log('Stopping server...');
-                console.log('Server stopped.');
-                process.exit();
+                fs.open('./server/PORTS.txt', 'a+', function(err) {
+                    if (err) throw err;
+                    lineReader.open('./server/PORTS.txt', function (err, reader) {
+                        if (err) throw err;
+                        reader.nextLine(function(err, line) {
+                            if (err) throw err;
+                            ports = parseInt(line)-1;
+                            var portsstring = ports.toString();
+                            fs.writeFileSync('./server/PORTS.txt', portsstring);
+                            console.log('Server stopped.');
+                            process.exit();
+                        });
+                    });
+                });
             } else if (answer=='n') {
                 console.log('Server stop cancelled.\n');
             } else {

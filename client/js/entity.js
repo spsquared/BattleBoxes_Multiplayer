@@ -21,15 +21,12 @@ document.onkeydown = function(event) {
     if (ingame) {
         if (event.key == 'w') {
             socket.emit('keyPress', {key:'W', state:true});
-            console.debug('key W pressed');
         }
         if (event.key == 'a') {
             socket.emit('keyPress', {key:'A', state:true});
-            console.debug('key A pressed');
         }
         if (event.key == 'd') {
             socket.emit('keyPress', {key:'D', state:true});
-            console.debug('key D pressed');
         }
     }
 }
@@ -37,15 +34,12 @@ document.onkeyup = function(event) {
     if (ingame) {
         if (event.key == 'w') {
             socket.emit('keyPress', {key:'W', state:false});
-            console.debug('key W released');
         }
         if (event.key == 'a') {
             socket.emit('keyPress', {key:'A', state:false});
-            console.debug('key A released');
         }
         if (event.key == 'd') {
             socket.emit('keyPress', {key:'D', state:false});
-            console.debug('key D released');
         }
     }
 }

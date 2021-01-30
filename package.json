@@ -1,6 +1,6 @@
 {
   "name": "battleboxes_multiplayer",
-  "version": "0.0.1",
+  "version": "0.2.1",
   "description": "Multiplayer BattleBoxes",
   "main": "app.js",
   "scripts": {
@@ -19,6 +19,8 @@
   "dependencies": {
     "express": "^4.17.1",
     "jsonfile": "^6.0.1",
+    "line-reader": "^0.4.0",
+    "line-replace": "^2.0.1",
     "socket.io": "^2.3.0"
   }
 }
