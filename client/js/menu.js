@@ -31,9 +31,6 @@ function back() {
 }
 function disconnectclient() {
     socket.emit('disconnectclient', {id: document.getElementById('usrname').value});
-    document.getElementById('mainmenuContainer').style.display = 'none';
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('disconnectedContainer').style.display = 'inline-block'
 }
 
 /* handlers */
@@ -42,13 +39,17 @@ socket.on('init', function() {
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
     document.getElementById('gameCanvas').height = window.innerHeight;
+    document.getElementById('gameCanvas').height -= 1;
     document.getElementById('disconnectedContainer').style.display = 'none';
 });
 socket.on('getID', function() {
     document.getElementById('loginContainer').style.display = 'inline-block';
 });
 socket.on('disconnected', function() {
+    document.getElementById('loginContainer').style.display = 'none';
     document.getElementById('mainmenuContainer').style.display = 'none';
+    document.getElementById('settingsmenuContainer').style.display = 'none';
+    document.getElementById('achievementsmenuContainer').style.display = 'none';
     document.getElementById('gameContainer').style.display = 'none';
     document.getElementById('disconnectedContainer').style.display = 'inline-block'
 });

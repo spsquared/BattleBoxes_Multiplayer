@@ -1,45 +1,41 @@
 var game = document.getElementById('gameCanvas').getContext('2d');
-var ingame = false;
+var PLAYER_LIST = {};
+var BULLET_LIST = {};
 
-socket.on('game-joined', function(data) {
-    document.getElementById('gameCanvas').height = '500';
-    document.getElementById('gameCanvas').width = '1000';
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'inline-block';
-    ingame = true;
-});
-
-socket.on('pkg', function(pkg) {
-    game.clearRect(0,0,1000,1000);
-    for (var i = 0; i < pkg.length; i++) {
-        game.fillText(pkg[i].name, pkg[i].x, pkg[i].y);
+// entity
+var Entity = function() {
+    var self = {
+        x:0,
+        y:0,
+        id:"",
+        color:"#000000"
     }
-});
-
-// input sending
-document.onkeydown = function(event) {
-    if (ingame) {
-        if (event.key == 'w') {
-            socket.emit('keyPress', {key:'W', state:true});
-        }
-        if (event.key == 'a') {
-            socket.emit('keyPress', {key:'A', state:true});
-        }
-        if (event.key == 'd') {
-            socket.emit('keyPress', {key:'D', state:true});
-        }
+    self.update = function() {
+        self.draw();
     }
+    self.draw = function() {}
+    return self;
 }
-document.onkeyup = function(event) {
-    if (ingame) {
-        if (event.key == 'w') {
-            socket.emit('keyPress', {key:'W', state:false});
-        }
-        if (event.key == 'a') {
-            socket.emit('keyPress', {key:'A', state:false});
-        }
-        if (event.key == 'd') {
-            socket.emit('keyPress', {key:'D', state:false});
-        }
+
+// player
+var Player = function(id, name, color) {
+    var self = Entity();
+    self.id = id;
+    self.name = name;
+    self.ingame = false;
+    self.hp = 5;
+    self.score = 0;
+    self.color = color;
+    self.draw = function() {
+        game.fillStyle = color;
+        game.fillRect(self.x, self.y, 32, 32);
+    }
+    return self;
+}
+Player.update = function(data) {
+    for (var i = 0; i < data.length; i++) {
+        var localplayer = PLAYER_LIST[data[i].id];
+        console.log(data[i].id);
+        localplayer.update();
     }
 }

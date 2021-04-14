@@ -18,6 +18,7 @@
   "homepage": "https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "jquery": "^3.6.0",
     "jsonfile": "^6.0.1",
     "line-reader": "^0.4.0",
     "line-replace": "^2.0.1",

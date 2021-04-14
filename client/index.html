@@ -5,15 +5,17 @@
         <meta id="viewport" name="viewport" content="initial-scale=1.0">
         <meta charset="utf-8">
         <link rel="icon" href="/favicon-32x32.png" type="image/png">
-        <link rel="stylesheet" href="/client/style.css">
         <script src="/socket.io/socket.io.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
         <script>var socket = io();</script>
         <script src="/client/js/menu.js"></script>
+        <script src="/client/js/game.js" defer></script>
         <script src="/client/js/entity.js" defer></script>
+        <link rel="stylesheet" href="/client/style.css">
         <style>#JavascriptDisabled {font-size: 50px; font-family: 'Pixel';}</style>
     </head>
     <body>
-        <header><h5>v0.2.0</h5></header>
+        <header style="user-select: none;"><h5>v0.2.0</h5></header>
         <noscript id="JavascriptDisabled">Javascript is disabled. Please enable it for this site to run. There is no malicious software :).</noscript>
         <div id="menuContainer">
             <div id="loginContainer">
@@ -33,12 +35,12 @@
             </div>
             <div id="settingsmenuContainer">
                 <p style='font-family: Pixel;'>Settings have not been implemented yet</p>
-                <!--Back button is at top-right corner of the screen-->
+                <!--Back button is at top-left corner of the screen-->
                 <input type="button" id="back" value="BACK" onclick="back()">
             </div>
             <div id="achievementsmenuContainer">
                 <p style='font-family: Pixel;'>Achievements have not been implemented yet</p>
-                <!--Back button is at top-right corner of the screen-->
+                <!--Back button is at top-left corner of the screen-->
                 <input type="button" id="back" value="BACK" onclick="back()">
             </div>
             <div id="disconnectedContainer">
@@ -48,8 +50,8 @@
         </div>
         <div id="gameContainer">
             <img src="client/img/loading.gif" alt="Loading..." id="loading">
-            <canvas id="gameCanvas" width="0" height="0">
+            <p style='font-family: Pixel; display: none;' id="waiting" position='relative' top=210px>Waiting for server...</p>
+            <canvas id="gameCanvas">
         </div>
-        <footer></footer>
     </body>
 </html>

@@ -55,22 +55,43 @@ setup();
 */
 var SOCKET_LIST = {};
 var PLAYER_LIST = {};
+var BULLET_LIST = {};
 
-// player code
-var Player = function(id) {
+// entity
+var Entity = function() {
     var self = {
-        x:200,
-        y:500,
-        id:id,
-        name:null,
-        ingame:false,
-        Wpressed:false,
-        Apressed:false,
-        Dpressed:false,
-        Clicked:false,
+        x:0,
+        y:0,
         xspeed:0,
-        yspeed:0
+        yspeed:0,
+        id:"",
+        color:"#000000"
     }
+    self.update = function() {
+        self.updatePos();
+    }
+    self.updatePos = function() {
+        self.x += self.xspeed;
+        self.y += self.yspeed;
+    }
+    var COLORS = ["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9900FF", "#FF00FF", "#000000", "#AA0000", "#996600", "#EECC33", "#00AA00", "#0088CC", "#8877CC", "#CC77AA"];
+    return self;
+}
+
+// player
+var Player = function(id, name, color) {
+    var self = Entity();
+    self.id = id;
+    self.name = name;
+    self.ingame = false;
+    Wpressed = false;
+    Apressed = false;
+    Dpressed = false;
+    Clicked = false;
+    self.hp = 5;
+    self.score = 0;
+    self.color = color;
+
     self.updatePos = function() {
         if (self.Dpressed) {
             self.xspeed += 2;
@@ -85,13 +106,57 @@ var Player = function(id) {
         self.x += self.xspeed;
         self.y -= self.yspeed;
         self.yspeed -= 1;
-        self.x *= 0.9;
-        if (self.y > 500) {
-            self.y=500;
+        self.xspeed *= 0.9;
+        if (self.y > 600) {
+            self.y=600;
             self.yspeed=0;
         }
     }
+    self.respawn = function() {
+        self.xspeed = 0;
+        self.yspeed = 0;
+    }
     return self;
+}
+Player.update = function() {
+    var pack = [];
+    for (var i in PLAYER_LIST) {
+        var localplayer = PLAYER_LIST[i];
+        if (localplayer.ingame) {
+            localplayer.update();
+            pack.push({id: localplayer.id, x:localplayer.x, y:localplayer.y, name:localplayer.name, hp:localplayer.hp, score:localplayer.score});
+        }
+    }
+    return pack;
+}
+
+// bullets
+var Bullet = function(mousex, mousey, x, y, parent) {
+    var self = Entity();
+    var angle;
+    self.id = Math.random();
+    self.x = x+16;
+    self.y = y+16;
+    angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
+    self.xspeed = Math.cos(angle)*20;
+    self.yspeed = Math.sin(angle)*20;
+    self.todelete = false;
+    self.parent = parent;
+    BULLET_LIST[self.id] = self;
+    return self;
+}
+Bullet.update = function() {
+    var pack = [];
+    for (var i in BULLET_LIST) {
+        var localbullet = BULLET_LIST[i];
+        localbullet.updatePos();
+        if (Bullet.todelete) {
+            delete BULLET_LIST[i];
+        } else {
+            pack.push({x:localbullet.x, y:localbullet.y});
+        }
+    }
+    return pack;
 }
 
 // enable connection
@@ -100,19 +165,18 @@ io.on('connection', function(socket) {
     socket.emit('init');
     socket.emit('getID');
     socket.id = Math.random();
+    var player = Player(socket.id, null, '#000000');
     SOCKET_LIST[socket.id] = socket;
-    var player = Player(socket.id);
-    PLAYER_LIST[socket.id] = player;
     console.log('Client connection made. Waiting for login...');
 
     // connection handlers
     socket.on('disconnect', function() {
-        console.log('Player "' + PLAYER_LIST[socket.id].name + '" has disconnected. Player id is ' + socket.id + '.');
+        console.log('Player "' + player.name + '" has disconnected. Player id is ' + socket.id + '.');
         delete SOCKET_LIST[socket.id];
         delete PLAYER_LIST[socket.id];
     });
     socket.on('timeout', function() {
-        console.log('Player "' + PLAYER_LIST[socket.id].name + '" timed out. Socket id is ' + socket.id + '.');
+        console.log('Player "' + player.name + '" timed out. Socket id is ' + socket.id + '.');
         socket.disconnect();
     });
     socket.on('disconnectclient', function() {
@@ -122,14 +186,22 @@ io.on('connection', function(socket) {
 
     //login handlers
     socket.on('login', function(cred) {
-        console.log('Client with username "' + cred.usrname + '" and password "' + cred.psword + '" attempted to login. Client ID is ' + socket.id + '.');
-        PLAYER_LIST[socket.id].name = cred.usrname
+        player.name = cred.usrname;
+        console.log('Client with username "' + player.name + '" and password "' + cred.psword + '" attempted to login. Client ID is ' + socket.id + '.');
     });
 
     // game handlers
     socket.on('join-game', function() {
-        console.log('Player "' + PLAYER_LIST[socket.id].name + '" attempted to join game.');
+        console.log('Player "' + player.name + '" attempted to join game.');
+        //player.color = 
         player.ingame = true;
+        PLAYER_LIST[socket.id] = player;
+        var newplayer = {id:player.id, name:player.name, color:player.color};
+        var pack = [newplayer];
+        for (var i in SOCKET_LIST) {
+            localsocket = SOCKET_LIST[i];
+            localsocket.emit('newplayer', pack);
+        }
         socket.emit('game-joined');
     });
     socket.on('keyPress', function(key) {
@@ -137,15 +209,16 @@ io.on('connection', function(socket) {
         if (key.key == 'A') {player.Apressed = key.state;}
         if (key.key == 'D') {player.Dpressed = key.state;}
     });
+    socket.on('click', function(click) {
+        if (click.button == 'left') Bullet(click.x, click.y, player.x, player.y, player.id);
+    });
 });
 
 // Server-side tps
 setInterval(function() {
-    var pack = [];
-    for (var i in PLAYER_LIST) {
-        var localplayer = PLAYER_LIST[i];
-        if (localplayer.ingame) {localplayer.updatePos();}
-        pack.push({x:localplayer.x, y:localplayer.y, name:PLAYER_LIST[localplayer.id].name});
+    var pack = {
+        players:Player.update(),
+        bullets:Bullet.update()
     }
     for (var i in SOCKET_LIST) {
         var localsocket = SOCKET_LIST[i];

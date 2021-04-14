@@ -116,5 +116,4 @@ dist
 .pnp.*
 
 # Server files
-# server/PLAYER_ID.txt
-# server/GAME.txt
+server/PORTS.txt
