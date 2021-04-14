@@ -38,21 +38,6 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
     });
 });
 
-/*
-function setup() {
-    prompt.question('Enter the port you want the server to listen to:\n> ', (answer) => {
-        if (answer>0 && answer<65536) {
-            port = answer;
-            server.listen(port);
-            console.log('Server started, listening to port ' + port + '.\nTo play, enter your computers name followed by a ":" and then "' + port + '" in the browser. You can find your computers name by going into the "about" settings in the Windows settings.\n\n------------------------------------------------------------------\n');
-        } else {
-            console.error('Error: Invalid port');
-            setup();
-        }
-    });
-}
-setup();
-*/
 var SOCKET_LIST = {};
 var PLAYER_LIST = {};
 var BULLET_LIST = {};
@@ -116,6 +101,7 @@ var Player = function(id, name, color) {
         self.xspeed = 0;
         self.yspeed = 0;
     }
+    PLAYER_LIST[self.id] = self;
     return self;
 }
 Player.update = function() {
@@ -124,7 +110,7 @@ Player.update = function() {
         var localplayer = PLAYER_LIST[i];
         if (localplayer.ingame) {
             localplayer.update();
-            pack.push({id: localplayer.id, x:localplayer.x, y:localplayer.y, name:localplayer.name, hp:localplayer.hp, score:localplayer.score});
+            pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, name:localplayer.name, hp:localplayer.hp, score:localplayer.score});
         }
     }
     return pack;
@@ -133,15 +119,15 @@ Player.update = function() {
 // bullets
 var Bullet = function(mousex, mousey, x, y, parent) {
     var self = Entity();
-    var angle;
     self.id = Math.random();
     self.x = x+16;
     self.y = y+16;
-    angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
-    self.xspeed = Math.cos(angle)*20;
-    self.yspeed = Math.sin(angle)*20;
+    self.angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
+    self.xspeed = Math.cos(self.angle)*20;
+    self.yspeed = Math.sin(self.angle)*20;
     self.todelete = false;
     self.parent = parent;
+    //self.color = parent.color;
     BULLET_LIST[self.id] = self;
     return self;
 }
@@ -152,8 +138,7 @@ Bullet.update = function() {
         localbullet.updatePos();
         if (Bullet.todelete) {
             delete BULLET_LIST[i];
-        } else {
-            pack.push({x:localbullet.x, y:localbullet.y});
+            socket.emit('deletebullet', localbullet.id);
         }
     }
     return pack;
@@ -195,9 +180,7 @@ io.on('connection', function(socket) {
         console.log('Player "' + player.name + '" attempted to join game.');
         //player.color = 
         player.ingame = true;
-        PLAYER_LIST[socket.id] = player;
-        var newplayer = {id:player.id, name:player.name, color:player.color};
-        var pack = [newplayer];
+        var pack = {id:player.id, name:player.name, color:player.color};
         for (var i in SOCKET_LIST) {
             localsocket = SOCKET_LIST[i];
             localsocket.emit('newplayer', pack);
@@ -210,16 +193,20 @@ io.on('connection', function(socket) {
         if (key.key == 'D') {player.Dpressed = key.state;}
     });
     socket.on('click', function(click) {
-        if (click.button == 'left') Bullet(click.x, click.y, player.x, player.y, player.id);
+        if (click.button == 'left') {
+            var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id);
+            var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
+            for (var i in SOCKET_LIST) {
+                localsocket = SOCKET_LIST[i];
+                localsocket.emit('newbullet', pack);
+            }
+        }
     });
 });
 
 // Server-side tps
 setInterval(function() {
-    var pack = {
-        players:Player.update(),
-        bullets:Bullet.update()
-    }
+    var pack = Player.update();
     for (var i in SOCKET_LIST) {
         var localsocket = SOCKET_LIST[i];
         localsocket.emit('pkg', pack);

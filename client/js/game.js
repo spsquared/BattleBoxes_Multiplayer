@@ -1,4 +1,4 @@
-$.ajaxSetup({cache: true});
+$.ajaxSetup({cache: true, async:false});
 $.getScript("/client/js/entity.js");
 var game = document.getElementById('gameCanvas').getContext('2d');
 var connected = 0;
@@ -6,7 +6,7 @@ var mouseX;
 var mouseY;
 var ingame;
 
-socket.on('game-joined', function(data) {
+socket.on('game-joined', function() {
     document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
     document.getElementById('gameCanvas').onmousedown = firebullet;
     document.getElementById('gameCanvas').onmouseup = function() {shooting = false;};
@@ -15,20 +15,11 @@ socket.on('game-joined', function(data) {
     ingame = true;
 });
 
-// game handlers
-socket.on('newplayer', function(pkg) {
-    var localplayer = Player(pkg.id, pkg.name, pkg.color);
-    PLAYER_LIST[pkg.id] = localplayer;
-    console.log(pkg.id);
-});
-
 // render game
 socket.on('pkg', function(pkg) {
     game.clearRect(0,0,window.innerWidth,window.innerHeight);
-    Player.update(pkg.players);
-    for (var i = 0; i < pkg.bullets.length; i++) {
-        game.fillRect(pkg.bullets[i].x-2, pkg.bullets[i].y-2,4,4);
-    }
+    Player.update(pkg);
+    Bullet.update();
     connected = 0;
 });
 
@@ -78,13 +69,13 @@ firebullet = function(event) {
 }
 
 // waiting for server
-setInterval(function() {
-    connected++;
-    if (connected >= 10) {
-        document.getElementById('loading').style.display = 'inline-block';
-        document.getElementById('waiting').style.display = 'inline-block';
-    } else {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('waiting').style.display = 'none';
-    }
-}, 1000/10);
+//setInterval(function() {
+//    connected++;
+//    if (connected >= 10) {
+//        document.getElementById('loading').style.display = 'inline-block';
+//        document.getElementById('waiting').style.display = 'inline-block';
+//    } else {
+//        document.getElementById('loading').style.display = 'none';
+//        document.getElementById('waiting').style.display = 'none';
+//    }
+//}, 1000/1);
