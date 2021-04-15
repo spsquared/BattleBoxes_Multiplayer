@@ -41,6 +41,7 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
 var SOCKET_LIST = {};
 var PLAYER_LIST = {};
 var BULLET_LIST = {};
+var COLORS = ["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9900FF", "#FF00FF", "#000000", "#AA0000", "#996600", "#EECC33", "#00AA00", "#0088CC", "#8877CC", "#CC77AA"];
 
 // entity
 var Entity = function() {
@@ -52,6 +53,7 @@ var Entity = function() {
         id:"",
         color:"#000000"
     }
+
     self.update = function() {
         self.updatePos();
     }
@@ -59,12 +61,12 @@ var Entity = function() {
         self.x += self.xspeed;
         self.y += self.yspeed;
     }
-    var COLORS = ["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9900FF", "#FF00FF", "#000000", "#AA0000", "#996600", "#EECC33", "#00AA00", "#0088CC", "#8877CC", "#CC77AA"];
+
     return self;
 }
 
 // player
-var Player = function(id, name, color) {
+var Player = function(id, name) {
     var self = Entity();
     self.id = id;
     self.name = name;
@@ -75,7 +77,12 @@ var Player = function(id, name, color) {
     Clicked = false;
     self.hp = 5;
     self.score = 0;
-    self.color = color;
+    PLAYER_LIST[self.id] = self;
+    var j = 0;
+    for (i in PLAYER_LIST) {
+        self.color = COLORS[j];
+        j++;
+    }
 
     self.updatePos = function() {
         if (self.Dpressed) {
@@ -101,7 +108,7 @@ var Player = function(id, name, color) {
         self.xspeed = 0;
         self.yspeed = 0;
     }
-    PLAYER_LIST[self.id] = self;
+
     return self;
 }
 Player.update = function() {
@@ -117,18 +124,19 @@ Player.update = function() {
 }
 
 // bullets
-var Bullet = function(mousex, mousey, x, y, parent) {
+var Bullet = function(mousex, mousey, x, y, parent, color) {
     var self = Entity();
     self.id = Math.random();
-    self.x = x+16;
-    self.y = y+16;
+    self.x = x;
+    self.y = y;
     self.angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
     self.xspeed = Math.cos(self.angle)*20;
     self.yspeed = Math.sin(self.angle)*20;
     self.todelete = false;
     self.parent = parent;
-    //self.color = parent.color;
+    self.color = color;
     BULLET_LIST[self.id] = self;
+
     return self;
 }
 Bullet.update = function() {
@@ -150,7 +158,7 @@ io.on('connection', function(socket) {
     socket.emit('init');
     socket.emit('getID');
     socket.id = Math.random();
-    var player = Player(socket.id, null, '#000000');
+    var player = Player(socket.id, null, null);
     SOCKET_LIST[socket.id] = socket;
     console.log('Client connection made. Waiting for login...');
 
@@ -158,7 +166,11 @@ io.on('connection', function(socket) {
     socket.on('disconnect', function() {
         console.log('Player "' + player.name + '" has disconnected. Player id is ' + socket.id + '.');
         delete SOCKET_LIST[socket.id];
-        delete PLAYER_LIST[socket.id];
+        delete PLAYER_LIST[player.id];
+        for (var i in SOCKET_LIST) {
+            var localsocket = SOCKET_LIST[i];
+            localsocket.emit('deleteplayer', player.id);
+        }
     });
     socket.on('timeout', function() {
         console.log('Player "' + player.name + '" timed out. Socket id is ' + socket.id + '.');
@@ -172,20 +184,42 @@ io.on('connection', function(socket) {
     //login handlers
     socket.on('login', function(cred) {
         player.name = cred.usrname;
-        console.log('Client with username "' + player.name + '" and password "' + cred.psword + '" attempted to login. Client ID is ' + socket.id + '.');
+        console.log('Client with username "' + player.name + '" attempted to login. Client ID is ' + socket.id + '.');
     });
 
     // game handlers
     socket.on('join-game', function() {
         console.log('Player "' + player.name + '" attempted to join game.');
-        //player.color = 
-        player.ingame = true;
-        var pack = {id:player.id, name:player.name, color:player.color};
-        for (var i in SOCKET_LIST) {
-            localsocket = SOCKET_LIST[i];
-            localsocket.emit('newplayer', pack);
+        var j = 0;
+        for (var i in PLAYER_LIST) {j++;}
+        if (j > 15) {
+            socket.emit('gamefull');
+            console.log(player.name + 'was not able to join, Reason: Game_Full');
+        } else {
+            player.ingame = true;
+            // send all existing players
+            var pack;
+            var players = [];
+            var bullets = [];
+            for (var i in PLAYER_LIST) {
+                var localplayer = PLAYER_LIST[i];
+                players.push({id:localplayer.id, name:localplayer.name, color:localplayer.color});
+            }
+            for (var i in BULLET_LIST) {
+                var localbullet = BULLET_LIST[i];
+                bullets.push({id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color});
+            }
+            pack = {players:players, bullets:bullets};
+            socket.emit('initgame', pack);
+            // send new player to all clients
+            var pack = {id:player.id, name:player.name, color:player.color};
+            for (var i in SOCKET_LIST) {
+                var localsocket = SOCKET_LIST[i];
+                localsocket.emit('newplayer', pack);
+            }
+            console.log(player.name + 'joined the game.')
+            socket.emit('game-joined');
         }
-        socket.emit('game-joined');
     });
     socket.on('keyPress', function(key) {
         if (key.key == 'W') {player.Wpressed = key.state;}
@@ -194,10 +228,10 @@ io.on('connection', function(socket) {
     });
     socket.on('click', function(click) {
         if (click.button == 'left') {
-            var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id);
+            var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
             var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
             for (var i in SOCKET_LIST) {
-                localsocket = SOCKET_LIST[i];
+                var localsocket = SOCKET_LIST[i];
                 localsocket.emit('newbullet', pack);
             }
         }

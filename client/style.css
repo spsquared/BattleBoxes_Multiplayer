@@ -116,11 +116,27 @@
     text-align: center;
 }
 
+/* credits container*/
+#creditsContainer {
+    text-align: left;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    padding: 16px;
+}
+
+/* credits button */
+#credits {
+    position: absolute;
+    font-size: 10px;
+}
+
 /* game container */
 #gameContainer {
     display: none;
     text-align: center;
-    position: fixed;
+    position: absolute;
     top: 0px;
     left: 0px;
     right: 0px;

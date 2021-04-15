@@ -14,13 +14,19 @@ socket.on('game-joined', function() {
     document.getElementById('gameCanvas').style.display = 'block';
     ingame = true;
 });
+socket.on('game-full', function() {
+    document.getElementById('serverfull').style.display = 'block';
+});
+
 
 // render game
 socket.on('pkg', function(pkg) {
-    game.clearRect(0,0,window.innerWidth,window.innerHeight);
-    Player.update(pkg);
-    Bullet.update();
-    connected = 0;
+    if (ingame) {
+        game.clearRect(0,0,window.innerWidth,window.innerHeight);
+        Player.update(pkg);
+        Bullet.update();
+        connected = 0;
+    }
 });
 
 // input sending
@@ -69,13 +75,15 @@ firebullet = function(event) {
 }
 
 // waiting for server
-//setInterval(function() {
-//    connected++;
-//    if (connected >= 10) {
-//        document.getElementById('loading').style.display = 'inline-block';
-//        document.getElementById('waiting').style.display = 'inline-block';
-//    } else {
-//        document.getElementById('loading').style.display = 'none';
-//        document.getElementById('waiting').style.display = 'none';
-//    }
-//}, 1000/1);
+setInterval(function() {
+    if (ingame) {
+        connected++;
+        if (connected >= 10) {
+            document.getElementById('loading').style.display = 'inline-block';
+            document.getElementById('waiting').style.display = 'inline-block';
+        } else {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('waiting').style.display = 'none';
+        }
+    }
+}, 1000/10);
