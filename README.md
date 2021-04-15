@@ -20,3 +20,5 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.2.0   | <ul><li>Added multiplayer aspect to game</li><li>Added player input and movement</li><li>Added multiplayer display functionality</li><li>Added entity.js for player functions</li></ul> |
 | 0.2.1   | <ul><li>Added start files</li><li>Replaced the old port setting system with automatic port setting system</li><li>Updated SECURITY.md with the correct link</li></ul> |
 | 0.3.0   | <ul><li>Added bullets</li><li>Merged server and client code</li><li>Added background music files</li><li>Added map and collision map files</li><li>Updated README.md</li><li>Fixed PORTS.txt</li><li>Other small tweaks</li></ul> |
+| 0.3.1   | <ul><li>Fixed bug that prevented the server from sending information to clients</li></li>Fixed Favicon.ico</li></li>Added colors to Players and Bullets</li></li>Limited player count to 16</li></ul> |
+| 0.3.2   | <ul><li>Fixed README.md and SECURITY.md</li><li>Fixed server version reporting</li><li>Fixed PORTS.txt</li></ul> |

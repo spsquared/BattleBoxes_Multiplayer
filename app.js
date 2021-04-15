@@ -1,5 +1,5 @@
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.2.1\n');
+console.log('\nThis server is running BattleBoxes Server v-0.3.2\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
