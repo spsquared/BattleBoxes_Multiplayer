@@ -1,3 +1,5 @@
+<!--Copyright (C) 2021 Radioactive64-->
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -15,7 +17,7 @@
         <style>#JavascriptDisabled {font-size: 50px; font-family: 'Pixel';}</style>
     </head>
     <body>
-        <header style="user-select: none;"><h5>v0.2.0</h5></header>
+        <header style="user-select: none; font-family: 'Pixel'; "><h5>v0.4.0</h5></header>
         <noscript id="JavascriptDisabled">Javascript is disabled. Please enable it for this site to run. There is no malicious software :).</noscript>
         <div id="menuContainer">
             <div id="loginContainer">
@@ -24,41 +26,47 @@
                 <input type="text" id="usrname" id="usrname" name="usrname"><br></br>
                 <label for="psword" id="pswordLabel">Password: </label>
                 <input type="password" id="psword" id="psword" name="psword"><br></br>
-                <input type="button" id="login" value="Log in" onclick="login()">
+                <input type="button" id="login" value="Log in" onclick="login();">
             </div>
             <div id="mainmenuContainer">
                 <br></br><br>
-                <input type="image" src="client/img/start-button.png" id="play" onclick="play()"><br></br>
-                <input type="button" id="settings" value="SETTINGS" onclick="settings()"><br></br>
-                <input type="button" id="achievements" value="ACHIEVEMENTS" onclick="achievements()"><br></br>
-                <input type="button" id="exitgame" value="EXIT" onclick="disconnectclient()">
+                <input type="image" src="client/img/start-button.png" alt="play" id="play" onclick="play();"><br></br>
+                <input type="button" id="settings" value="SETTINGS" onclick="settings();"><br></br>
+                <input type="button" id="achievements" value="ACHIEVEMENTS" onclick="achievements();"><br></br>
+                <input type="button" id="closegame" value="EXIT" onclick="disconnectclient();">
             </div>
             <div id="settingsmenuContainer">
                 <p style='font-family: Pixel;'>Settings have not been implemented yet</p>
                 <!--Back button is at top-left corner of the screen-->
-                <input type="button" id="back" value="BACK" onclick="back()">
+                <input type="button" id="back" value="BACK" onclick="back();">
             </div>
             <div id="achievementsmenuContainer">
                 <p style='font-family: Pixel;'>Achievements have not been implemented yet</p>
                 <!--Back button is at top-left corner of the screen-->
-                <input type="button" id="back" value="BACK" onclick="back()">
-            </div>
-            <div id="disconnectedContainer">
-                <br></br><br></br><br></br><br></br><br></br><br></br><br>
-                <input type="button" id="disconnected" value="DISCONNECTED" onclick="window.location.reload()">
+                <input type="button" id="back" value="BACK" onclick="back();">
             </div>
             <div id="creditsContainer">
-                <p id="credits">Credits (Copyleft Radioactive64 2021)</p>
-                <script>
-                    document.getElementById('credits').style.top = window.innerHeight - 30;
-                </script>
             </div>
+            <p id="credits">Credits (Copyright (C) Radioactive64 2021)</p>
+            <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         </div>
         <div id="gameContainer">
             <img src="client/img/loading.gif" alt="Loading..." id="loading">
-            <p id="waiting" style='font-family: Pixel; display: none; position:relative; top: 200px;'>Waiting for server...</p>
-            <p id="serverfull" style='font-family: Pixel; display: none; position: relative; top:200px;'>Server is full...</p>
-            <canvas id="gameCanvas">
+            <p id="waiting" style='font-family: Pixel; display: none; position:relative; top: 100px;'>Waiting for server...</p>
+            <p id="serverfull" style='font-family: Pixel; display: none; position: relative; top:100px;'>Server is full...</p>
+            <canvas id="gameCanvas"></canvas>
+            <p id="debug" class="overlayGUI"></p>
+            <!--<p id="fpscounter" class="overlayGUI">FPS: 0</p>-->
+            <div id=ingameMenu>
+                <input type="button" id="resume" value="RESUME" onclick="resume();"><br><br>
+                <input type="button" id="ingameSettings" value="SETTINGS" onclick="ingamesettings();"><br><br>
+                <input type="button" id="ingameAchievements" value="ACHIEVEMENTS" onclick="ingameachievements();"><br><br>
+                <input type="button" id="leavegame" value="LEAVE" onclick="quittoMenu();">
+            </div>
+        </div>
+        <div id="disconnectedContainer">
+            <br></br><br></br><br></br><br></br><br></br><br></br><br>
+            <input type="button" id="disconnected" value="DISCONNECTED" onclick="window.location.reload()">
         </div>
     </body>
 </html>

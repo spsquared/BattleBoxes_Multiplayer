@@ -1,13 +1,20 @@
+// Copyright (C) 2021 Radioactive64
+// Go to README.md for more information
+
+console.warn("\nBattleBoxes Multiplayer Server v-0.4.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------");
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.3.2\n');
+console.log('\nThis server is running BattleBoxes Server v-0.4.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
-const os = require('os');
 const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
+require('./server/entity.js');
+require('./server/game.js');
+MAPS = [];
+CURRENT_MAP = null;
 
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
@@ -22,7 +29,7 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
         reader.nextLine(function(err, line) {
             if (err) throw err;
             if (line >=100) {
-                console.warn('\n------------------------------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n------------------------------------------------------------------------------------------------------\n');
+                console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
                 process.abort();
             }
             ports = parseInt(line)+1;
@@ -37,123 +44,50 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
         });
     });
 });
-
-var SOCKET_LIST = {};
-var PLAYER_LIST = {};
-var BULLET_LIST = {};
-var COLORS = ["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9900FF", "#FF00FF", "#000000", "#AA0000", "#996600", "#EECC33", "#00AA00", "#0088CC", "#8877CC", "#CC77AA"];
-
-// entity
-var Entity = function() {
-    var self = {
-        x:0,
-        y:0,
-        xspeed:0,
-        yspeed:0,
-        id:"",
-        color:"#000000"
-    }
-
-    self.update = function() {
-        self.updatePos();
-    }
-    self.updatePos = function() {
-        self.x += self.xspeed;
-        self.y += self.yspeed;
-    }
-
-    return self;
-}
-
-// player
-var Player = function(id, name) {
-    var self = Entity();
-    self.id = id;
-    self.name = name;
-    self.ingame = false;
-    Wpressed = false;
-    Apressed = false;
-    Dpressed = false;
-    Clicked = false;
-    self.hp = 5;
-    self.score = 0;
-    PLAYER_LIST[self.id] = self;
-    var j = 0;
-    for (i in PLAYER_LIST) {
-        self.color = COLORS[j];
+var data1 = require('./server/Map1.json');
+var data2 = [];
+data2[0] = [];
+data2.width = data1.width;
+data2.height = data1.height;
+data2.spawnx = data1.spawnx;
+data2.spawny = data1.spawny;
+var j = 0;
+for (var i in data1.data) {
+    data2[j][i-(j*data1.width)] = data1.data[i];
+    if (i-(j*data1.width) > data1.width-2) {
         j++;
+        data2[j] = [];
     }
-
-    self.updatePos = function() {
-        if (self.Dpressed) {
-            self.xspeed += 2;
-        }
-        if (self.Apressed) {
-            self.xspeed -= 2;
-        }
-        if (self.Wpressed) {
-            //collisions
-            self.yspeed = 10;
-        }
-        self.x += self.xspeed;
-        self.y -= self.yspeed;
-        self.yspeed -= 1;
-        self.xspeed *= 0.9;
-        if (self.y > 600) {
-            self.y=600;
-            self.yspeed=0;
-        }
-    }
-    self.respawn = function() {
-        self.xspeed = 0;
-        self.yspeed = 0;
-    }
-
-    return self;
 }
-Player.update = function() {
-    var pack = [];
-    for (var i in PLAYER_LIST) {
-        var localplayer = PLAYER_LIST[i];
-        if (localplayer.ingame) {
-            localplayer.update();
-            pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, name:localplayer.name, hp:localplayer.hp, score:localplayer.score});
-        }
+MAPS[1] = data2;
+var data1 = require('./server/Map2.json');
+var data2 = [];
+data2[0] = [];
+data2.width = data1.width;
+data2.height = data1.height;
+data2.spawnx = data1.spawnx;
+data2.spawny = data1.spawny;
+var j = 0;
+for (var i in data1.data) {
+    data2[j][i-(j*data1.width)] = data1.data[i];
+    if (i-(j*data1.width) > data1.width-2) {
+        j++;
+        data2[j] = [];
     }
-    return pack;
 }
+MAPS[2] = data2;
+var SOCKET_LIST = {};
 
-// bullets
-var Bullet = function(mousex, mousey, x, y, parent, color) {
-    var self = Entity();
-    self.id = Math.random();
-    self.x = x;
-    self.y = y;
-    self.angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
-    self.xspeed = Math.cos(self.angle)*20;
-    self.yspeed = Math.sin(self.angle)*20;
-    self.todelete = false;
-    self.parent = parent;
-    self.color = color;
-    BULLET_LIST[self.id] = self;
-
-    return self;
+// TEMP
+if (Math.random > 0.5) {
+    CURRENT_MAP = 1;
+} else {
+    CURRENT_MAP = 2;
 }
-Bullet.update = function() {
-    var pack = [];
-    for (var i in BULLET_LIST) {
-        var localbullet = BULLET_LIST[i];
-        localbullet.updatePos();
-        if (Bullet.todelete) {
-            delete BULLET_LIST[i];
-            socket.emit('deletebullet', localbullet.id);
-        }
-    }
-    return pack;
-}
+// END TEMP
 
 // enable connection
-var io = require('socket.io') (server, {});
+io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
     socket.emit('init');
     socket.emit('getID');
@@ -167,10 +101,7 @@ io.on('connection', function(socket) {
         console.log('Player "' + player.name + '" has disconnected. Player id is ' + socket.id + '.');
         delete SOCKET_LIST[socket.id];
         delete PLAYER_LIST[player.id];
-        for (var i in SOCKET_LIST) {
-            var localsocket = SOCKET_LIST[i];
-            localsocket.emit('deleteplayer', player.id);
-        }
+        io.emit('deleteplayer', player.id);
     });
     socket.on('timeout', function() {
         console.log('Player "' + player.name + '" timed out. Socket id is ' + socket.id + '.');
@@ -191,10 +122,15 @@ io.on('connection', function(socket) {
     socket.on('join-game', function() {
         console.log('Player "' + player.name + '" attempted to join game.');
         var j = 0;
-        for (var i in PLAYER_LIST) {j++;}
+        for (var i in PLAYER_LIST) {
+            if (PLAYER_LIST[i].ingame) {
+                j++;
+            }
+        }
         if (j > 15) {
             socket.emit('gamefull');
             console.log(player.name + 'was not able to join, Reason: Game_Full');
+            socket.emit('game-joined');
         } else {
             player.ingame = true;
             // send all existing players
@@ -209,16 +145,13 @@ io.on('connection', function(socket) {
                 var localbullet = BULLET_LIST[i];
                 bullets.push({id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color});
             }
-            pack = {players:players, bullets:bullets};
+            pack = {self:player.id, players:players, bullets:bullets};
             socket.emit('initgame', pack);
             // send new player to all clients
             var pack = {id:player.id, name:player.name, color:player.color};
-            for (var i in SOCKET_LIST) {
-                var localsocket = SOCKET_LIST[i];
-                localsocket.emit('newplayer', pack);
-            }
-            console.log(player.name + 'joined the game.')
-            socket.emit('game-joined');
+            io.emit('newplayer', pack);
+            console.log(player.name + 'joined the game.');
+            socket.emit('game-joined', CURRENT_MAP);
         }
     });
     socket.on('keyPress', function(key) {
@@ -230,41 +163,55 @@ io.on('connection', function(socket) {
         if (click.button == 'left') {
             var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
             var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
-            for (var i in SOCKET_LIST) {
-                var localsocket = SOCKET_LIST[i];
-                localsocket.emit('newbullet', pack);
-            }
+            io.emit('newbullet', pack);
         }
     });
+    /*
+    socket.on('debug', function() {
+        if (player.debug) {
+            player.debug = false;
+        } else {
+            player.debug = true;
+        }
+    });
+    */
 });
 
 // Server-side tps
 setInterval(function() {
+    Bullet.update();
     var pack = Player.update();
-    for (var i in SOCKET_LIST) {
-        var localsocket = SOCKET_LIST[i];
-        localsocket.emit('pkg', pack);
-    }
-}, 1000/30);
+    io.emit('update', pack);
+}, 1000/60);
 
 // Stop server code
 prompt.on('line', (input) => {
     if (input=='stop') {
         queryStop(true);
     } else if (input=='Purple') {
-        console.log('Purple exception detected. Purpling...')
+        console.log('Purple exception detected. Purpling...');
         console.log('---------------------------------------------------');
-        setTimeout(function() {}, 1000/20);
-        while (true) {
-            console.log('purple');
-            console.warn('purple');
-            console.error('purple');
-        }
+        io.emit('disconnected');
+        fs.open('./server/PORTS.txt', 'a+', function(err) {
+            lineReader.open('./server/PORTS.txt', function (err, reader) {
+                if (err) throw err;
+                reader.nextLine(function(err, line) {
+                    if (err) throw err;
+                    ports = parseInt(line)-1;
+                    var portsstring = ports.toString();
+                    fs.writeFileSync('./server/PORTS.txt', portsstring);
+                });
+            });
+        });
+        setTimeout(function() {
+            while (true) {
+                console.log('purple');
+                console.warn('purple');
+                console.error('purple');
+            }
+        }, 1000);
     } else if (input=='disconnect') {
-        for (var i in SOCKET_LIST) {
-            var localsocket = SOCKET_LIST[i];
-            localsocket.emit('disconnected');
-        }
+        io.emit('disconnected');
         console.log('Clients disconnected');
     } else {
         console.error('Error: ' + input + ' is not a valid input.');
@@ -275,10 +222,7 @@ function queryStop(firstrun) {
         prompt.question('\nAre you sure you want to stop the server? y/n\n> ', (answer) => {
             if (answer=='y') {
                 console.log('Closing server...');
-                // request for positions of players
                 io.emit('disconnected');
-                console.log('Saving players and projectiles...');
-                // save positions, health, velocity of projectiles and players
                 console.log('Stopping server...');
                 fs.open('./server/PORTS.txt', 'a+', function(err) {
                     lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -289,7 +233,7 @@ function queryStop(firstrun) {
                             var portsstring = ports.toString();
                             fs.writeFileSync('./server/PORTS.txt', portsstring);
                             console.log('Server stopped.');
-                            process.exit();
+                            process.exit(0);
                         });
                     });
                 });

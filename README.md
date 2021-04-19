@@ -4,13 +4,15 @@ BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!
 ***
 
 ### Installation
-I cannot distribute node.js as I do not own any rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it with the default settings. From there [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Then simply double-click on the Start file (Start.bat or Start.sh) and the server is running!
+I can distribute node.js as I do own all rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system).Then simply double-click on Start.bat or Start.sh and the server is running!
 Or, you can run the .pkg file included. However, I have no idea how to use it so you'll have to figure it out for yourself.
 
 To stop the server, type "stop" into the server console.
 
 ### Joining the Game
 Once the server is started, you can find your computer's name (available in Windows>System>About as "Device name"), or simply search [what's my ip](http://google.com/search?q=whats+my+ip) or click the link. The server console will tell you what port to visit and you can type either the ip address or computer name on the client side **connected to the same network as the host** and then followed by a ":" and then the port number. Example: 111.22.33.444:2000 or hostcomputer:1100
+
+## Changelog
 
 ----Changelog----
 | Version | Changes                      |
@@ -22,3 +24,21 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.3.0   | <ul><li>Added bullets</li><li>Merged server and client code</li><li>Added background music files</li><li>Added map and collision map files</li><li>Updated README.md</li><li>Fixed PORTS.txt</li><li>Other small tweaks</li></ul> |
 | 0.3.1   | <ul><li>Fixed bug that prevented the server from sending information to clients</li></li>Fixed Favicon.ico</li></li>Added colors to Players and Bullets</li></li>Limited player count to 16</li></ul> |
 | 0.3.2   | <ul><li>Fixed README.md and SECURITY.md</li><li>Fixed server version reporting</li><li>Fixed PORTS.txt</li></ul> |
+| 0.4.0   | <ul><li>Added map collisions to player</li><li>Made camera scroll to keep player on screen</li><li>Added maps</li><li>Fixed a lot of version labels</li><li>Added Config.bat and Config.sh to help setup</li><li>Added debug screen</li><li>Added framework for ingame menu</li><li>Cleaned up code</li><li>Many other tiny tweaks</li></ul> |
+
+## License
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Full license can be found in the LICENSE file.
+
+## Credits
+
+##### Contributors:
+- [https://github.com/definitely-nobody-is-here](https://github.com/definitely-nobody-is-here) (hey look me!)
+- [The-God-Coder](https://github.com/The-God-coder)
+- [Maitian-352](https://github.com/maitian352)
+
+##### Resources:
+- Various articles on the internet
+- [ScriptersWar](https://www.youtube.com/channel/UC8Yp-YagXZ4C5vOduEhcjRw) [turorial series](https://www.youtube.com/playlist?list=PLcIaPHraYF7k4FbeGIDY-1mZZdjTu9QyL)

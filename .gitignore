@@ -117,3 +117,9 @@ dist
 
 # Server files
 server/PORTS.txt
+
+# Google Drive
+*desktop.ini
+
+# Allow package-lock
+!node_modules/package-lock.json

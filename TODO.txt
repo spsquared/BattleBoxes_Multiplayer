@@ -1,6 +1,6 @@
-add maps and collisions
+add announcements button (opens a window with announcements)
 Add achievements
 Add accounts
 Add settings
 Add game saves
-Add random loot boxes that give you shields or more/faster damage
+Add random loot boxes that give you shields or more/faster damage/homing bullets
