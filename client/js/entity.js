@@ -42,7 +42,7 @@ Player = function(id, name, color) {
         game.fillText(self.name, self.relx, self.rely-32);
         var hpWidth = 60* (self.hp/5);
         game.fillStyle = HP_Color[self.hp];
-        game.fillRect(self.relx-(hpWidth/2), self.rely-24, hpWidth, 4);
+        game.fillRect(self.relx-30, self.rely-24, hpWidth, 4);
         game.fillStyle = color;
         game.fillRect(self.relx-16, self.rely-16, 32, 32);
     }

@@ -2,11 +2,11 @@
 
 PLAYER_LIST = {};
 BULLET_LIST = {};
-var COLORS = ["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9900FF", "#FF00FF", "#000000", "#AA0000", "#996600", "#EECC33", "#00AA00", "#0088CC", "#8877CC", "#CC77AA"];
+COLORS = [["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9900FF", "#FF00FF", "#000000", "#AA0000", "#996600", "#EECC33", "#00AA00", "#0088CC", "#8877CC", "#CC77AA"], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
 
 // entity
 Entity = function() {
-    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:"", color:"#000000", debug:false};
+    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false, center:false}, id:"", color:"#000000", debug:false};
 
     self.update = function() {
         self.collide();
@@ -17,6 +17,7 @@ Entity = function() {
         self.colliding.left = false;
         self.colliding.right = false;
         self.colliding.top = false;
+        self.colliding.center = false;
         var px = Math.floor(self.x/40);
         var py = Math.floor(self.y/40);
         // bottomleft
@@ -86,7 +87,7 @@ Entity = function() {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
                     self.y += ((tempy*40)+40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.5;
+                    self.yspeed *= -0.25;
                     self.colliding.top = true;
                 }
             }
@@ -98,7 +99,7 @@ Entity = function() {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if ((tempx*40) < (self.x+self.halfsize) && ((tempx*40)+40) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
                     self.y += ((tempy*40)+40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.5;
+                    self.yspeed *= -0.25;
                     self.colliding.top = true;
                 }
             }
@@ -110,9 +111,17 @@ Entity = function() {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && ((tempy*40) > self.y-self.halfsize)) {
                     self.y += ((tempy*40)+40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.5;
+                    self.yspeed *= -0.25;
                     self.colliding.top = true;
                 }
+            }
+        }
+        // center (for bullets)
+        tempx = px;
+        tempy = py;
+        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
+            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                self.colliding.center = true;
             }
         }
     }
@@ -133,19 +142,33 @@ Player = function(id, name) {
     self.y = MAPS[CURRENT_MAP].spawny;
     self.halfsize = 16;
     self.ingame = false;
-    Wpressed = false;
-    Apressed = false;
-    Dpressed = false;
-    Clicked = false;
+    self.Wpressed = false;
+    self.Apressed = false;
+    self.Dpressed = false;
+    self.Clicked = false;
+    self.maxCPS = 10;
+    self.lastclick = 0;
     self.hp = 5;
     self.score = 0;
     var j = 0;
-    for (i in PLAYER_LIST) {
-        j++;
+    for (var i in COLORS[1]) {
+        if (COLORS[1][i] == 1) {
+            j++;
+        }
     }
-    self.color = COLORS[j];
+    self.color = COLORS[0][j];
+    COLORS[1][j] = 1;
     PLAYER_LIST[self.id] = self;
 
+    self.update = function() {
+        self.collide();
+        self.updatePos();
+        self.lastclick++;
+        if (self.hp < 1) {
+            self.respawn(MAPS[CURRENT_MAP].spawnx, MAPS[CURRENT_MAP].spawny);
+            self.hp = 5;
+        }
+    }
     self.updatePos = function() {
         if (self.Dpressed) {
             self.xspeed += 1;
@@ -173,11 +196,11 @@ Player = function(id, name) {
             self.x = 16;
             self.xspeed = 0;
         }
-        if (self.x+16 > MAPS[CURRENT_MAP].width*40) {
+        if (self.x+16 > (MAPS[CURRENT_MAP].width*40)) {
             self.x = MAPS[CURRENT_MAP].width*40-16;
             self.xspeed = 0;
         }
-        if (self.y+16 > MAPS[CURRENT_MAP].height*40) {
+        if (self.y+16 > (MAPS[CURRENT_MAP].height*40)+40) {
             self.respawn(MAPS[CURRENT_MAP].spawnx, MAPS[CURRENT_MAP].spawny);
         }
         self.collide();
@@ -212,8 +235,8 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     self.x = x;
     self.y = y;
     self.angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
-    self.xspeed = Math.cos(self.angle)*10;
-    self.yspeed = Math.sin(self.angle)*10;
+    self.xspeed = Math.cos(self.angle)*20;
+    self.yspeed = Math.sin(self.angle)*20;
     self.halfsize = 2;
     self.parent = parent;
     self.color = color;
@@ -226,9 +249,19 @@ Bullet.update = function() {
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
-        if (localbullet.colliding.top || localbullet.colliding.left || localbullet.colliding.right || localbullet.colliding.bottom || localbullet.x < -100 || localbullet.x > ((MAPS[CURRENT_MAP].width*40)+100) || localbullet.y < -100 || localbullet.y > ((MAPS[CURRENT_MAP].height*40)+100)) {
+        if (localbullet.colliding.top || localbullet.colliding.left || localbullet.colliding.right || localbullet.colliding.bottom || localbullet.colliding.center || localbullet.x < -500 || localbullet.x > ((MAPS[CURRENT_MAP].width*40)+500) || localbullet.y < -500 || localbullet.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
             delete BULLET_LIST[i];
             io.emit('deletebullet', localbullet.id);
+        }
+        for (var i in PLAYER_LIST) {
+            var localplayer = PLAYER_LIST[i];
+            if (localplayer.id != localbullet.parent) {
+                if (Math.abs(localbullet.x - localplayer.x) < 16 && Math.abs(localbullet.y - localplayer.y) < 16) {
+                    localplayer.hp--;
+                    delete BULLET_LIST[i];
+                    io.emit('deletebullet', localbullet.id);
+                }
+            }
         }
     }
     return pack;

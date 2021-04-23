@@ -4,13 +4,15 @@ BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!
 ***
 
 ### Installation
-I cannot distribute node.js as I do not own all rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system).Then simply double-click on Start.bat or Start.sh and the server is running!
+I cannot distribute node.js as I do not own any rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system).Then simply double-click on Start.bat or Start.sh and the server is running!
 Or, you can run the .pkg file included. However, I have no idea how to use it so you'll have to figure it out for yourself.
 
 To stop the server, type "stop" into the server console.
 
 ### Joining the Game
 Once the server is started, you can find your computer's name (available in Windows>System>About as "Device name"), or simply search [what's my ip](http://google.com/search?q=whats+my+ip) or click the link. The server console will tell you what port to visit and you can type either the ip address or computer name on the client side **connected to the same network as the host** and then followed by a ":" and then the port number. Example: 111.22.33.444:2000 or hostcomputer:1100
+
+***
 
 ## Changelog
 
@@ -22,9 +24,12 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.2.0   | <ul><li>Added multiplayer aspect to game</li><li>Added player input and movement</li><li>Added multiplayer display functionality</li><li>Added entity.js for player functions</li></ul> |
 | 0.2.1   | <ul><li>Added start files</li><li>Replaced the old port setting system with automatic port setting system</li><li>Updated SECURITY.md with the correct link</li></ul> |
 | 0.3.0   | <ul><li>Added bullets</li><li>Merged server and client code</li><li>Added background music files</li><li>Added map and collision map files</li><li>Updated README.md</li><li>Fixed PORTS.txt</li><li>Other small tweaks</li></ul> |
-| 0.3.1   | <ul><li>Fixed bug that prevented the server from sending information to clients</li></li>Fixed Favicon.ico</li></li>Added colors to Players and Bullets</li></li>Limited player count to 16</li></ul> |
+| 0.3.1   | <ul><li>Fixed bug that prevented the server from sending information to clients</li><li>Fixed Favicon.ico</li><li>Added colors to Players and Bullets</li><li>Limited player count to 16</li></ul> |
 | 0.3.2   | <ul><li>Fixed README.md and SECURITY.md</li><li>Fixed server version reporting</li><li>Fixed PORTS.txt</li></ul> |
 | 0.4.0   | <ul><li>Added map collisions to player</li><li>Made camera scroll to keep player on screen</li><li>Added maps</li><li>Fixed a lot of version labels</li><li>Added Config.bat and Config.sh to help setup</li><li>Added debug screen</li><li>Added framework for ingame menu</li><li>Cleaned up code</li><li>Many other tiny tweaks</li></ul> |
+| 0.4.1   | <ul><li>Fixed bullet collisions and added player damage</li><li>Fixed most player color dupes(leaving would cause new players to have duplicated colors)</li><li>Updated maps</li><li>Added community submission forms</li><li>Fixed README.md</li><li>Some changes to code formatting</li></ul> |
+
+***
 
 ## License
 
@@ -32,13 +37,21 @@ This program is free software: you can redistribute it and/or modify it under th
 
 Full license can be found in the LICENSE file.
 
+***
+
 ## Credits
 
 ##### Contributors:
-- [https://github.com/definitely-nobody-is-here](https://github.com/definitely-nobody-is-here) (hey look me!)
+- [Radioactive64](https://github.com/definitely-nobody-is-here) (hey look me!)
 - [The-God-Coder](https://github.com/The-God-coder)
 - [Maitian-352](https://github.com/maitian352)
 
 ##### Resources:
 - Various articles on the internet
 - [ScriptersWar](https://www.youtube.com/channel/UC8Yp-YagXZ4C5vOduEhcjRw) [turorial series](https://www.youtube.com/playlist?list=PLcIaPHraYF7k4FbeGIDY-1mZZdjTu9QyL)
+
+***
+
+## Want to Contribute?
+
+If you would like to contribute to this game, visit the [Github](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) where you can send a pull request with an application request stating your reason to create a pull request in the "comments" section along with it. If you would like to submit a community map then submit it via [this form](https://docs.google.com/forms/d/e/1FAIpQLSfrTWNBDoC5KjXk1TJwQa4oJEZdpiSp0fxqmbCReMZqhdLkqQ/viewform?usp=sf_link).

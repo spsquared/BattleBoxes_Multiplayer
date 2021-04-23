@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn("\nBattleBoxes Multiplayer Server v-0.4.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------");
+console.warn("\nBattleBoxes Multiplayer Server v-0.4.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------");
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.4.0\n');
+console.log('\nThis server is running BattleBoxes Server v-0.4.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -79,7 +79,7 @@ MAPS[2] = data2;
 var SOCKET_LIST = {};
 
 // TEMP
-if (Math.random > 0.5) {
+if ((Math.floor(Math.random()*2)) == 1) {
     CURRENT_MAP = 1;
 } else {
     CURRENT_MAP = 2;
@@ -87,6 +87,7 @@ if (Math.random > 0.5) {
 // END TEMP
 
 // enable connection
+console.log('Starting server...')
 io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
     socket.emit('init');
@@ -94,17 +95,22 @@ io.on('connection', function(socket) {
     socket.id = Math.random();
     var player = Player(socket.id, null, null);
     SOCKET_LIST[socket.id] = socket;
-    console.log('Client connection made. Waiting for login...');
+    console.log('Client connection made.');
 
     // connection handlers
     socket.on('disconnect', function() {
         console.log('Player "' + player.name + '" has disconnected. Player id is ' + socket.id + '.');
         delete SOCKET_LIST[socket.id];
         delete PLAYER_LIST[player.id];
+        for (var i in COLORS[1]) {
+            if (COLORS[0][i] == player.color) {
+                COLORS[1][i] = 0;
+            }
+        }
         io.emit('deleteplayer', player.id);
     });
     socket.on('timeout', function() {
-        console.log('Player "' + player.name + '" timed out. Socket id is ' + socket.id + '.');
+        console.log('Player "' + player.name + '" timed out.');
         socket.disconnect();
     });
     socket.on('disconnectclient', function() {
@@ -115,7 +121,7 @@ io.on('connection', function(socket) {
     //login handlers
     socket.on('login', function(cred) {
         player.name = cred.usrname;
-        console.log('Client with username "' + player.name + '" attempted to login. Client ID is ' + socket.id + '.');
+        console.log('Player with username "' + player.name + '" attempted to login. Client ID is ' + socket.id + '.');
     });
 
     // game handlers
@@ -129,7 +135,7 @@ io.on('connection', function(socket) {
         }
         if (j > 15) {
             socket.emit('gamefull');
-            console.log(player.name + 'was not able to join, Reason: Game_Full');
+            console.log(player.name + 'was not able to join; Reason: Game_Full');
             socket.emit('game-joined');
         } else {
             player.ingame = true;
@@ -150,7 +156,7 @@ io.on('connection', function(socket) {
             // send new player to all clients
             var pack = {id:player.id, name:player.name, color:player.color};
             io.emit('newplayer', pack);
-            console.log(player.name + 'joined the game.');
+            console.log(player.name + ' joined the game.');
             socket.emit('game-joined', CURRENT_MAP);
         }
     });
@@ -161,9 +167,12 @@ io.on('connection', function(socket) {
     });
     socket.on('click', function(click) {
         if (click.button == 'left') {
-            var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
-            var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
-            io.emit('newbullet', pack);
+            if (player.lastclick > ((1000/player.maxCPS)/(1000/60))) {
+                var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
+                player.lastclick = 0;
+                var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
+                io.emit('newbullet', pack);
+            }
         }
     });
     /*
@@ -177,15 +186,15 @@ io.on('connection', function(socket) {
     */
 });
 
-// Server-side tps
+// server-side tps
 setInterval(function() {
     Bullet.update();
     var pack = Player.update();
     io.emit('update', pack);
 }, 1000/60);
 
-// Stop server code
-prompt.on('line', (input) => {
+// console interface
+prompt.on('line', function(input) {
     if (input=='stop') {
         queryStop(true);
     } else if (input=='Purple') {
@@ -212,15 +221,15 @@ prompt.on('line', (input) => {
         }, 1000);
     } else if (input=='disconnect') {
         io.emit('disconnected');
-        console.log('Clients disconnected');
+        console.log('Clients disconnected.');
     } else {
-        console.error('Error: ' + input + ' is not a valid input.');
+        console.error('Error: ' + input + ' is not a valid input.\n> ');
     }
 });
 function queryStop(firstrun) {
-    if (firstrun==true) {
-        prompt.question('\nAre you sure you want to stop the server? y/n\n> ', (answer) => {
-            if (answer=='y') {
+    if (firstrun == true) {
+        prompt.question('Are you sure you want to stop the server? y/n\n> ', function(answer) {
+            if (answer == 'y') {
                 console.log('Closing server...');
                 io.emit('disconnected');
                 console.log('Stopping server...');
@@ -237,16 +246,16 @@ function queryStop(firstrun) {
                         });
                     });
                 });
-            } else if (answer=='n') {
-                console.log('Server stop cancelled.\n');
+            } else if (answer == 'n') {
+                console.log('Server stop cancelled.\n> ');
             } else {
-                console.warn(answer + ' is not a valid answer.');
+                console.warn(answer + ' is not a valid answer.\n> ');
                 queryStop(false);
             }
         });
     } else {
-        prompt.question('Please enter y or n.\n> ', (answer) => {
-            if (answer=='y') {
+        prompt.question('Please enter y or n.\n> ', function(answer) {
+            if (answer == 'y') {
                 console.log('Closing server...');
                 // request for positions of players
                 io.emit('disconnected');
@@ -267,10 +276,10 @@ function queryStop(firstrun) {
                         });
                     });
                 });
-            } else if (answer=='n') {
-                console.log('Server stop cancelled.\n');
+            } else if (answer == 'n') {
+                console.log('Server stop cancelled.\n> ');
             } else {
-                console.warn(answer + ' is not a valid answer.');
+                console.warn(answer + ' is not a valid answer.\n> ');
                 queryStop(false);
             }
         });

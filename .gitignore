@@ -115,6 +115,9 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# dev files
+*.code-workspace
+
 # Server files
 server/PORTS.txt
 
@@ -122,4 +125,4 @@ server/PORTS.txt
 *desktop.ini
 
 # Allow package-lock
-!node_modules/package-lock.json
+!node_modules/.package-lock.json

@@ -1,5 +1,7 @@
 // Copyright (C) 2021 Radioactive64
 
+var music;
+
 // login functions
 function login() {
     if (document.getElementById('usrname').value == '') {
@@ -38,6 +40,7 @@ function disconnectclient() {
 // ingame menu functions
 function resume() {
     document.getElementById('ingameMenu').style.display = 'none';
+    inmenu = false;
 }
 function ingameSettings() {
 
@@ -53,15 +56,19 @@ function quittoMenu() {
 socket.on('init', function() {
     document.getElementById('disconnectedContainer').style.display = 'none';
     document.getElementById('menuContainer').style.display = 'block';
-    document.getElementById('credits').style.top = window.innerHeight - 44;
-    document.getElementById('githublink').style.top = window.innerHeight - 26;
+    document.getElementById('credits').style.top = (window.innerHeight - 44);
+    document.getElementById('githublink').style.top = (window.innerHeight - 26);
     document.getElementById('viewport').width = window.innerWidth;
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
     document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
-    document.getElementById('gameCanvas').onmousedown = firebullet;
     document.getElementById('gameCanvas').onmouseup = function() {shooting = false;};
+    document.getElementById('ingameMenu').style.left = (window.innerWidth/2);
+    music = $("#music");
+    music.src = "/client/sound/Menu.mp3";
+    //music.load();
+    //music.play();
 });
 socket.on('getID', function() {
     document.getElementById('loginContainer').style.display = 'inline-block';

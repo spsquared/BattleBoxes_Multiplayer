@@ -2,15 +2,19 @@
 
 $.ajaxSetup({cache: true, async:false});
 $.getScript("/client/js/entity.js");
+$.getScript("/client/js/menu.js");
 var game = document.getElementById('gameCanvas').getContext('2d');
 game.font = '32px Pixel';
 var map = new Image();
 map.width = 0;
 map.height = 0;
+var currentmusic = 1;
 var connected = 0;
 var mouseX;
 var mouseY;
+var shooting = false;
 var ingame;
+var inmenu;
 
 // canvas resizing
 window.onresize = function() {
@@ -27,6 +31,7 @@ socket.on('game-joined', function(id) {
     map.src = '/client/img/map' + id + '.png';
     document.getElementById('loading').style.display = 'none';
     document.getElementById('gameCanvas').style.display = 'block';
+    music.src = ("Ingame_" + currentmusic);
     ingame = true;
 });
 socket.on('game-full', function() {
@@ -39,8 +44,8 @@ socket.on('update', function(pkg) {
         game.clearRect(0,0,window.innerWidth,window.innerHeight);
         drawMap();
         updateCamera();
-        Player.update(pkg);
         Bullet.update();
+        Player.update(pkg);
         player = PLAYER_LIST[player.id];
         if (player.debug) {
             drawDebug();
@@ -73,10 +78,21 @@ function drawDebug() {
     game.fillText("(x: " + (player.x/40) + ", y: " + (player.y/40) + ")", 8, 16);
 }
 
+// sound
+//music.addEventListener('ended', function() {
+//    currentmusic++;
+//    if (currentmusic > 5) {
+//        currentmusic = 1;
+//    }
+//    music.src = ("Ingame_" + currentmusic);
+//    music.load();
+//    music.play();
+//});
+
 // input sending
-var shooting = false;
+
 document.onkeydown = function(event) {
-    if (ingame) {
+    if (ingame && !inmenu) {
         if (event.key == 'w' || event.key == 'W') {
             socket.emit('keyPress', {key:'W', state:true});
         }
@@ -100,7 +116,14 @@ document.onkeyup = function(event) {
             socket.emit('keyPress', {key:'D', state:false});
         }
         if (event.key == 'Escape') {
-            document.getElementById('ingameMenu').style.display = 'inline-block';
+            if (inmenu) {
+                document.getElementById('ingameMenu').style.display = 'none';
+                inmenu = false;
+            } else {
+                document.getElementById('ingameMenu').style.display = 'inline-block';
+                inmenu = true;
+            }
+            
         }
         if (event.code == 'Backslash') {
             if (PLAYER_LIST[player.id].debug) {
@@ -112,18 +135,16 @@ document.onkeyup = function(event) {
         }
     }
 }
-document.onmousemove = function(event) {
+document.onmousedown = function(event) {
     mouseX = camera.x+event.clientX;
     mouseY = camera.y+event.clientY;
-}
-function firebullet(event) {
-    if (ingame) {
+    if (ingame && !inmenu) {
         if (!shooting) {
-            switch (event.which) {
-                case 1:
+            switch (event.button) {
+                case 0:
                     socket.emit('click', {button:'left', x:mouseX, y:mouseY});
                     shooting = true; 
-                case 3:
+                case 2:
                     socket.emit('click', {button:'right'});
                     shooting = true;
             }

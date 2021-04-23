@@ -1,6 +1,6 @@
 {
   "name": "battleboxes_multiplayer",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Multiplayer BattleBoxes",
   "main": "app.js",
   "scripts": {
