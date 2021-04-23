@@ -4,7 +4,7 @@ BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!
 ***
 
 ### Installation
-I can distribute node.js as I do own all rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system).Then simply double-click on Start.bat or Start.sh and the server is running!
+I cannot distribute node.js as I do not own all rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system).Then simply double-click on Start.bat or Start.sh and the server is running!
 Or, you can run the .pkg file included. However, I have no idea how to use it so you'll have to figure it out for yourself.
 
 To stop the server, type "stop" into the server console.
