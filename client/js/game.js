@@ -3,18 +3,24 @@
 $.ajaxSetup({cache: true, async:false});
 $.getScript("/client/js/entity.js");
 $.getScript("/client/js/menu.js");
-var game = document.getElementById('gameCanvas').getContext('2d');
-game.font = '32px Pixel';
-var map = new Image();
+PLAYER_LIST = {};
+BULLET_LIST = {};
+player = null;
+game = document.getElementById('gameCanvas').getContext('2d');
+map = new Image();
 map.width = 0;
 map.height = 0;
+camera = {x:0, y:0, w:window.innerWidth/2, h:window.innerHeight/2};
 var currentmusic = 1;
-var connected = 0;
+var fpsCounter = 0;
+var fps = 0;
 var mouseX;
 var mouseY;
 var shooting = false;
 var ingame;
 var inmenu;
+var consoleAccess = false;
+var connected = 0;
 
 // canvas resizing
 window.onresize = function() {
@@ -41,16 +47,21 @@ socket.on('game-full', function() {
 // draw game
 socket.on('update', function(pkg) {
     if (ingame) {
-        game.clearRect(0,0,window.innerWidth,window.innerHeight);
+        game.clearRect(0, 0, window.innerWidth, window.innerHeight);
         drawMap();
         updateCamera();
+        if (player.debug) {
+            for (var i in pkg) {
+                if (pkg[i].id == player.id) {
+                    drawDebug(pkg[i].debug);
+                }
+            }
+        }
         Bullet.update();
         Player.update(pkg);
         player = PLAYER_LIST[player.id];
-        if (player.debug) {
-            drawDebug();
-        }
         connected = 0;
+        fpsCounter++;
     }
 });
 function drawMap() {
@@ -72,10 +83,31 @@ function updateCamera() {
     }
 
 }
-function drawDebug() {
+function drawDebug(debugInfo) {
+    game.fillStyle = "#FFFFFF88";
+    game.fillRect(4, 4, 380, 48);
+    game.fillRect((window.innerWidth - 94), 4, 90, 32)
     game.fillStyle = "#000000";
+    game.font = '16px Pixel';
     game.textAlign = "left";
-    game.fillText("(x: " + (player.x/40) + ", y: " + (player.y/40) + ")", 8, 16);
+    game.fillText("(x:" + (Math.round(player.x)/40) + ", y:" + (Math.round(player.y)/40) + ")", 8, 24);
+    game.fillText("(x:" + (Math.floor(player.x/40)) + ", y:" + (Math.floor(player.y/40)) + ")", 172, 24);
+    game.fillText("^x:" + Math.round(debugInfo.xspeed) + ", ^y:" + Math.round(debugInfo.yspeed), 270, 24);
+    game.fillText("(x:" + (Math.round(mouseX)/40) + ", y:" + (Math.round(mouseY)/40) + ")", 8, 48);
+    game.fillText("Angle:" + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
+    game.font = '24px Pixel';
+    game.textAlign = "right";
+    game.fillText("TPS:" + fps, (window.innerWidth-8), 32);
+    var tempx = (Math.floor(player.relx/40)*40);
+    var tempy = (Math.floor(player.rely/40)*40);
+    if (debugInfo.colliding.bottom) {
+        game.strokeStyle = "FF9900";
+    } else {
+        game.strokeStyle = "000000";
+    }
+    game.moveTo(tempx, tempy+40);
+    game.lineTo(tempx+40, tempy+40);
+    //game.stroke();
 }
 
 // sound
@@ -90,7 +122,6 @@ function drawDebug() {
 //});
 
 // input sending
-
 document.onkeydown = function(event) {
     if (ingame && !inmenu) {
         if (event.key == 'w' || event.key == 'W') {
@@ -121,19 +152,30 @@ document.onkeyup = function(event) {
                 inmenu = false;
             } else {
                 document.getElementById('ingameMenu').style.display = 'inline-block';
+                socket.emit('keyPress', {key:'W', state:false});
+                socket.emit('keyPress', {key:'A', state:false});
+                socket.emit('keyPress', {key:'D', state:false});
                 inmenu = true;
             }
             
         }
         if (event.code == 'Backslash') {
             if (PLAYER_LIST[player.id].debug) {
+                socket.emit('debug');
                 PLAYER_LIST[player.id].debug = false;
+                document.getElementById('versionLabel').style.top = '0px';
             } else {
+                socket.emit('debug');
                 PLAYER_LIST[player.id].debug = true;
+                document.getElementById('versionLabel').style.top = '28px';
             }
             //socket.emit('debug');
         }
     }
+}
+document.onmousemove = function(event) {
+    mouseX = camera.x+event.clientX;
+    mouseY = camera.y+event.clientY;
 }
 document.onmousedown = function(event) {
     mouseX = camera.x+event.clientX;
@@ -152,6 +194,12 @@ document.onmousedown = function(event) {
     }
 }
 
+// fps counter
+setInterval(function() {
+    fps = fpsCounter;
+    fpsCounter = 0;
+}, 1000);
+
 // waiting for server
 setInterval(function() {
     if (ingame) {
@@ -165,3 +213,7 @@ setInterval(function() {
         }
     }
 }, 1000/10);
+
+// console access
+consoleAccess = URLSearchParams(window.location.search).get('console');
+console.log(consoleAccess)

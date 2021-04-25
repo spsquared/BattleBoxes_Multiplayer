@@ -6,7 +6,7 @@ COLORS = [["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9
 
 // entity
 Entity = function() {
-    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false, center:false}, id:"", color:"#000000", debug:false};
+    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:"", color:"#000000", debug:false};
 
     self.update = function() {
         self.collide();
@@ -49,7 +49,7 @@ Entity = function() {
         tempy = py+1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+1) < (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
+                if (((tempx*40)+1) < (self.x+self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
                     self.y += (tempy*40) - (self.y+self.halfsize);
                     self.yspeed = 0;
                     self.colliding.bottom = true;
@@ -64,6 +64,7 @@ Entity = function() {
                 if (((tempx*40)+40) > (self.x-self.halfsize)) {
                     self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                     self.xspeed = 0;
+                    self.yspeed *=0.75;
                     self.colliding.left = true;
                 }
             }
@@ -76,6 +77,7 @@ Entity = function() {
                 if ((tempx*40) < (self.x+self.halfsize)) {
                     self.x += (tempx*40) - (self.x+self.halfsize);
                     self.xspeed = 0;
+                    self.yspeed *=0.75;
                     self.colliding.right = true;
                 }
             }
@@ -110,18 +112,26 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && ((tempy*40) > self.y-self.halfsize)) {
-                    self.y += ((tempy*40)+40) - (self.y-self.halfsize);
+                    self.y += (tempy*40) - (self.y-self.halfsize);
                     self.yspeed *= -0.25;
                     self.colliding.top = true;
                 }
             }
         }
-        // center (for bullets)
+        // center (to reduce glitching)
         tempx = px;
         tempy = py;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                self.colliding.center = true;
+                if (self.yspeed <= -20) {
+                    self.y += (tempy*40) - (self.y+self.halfsize);
+                    self.yspeed = 0;
+                    self.colliding.bottom = true;
+                } else if (self.yspeed >= 20) {
+                    self.y += ((tempy*40)+40) - (self.y-self.halfsize);
+                    self.yspeed *= -0.25;
+                    self.colliding.top = true;
+                }
             }
         }
     }
@@ -134,10 +144,10 @@ Entity = function() {
 }
 
 // player
-Player = function(id, name) {
+Player = function() {
     var self = Entity();
-    self.id = id;
-    self.name = name;
+    self.id = Math.random();
+    self.name = null;
     self.x = MAPS[CURRENT_MAP].spawnx;
     self.y = MAPS[CURRENT_MAP].spawny;
     self.halfsize = 16;
@@ -200,7 +210,7 @@ Player = function(id, name) {
             self.x = MAPS[CURRENT_MAP].width*40-16;
             self.xspeed = 0;
         }
-        if (self.y+16 > (MAPS[CURRENT_MAP].height*40)+40) {
+        if (self.y+32 > (MAPS[CURRENT_MAP].height*40)+40) {
             self.respawn(MAPS[CURRENT_MAP].spawnx, MAPS[CURRENT_MAP].spawny);
         }
         self.collide();
@@ -222,7 +232,11 @@ Player.update = function() {
         var localplayer = PLAYER_LIST[i];
         if (localplayer.ingame) {
             localplayer.update();
-            pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, score:localplayer.score});
+            if (localplayer.debug) {
+                pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, score:localplayer.score, debug:{xspeed:localplayer.xspeed, yspeed:localplayer.yspeed, colliding:{left:localplayer.colliding.left, right:localplayer.colliding.right, bottom:localplayer.colliding.bottom, top:localplayer.colliding.top}}})
+            } else {
+                pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, score:localplayer.score});
+            }
         }
     }
     return pack;
@@ -237,7 +251,7 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     self.angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
     self.xspeed = Math.cos(self.angle)*20;
     self.yspeed = Math.sin(self.angle)*20;
-    self.halfsize = 2;
+    self.halfsize = 4;
     self.parent = parent;
     self.color = color;
     BULLET_LIST[self.id] = self;
@@ -245,11 +259,10 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     return self;
 }
 Bullet.update = function() {
-    var pack = [];
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
-        if (localbullet.colliding.top || localbullet.colliding.left || localbullet.colliding.right || localbullet.colliding.bottom || localbullet.colliding.center || localbullet.x < -500 || localbullet.x > ((MAPS[CURRENT_MAP].width*40)+500) || localbullet.y < -500 || localbullet.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
+        if (localbullet.colliding.top || localbullet.colliding.left || localbullet.colliding.right || localbullet.colliding.bottom || localbullet.x < -500 || localbullet.x > ((MAPS[CURRENT_MAP].width*40)+500) || localbullet.y < -500 || localbullet.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
             delete BULLET_LIST[i];
             io.emit('deletebullet', localbullet.id);
         }
@@ -257,12 +270,12 @@ Bullet.update = function() {
             var localplayer = PLAYER_LIST[i];
             if (localplayer.id != localbullet.parent) {
                 if (Math.abs(localbullet.x - localplayer.x) < 16 && Math.abs(localbullet.y - localplayer.y) < 16) {
-                    localplayer.hp--;
                     delete BULLET_LIST[i];
+                    localplayer.hp--;
                     io.emit('deletebullet', localbullet.id);
                 }
             }
         }
     }
-    return pack;
+    return;
 }

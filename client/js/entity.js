@@ -1,11 +1,5 @@
 // Copyright (C) 2021 Radioactive64
 
-var game = document.getElementById('gameCanvas').getContext('2d');
-PLAYER_LIST = {};
-BULLET_LIST = {};
-var player;
-var camera = {x:0, y:0, w:window.innerWidth/2, h:window.innerHeight/2};
-
 // entity
 Entity = function() {
     var self = {x:0, y:0, relx:0, rely:0, id:"", color:"#000000", debug:false};
@@ -39,6 +33,7 @@ Player = function(id, name, color) {
     self.draw = function() {
         game.fillStyle = "#000000";
         game.textAlign = "center";
+        game.font = '11px Pixel';
         game.fillText(self.name, self.relx, self.rely-32);
         var hpWidth = 60* (self.hp/5);
         game.fillStyle = HP_Color[self.hp];
@@ -50,7 +45,7 @@ Player = function(id, name, color) {
     return self;
 }
 Player.update = function(players) {
-    for (var i = 0; i < players.length; i++) {
+    for (var i in players) {
         var localplayer = PLAYER_LIST[players[i].id];
         localplayer.update(players[i].x, players[i].y, players[i].hp);
     }
@@ -78,7 +73,7 @@ Bullet = function(id, x, y, angle, parent, color) {
     }
     self.draw = function() {
         game.fillStyle = color;
-        game.fillRect(self.relx-2, self.rely-2, 4, 4);
+        game.fillRect(self.relx-4, self.rely-4, 8, 8);
     }
 
     return self;

@@ -16,7 +16,6 @@ Once the server is started, you can find your computer's name (available in Wind
 
 ## Changelog
 
-----Changelog----
 | Version | Changes                      |
 | ------- | ---------------------------- |
 | 0.1.0   | <ul><li>Added menu with Start, Settings, Achievements, and Exit buttons</li><li>Added basic code for server to get the ID of a player</li><li>Implemented a login form, no accounts yet</li></ul> |
@@ -28,6 +27,7 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.3.2   | <ul><li>Fixed README.md and SECURITY.md</li><li>Fixed server version reporting</li><li>Fixed PORTS.txt</li></ul> |
 | 0.4.0   | <ul><li>Added map collisions to player</li><li>Made camera scroll to keep player on screen</li><li>Added maps</li><li>Fixed a lot of version labels</li><li>Added Config.bat and Config.sh to help setup</li><li>Added debug screen</li><li>Added framework for ingame menu</li><li>Cleaned up code</li><li>Many other tiny tweaks</li></ul> |
 | 0.4.1   | <ul><li>Fixed bullet collisions and added player damage</li><li>Fixed most player color dupes(leaving would cause new players to have duplicated colors)</li><li>Updated maps</li><li>Added community submission forms</li><li>Fixed README.md</li><li>Some changes to code formatting</li></ul> |
+| 0.4.2   | <ul><li>Fixed player color dupe bug</li><li>Patched major security vulnerability that allowed clients to see all other client socket ids</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/14" target="_blank">Partially fixed collision glitching</a></li><li>Added friction to walls</li><li>Added announcements</li><li>Increased bullet visibility</li><li>Updated maps again</li><li>Updated debug screen</li><li>Updated JavaScriptDisabled text</li><li>Optimized some code (collisions were left unoptimized)</li><li>Fixed some other bugs</li></ul> |
 
 ***
 

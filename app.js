@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn("\nBattleBoxes Multiplayer Server v-0.4.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------");
+console.warn("\nBattleBoxes Multiplayer Server v-0.4.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------");
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.4.1\n');
+console.log('\nThis server is running BattleBoxes Server v-0.4.2\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -22,6 +22,7 @@ app.use('/client',express.static(__dirname + '/client'));
 var port;
 
 // initialize
+console.log('Starting server...');
 fs.open('./server/PORTS.txt', 'a+', function(err) {
     if (err) throw err;
     lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -87,13 +88,11 @@ if ((Math.floor(Math.random()*2)) == 1) {
 // END TEMP
 
 // enable connection
-console.log('Starting server...')
 io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
     socket.emit('init');
-    socket.emit('getID');
     socket.id = Math.random();
-    var player = Player(socket.id, null, null);
+    var player = Player();
     SOCKET_LIST[socket.id] = socket;
     console.log('Client connection made.');
 
@@ -168,14 +167,13 @@ io.on('connection', function(socket) {
     socket.on('click', function(click) {
         if (click.button == 'left') {
             if (player.lastclick > ((1000/player.maxCPS)/(1000/60))) {
-                var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
                 player.lastclick = 0;
+                var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
                 var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
                 io.emit('newbullet', pack);
             }
         }
     });
-    /*
     socket.on('debug', function() {
         if (player.debug) {
             player.debug = false;
@@ -183,9 +181,7 @@ io.on('connection', function(socket) {
             player.debug = true;
         }
     });
-    */
 });
-
 // server-side tps
 setInterval(function() {
     Bullet.update();
@@ -212,6 +208,7 @@ prompt.on('line', function(input) {
                 });
             });
         });
+        prompt.close();
         setTimeout(function() {
             while (true) {
                 console.log('purple');
@@ -242,6 +239,7 @@ function queryStop(firstrun) {
                             var portsstring = ports.toString();
                             fs.writeFileSync('./server/PORTS.txt', portsstring);
                             console.log('Server stopped.');
+                            prompt.close();
                             process.exit(0);
                         });
                     });
@@ -272,6 +270,7 @@ function queryStop(firstrun) {
                             var portsstring = ports.toString();
                             fs.writeFileSync('./server/PORTS.txt', portsstring);
                             console.log('Server stopped.');
+                            prompt.close();
                             process.exit();
                         });
                     });
