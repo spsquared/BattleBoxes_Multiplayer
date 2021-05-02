@@ -13,6 +13,17 @@
     user-select: none;
 }
 
+/* loading container */
+#loadingContainer {
+    display: none;
+    text-align: center;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+}
+
 /* fade overlay */
 #fade {
     display: none;
@@ -21,12 +32,15 @@
     bottom: 0px;
     left: 0px;
     right: 0px;
+    background-color: black;
+    opacity: 0;
 }
 /* loading screen */
 #loading {
     display: none;
     position: absolute;
     top: 186px;
+    left: 0px;
     height: 128px;
     width: 128px;
     -webkit-user-drag: none;
@@ -36,7 +50,6 @@
 /* game canvas */
 #gameCanvas {
     display: none;
-    text-align: center;
     margin: 0;
     -webkit-user-drag: none;
     user-select: none;
@@ -124,5 +137,21 @@
     transform: translateY(-10px);
 }
 #leavegame:active {
+    transform: translateY(10px);
+}
+
+/* ready button */
+#ready {
+    position: absolute;
+    bottom: 20px;
+    cursor: pointer;
+    transition: all .1s ease-in-out;
+    -webkit-user-drag: none;
+}
+#ready:hover {
+    transform: scale(1.1) perspective(1px);
+    transform: translateY(-10px);
+}
+#ready:active {
     transform: translateY(10px);
 }

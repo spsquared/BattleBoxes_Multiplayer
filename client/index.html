@@ -4,13 +4,14 @@
 <html>
     <head>
         <title>BattleBoxes Multiplayer</title>
-        <meta id="viewport" name="viewport" content="initial-scale=1.0">
+        <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
         <meta charset="utf-8">
-        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src http://localhost:* 'unsafe-eval' 'unsafe-inline' https://cdn.socket.io/socket.io-1.4.5.js; style-src 'self' 'unsafe-inline'; child-src 'none'; object-src 'none'"> -->
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src "self"; script-src http://localhost:* "unsafe-eval" "unsafe-inline" https://cdn.socket.io/socket.io-1.4.5.js; style-src "self" "unsafe-inline"; child-src "none"; object-src "none""> -->
         <link rel="icon" href="/client/favicon.ico" type="image/png">
         <script src="/socket.io/socket.io.js"></script>
         <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
         <script>socket = io();</script>
+        <script src="/client/js/index.js" defer></script>
         <script src="/client/js/menu.js" defer></script>
         <script src="/client/js/game.js" defer></script>
         <script src="/client/js/entity.js" defer></script>
@@ -24,7 +25,6 @@
                 Javascript was disabled. Please enable it in the site settings in order to let this game run. Then try again.
             </div>
         </noscript>
-        <audio id="music"></audio>
         <div id="menuContainer">
             <div id="loginContainer">
                 <h1 style="font-family: Pixel; font-size: 96px; font-weight: normal;">BattleBoxes Multiplayer</h1>
@@ -33,23 +33,26 @@
                 <label for="psword" id="pswordLabel">Password: </label>
                 <input type="password" id="psword" name="psword"><br></br>
                 <input type="button" id="login" value=" LOG IN " onclick="login();">&emsp;
-                <input type="button" id="signup" value=" SIGN UP " onclick="Signup()">
+                <input type="button" id="signup" value=" SIGN UP " onclick="signup();">
             </div>
             <div id="mainmenuContainer">
                 <br><br>
-                <input type="image" src="client/img/start-button.png" alt="play" id="play" onclick="play();"><br><br>
-                <input type="button" id="settings" value="SETTINGS" onclick="settings();"><br><br>
-                <input type="button" id="announcements" value="ANNOUNCMENTS" onclick="announcements();"><br><br>
-                <input type="button" id="achievements" value="ACHIEVEMENTS" onclick="achievements();"><br><br>
-                <input type="button" id="closegame" value="EXIT" onclick="disconnectclient();">
+                <input type="image" src="/client/img/start-button.png" alt="play" id="play" onclick="play();"><br><br>
+                <input type="button" class="ui-largeButton" id="settings" value="SETTINGS" onclick="openSettings();"><br><br>
+                <input type="button" class="ui-largeButton" id="announcements" value="ANNOUNCMENTS" onclick="openAnnouncements();"><br><br>
+                <input type="button" class="ui-largeButton" id="achievements" value="ACHIEVEMENTS" onclick="openAchievements();"><br><br>
+                <input type="button" class="ui-largeButton" id="closegame" value="EXIT" onclick="disconnectclient();">
             </div>
             <div id="settingsContainer">
-                <p style='font-family: Pixel;'>Settings have not been implemented yet</p>
+                <p style="font-family: Pixel;">Settings have not been implemented yet</p>
                 <!-- Back button is at top-left corner of the screen -->
                 <input type="button" id="back" value="BACK" onclick="back();">
+                <input type="range" min="0" max="100" value="100" class="ui-largeSlider" id="globalVolume">
+                <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="musicVolume">
+                <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="sfxVolume">
             </div>
             <div id="achievementsContainer">
-                <p style='font-family: Pixel;'>Achievements have not been implemented yet</p>
+                <p style="font-family: Pixel;">Achievements have not been implemented yet</p>
                 <!-- Back button is at top-left corner of the screen -->
                 <input type="button" id="back" value="BACK" onclick="back();">
             </div>
@@ -57,29 +60,34 @@
                 <!-- Back button is at top-left corner of the screen -->
                 <input type="button" id="back" value="BACK" onclick="back();">
                 <div id="announcementsPage"></div>
+                <p id="announcements-failedLoad" style="font-family: 'Pixel'; text-align: center;">If you are seeing this, the announcements have failed to load. Click <a href=window.location>here</a>.</p>
             </div>
             <div id="creditsContainer">
-
+                music is from YouTube audio library
             </div>
         </div>
         <div id="gameContainer">
             <canvas id="gameCanvas"></canvas>
+            <input type="image" src="/client/img/Ready.png" alt="ready" id="ready" onclick="ready();">
             <div id=ingameMenu>
-                <input type="button" id="resume" value="RESUME" onclick="resume();"><br><br>
-                <input type="button" id="ingameSettings" value="SETTINGS" onclick="ingamesettings();"><br><br>
-                <input type="button" id="ingameAchievements" value="ACHIEVEMENTS" onclick="ingameachievements();"><br><br>
-                <input type="button" id="leavegame" value="LEAVE" onclick="quittoMenu();">
+                <input type="button" class="ui-largeButton" id="resume" value="RESUME" onclick="resume();"><br><br>
+                <input type="button" class="ui-largeButton" id="ingameSettings" value="SETTINGS" onclick="ingamesettings();"><br><br>
+                <input type="button" class="ui-largeButton" id="ingameAchievements" value="ACHIEVEMENTS" onclick="ingameachievements();"><br><br>
+                <input type="button" class="ui-largeButton" id="leavegame" value="LEAVE" onclick="quittoMenu();">
             </div>
-            <div id="fade"></div>
-            <img src="client/img/loading.gif" alt="Loading..." id="loading">
-            <p id="waiting" style='font-family: Pixel; display: none; position: absolute; top: 100px;'>Waiting for server...</p>
-            <p id="serverfull" style='font-family: Pixel; display: none; position: absolute; top:100px;'>Server is full...</p>
         </div>
         <div id="disconnectedContainer">
             <br></br><br></br><br></br><br></br><br></br><br></br><br>
             <input type="button" id="disconnected" value="DISCONNECTED" onclick="window.location.reload()">
         </div>
-        <h5 id="versionLabel">v0.4.2</h5>
+        <div id="loadingContainer">
+            <div id="fade"></div>
+            <img src="client/img/loading.gif" alt="Loading..." id="loading">
+            <p id="waiting" style="font-family: Pixel; color:white; display: none; position: absolute; top: 340px; user-select: none; -webkit-user-select: none;">Waiting for server...</p>
+            <p id="serverfull" style="font-family: Pixel; color:white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Server is full...</p>
+            <p id="gamelocked" style="font-family: Pixel; color: white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Game is in progress, cannot join...</p>
+        </div>
+        <h5 id="versionLabel">v0.5.0</h5>
         <p id="credits" onclick="window.open('/LICENSE');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
     </body>

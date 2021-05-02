@@ -1,47 +1,65 @@
 // Copyright (C) 2021 Radioactive64
 
 $.ajaxSetup({cache: true, async:false});
-$.getScript("/client/js/entity.js");
-$.getScript("/client/js/menu.js");
+$.getScript('/client/js/index.js');
+$.getScript('/client/js/entity.js');
+$.getScript('/client/js/menu.js');
+game = document.getElementById('gameCanvas').getContext('2d');
 PLAYER_LIST = {};
 BULLET_LIST = {};
 player = null;
-game = document.getElementById('gameCanvas').getContext('2d');
 map = new Image();
 map.width = 0;
 map.height = 0;
 camera = {x:0, y:0, w:window.innerWidth/2, h:window.innerHeight/2};
-var currentmusic = 1;
-var fpsCounter = 0;
-var fps = 0;
 var mouseX;
 var mouseY;
 var shooting = false;
 var ingame;
 var inmenu;
+var canmove = false;
 var consoleAccess = false;
 var connected = 0;
-
-// canvas resizing
-window.onresize = function() {
-    document.getElementById('viewport').width = window.innerWidth;
-    document.getElementById('viewport').height = window.innerHeight;
-    document.getElementById('gameCanvas').width = window.innerWidth;
-    document.getElementById('gameCanvas').height = window.innerHeight - 1;
-    camera.w = window.innerWidth/2;
-    camera.h = window.innerHeight/2;
-}
+var readyforstart = false;
 
 // game handlers
-socket.on('game-joined', function(id) {
-    map.src = '/client/img/map' + id + '.png';
+socket.on('game-joined', function() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('gameCanvas').style.display = 'block';
-    music.src = ("Ingame_" + currentmusic);
     ingame = true;
+    canmove = true;
+    fadeOut();
 });
-socket.on('game-full', function() {
+socket.on('gamefull', function() {
     document.getElementById('serverfull').style.display = 'block';
+});
+socket.on('gamerunning', function() {
+    document.getElementById('gamelocked').style.display = 'block';
+});
+socket.on('map', function(id) {
+    if (id == 0) {
+        map.src = '/client/img/Lobby.png';
+    } else {
+        map.src = '/client/img/map' + id + '.png';
+    }
+});
+socket.on('gamestart', function() {
+    document.getElementById('ready').style.display = 'none';
+});
+socket.on('roundstart', function() {
+    if (ingame) {
+        fadeOut();
+        setTimeout(function() {
+            canmove = true;
+        }, 3000);
+        sfx[0].src = '/client/sound/Countdown.mp3';
+        sfx[0].play();
+    }
+});
+socket.on('roundend', function() {
+    if (ingame) {
+        fadeIn();
+    }
 });
 
 // draw game
@@ -66,7 +84,7 @@ socket.on('update', function(pkg) {
 });
 function drawMap() {
     game.drawImage(map, -camera.x, -camera.y);
-}
+};
 function updateCamera() {
     //collisions to move camera
     if ((camera.w/2) > (player.relx-16)) {
@@ -82,68 +100,57 @@ function updateCamera() {
         camera.y -= (camera.h*(3/2)) - (player.rely+16);
     }
 
-}
+};
 function drawDebug(debugInfo) {
-    game.fillStyle = "#FFFFFF88";
+    game.fillStyle = '#FFFFFF88';
     game.fillRect(4, 4, 380, 48);
     game.fillRect((window.innerWidth - 94), 4, 90, 32)
-    game.fillStyle = "#000000";
+    game.fillStyle = '#000000';
     game.font = '16px Pixel';
-    game.textAlign = "left";
-    game.fillText("(x:" + (Math.round(player.x)/40) + ", y:" + (Math.round(player.y)/40) + ")", 8, 24);
-    game.fillText("(x:" + (Math.floor(player.x/40)) + ", y:" + (Math.floor(player.y/40)) + ")", 172, 24);
-    game.fillText("^x:" + Math.round(debugInfo.xspeed) + ", ^y:" + Math.round(debugInfo.yspeed), 270, 24);
-    game.fillText("(x:" + (Math.round(mouseX)/40) + ", y:" + (Math.round(mouseY)/40) + ")", 8, 48);
-    game.fillText("Angle:" + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
+    game.textAlign = 'left';
+    game.fillText('(x:' + (Math.round(player.x)/40) + ', y:' + (Math.round(player.y)/40) + ')', 8, 24);
+    game.fillText('(x:' + (Math.floor(player.x/40)) + ', y:' + (Math.floor(player.y/40)) + ')', 172, 24);
+    game.fillText('^x:' + Math.round(debugInfo.xspeed) + ', ^y:' + Math.round(debugInfo.yspeed), 270, 24);
+    game.fillText('(x:' + (Math.round(mouseX)/40) + ', y:' + (Math.round(mouseY)/40) + ')', 8, 48);
+    game.fillText('Angle:' + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
     game.font = '24px Pixel';
-    game.textAlign = "right";
-    game.fillText("TPS:" + fps, (window.innerWidth-8), 32);
+    game.textAlign = 'right';
+    game.fillText('TPS:' + fps, (window.innerWidth-8), 32);
     var tempx = (Math.floor(player.relx/40)*40);
     var tempy = (Math.floor(player.rely/40)*40);
     if (debugInfo.colliding.bottom) {
-        game.strokeStyle = "FF9900";
+        game.strokeStyle = 'FF9900';
     } else {
-        game.strokeStyle = "000000";
+        game.strokeStyle = '000000';
     }
     game.moveTo(tempx, tempy+40);
     game.lineTo(tempx+40, tempy+40);
     //game.stroke();
-}
-
-// sound
-//music.addEventListener('ended', function() {
-//    currentmusic++;
-//    if (currentmusic > 5) {
-//        currentmusic = 1;
-//    }
-//    music.src = ("Ingame_" + currentmusic);
-//    music.load();
-//    music.play();
-//});
+};
 
 // input sending
 document.onkeydown = function(event) {
-    if (ingame && !inmenu) {
-        if (event.key == 'w' || event.key == 'W') {
+    if (ingame && !inmenu && player.alive && canmove) {
+        if (event.key == 'w' || event.key == 'W' || event.key == 'ArrowUp') {
             socket.emit('keyPress', {key:'W', state:true});
         }
-        if (event.key == 'a' || event.key == 'A') {
+        if (event.key == 'a' || event.key == 'A' || event.key == 'ArrowLeft') {
             socket.emit('keyPress', {key:'A', state:true});
         }
-        if (event.key == 'd' || event.key == 'D') {
+        if (event.key == 'd' || event.key == 'D' || event.key == 'ArrowRight') {
             socket.emit('keyPress', {key:'D', state:true});
         }
     }
-}
+};
 document.onkeyup = function(event) {
     if (ingame) {
-        if (event.key == 'w') {
+        if (event.key == 'w' || event.key == 'W' || event.key == 'ArrowUp') {
             socket.emit('keyPress', {key:'W', state:false});
         }
-        if (event.key == 'a') {
+        if (event.key == 'a' || event.key == 'A' || event.key == 'ArrowLeft') {
             socket.emit('keyPress', {key:'A', state:false});
         }
-        if (event.key == 'd') {
+        if (event.key == 'd' || event.key == 'D' || event.key == 'ArrowRight') {
             socket.emit('keyPress', {key:'D', state:false});
         }
         if (event.key == 'Escape') {
@@ -160,23 +167,21 @@ document.onkeyup = function(event) {
             
         }
         if (event.code == 'Backslash') {
+            player.debug = !player.debug;
+            socket.emit('debug');
             if (PLAYER_LIST[player.id].debug) {
-                socket.emit('debug');
-                PLAYER_LIST[player.id].debug = false;
                 document.getElementById('versionLabel').style.top = '0px';
             } else {
-                socket.emit('debug');
-                PLAYER_LIST[player.id].debug = true;
                 document.getElementById('versionLabel').style.top = '28px';
             }
             //socket.emit('debug');
         }
     }
-}
+};
 document.onmousemove = function(event) {
     mouseX = camera.x+event.clientX;
     mouseY = camera.y+event.clientY;
-}
+};
 document.onmousedown = function(event) {
     mouseX = camera.x+event.clientX;
     mouseY = camera.y+event.clientY;
@@ -192,7 +197,56 @@ document.onmousedown = function(event) {
             }
         }
     }
-}
+};
+
+// game functions
+function fadeIn() {
+    canmove = false;
+    var fadeAmount = 0;
+    var audiofade = (settings.musicvolume*settings.globalvolume);
+    document.getElementById('loadingContainer').style.display = 'block';
+    document.getElementById('fade').style.display = 'block';
+    var fadeInterval = setInterval(function() {
+        fadeAmount += 0.01;
+        audiofade -= (settings.musicvolume/100);
+        if (fadeAmount > 1) {
+            clearInterval(fadeInterval);
+            document.getElementById('loading').style.display = 'inline-block';
+        }
+        document.getElementById('fade').style.opacity = fadeAmount;
+        music.volume = audiofade;
+    }, 1);
+};
+function fadeOut() {
+    var fadeAmount = 1;
+    var audiofade = 0;
+    var fadeInterval = setInterval(function() {
+        fadeAmount -= 0.01;
+        audiofade += ((settings.musicvolume*settings.globalvolume)/100);
+        if (fadeAmount < 0) {
+            clearInterval(fadeInterval);
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('fade').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+        }
+        document.getElementById('fade').style.opacity = fadeAmount;
+        music.volume = audiofade;
+    }, 1);
+};
+function ready() {
+    if (!readyforstart) {
+        socket.emit('ready');
+        var fadeAmount = 1;
+        var fadeInterval = setInterval(function() {
+            fadeAmount -= 0.01;
+            document.getElementById('ready').style.opacity = fadeAmount;
+            if (fadeAmount < 0.5) {
+                clearInterval(fadeInterval);
+            }
+        }, 1); 
+        readyforstart = true;
+    }
+};
 
 // fps counter
 setInterval(function() {
