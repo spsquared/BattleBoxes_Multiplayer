@@ -1,17 +1,18 @@
 // Copyright (C) 2021 Radioactive64
 
-PLAYER_LIST = {};
-BULLET_LIST = {};
-COLORS = [["#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#9900FF", "#FF00FF", "#000000", "#AA0000", "#996600", "#EECC33", "#00AA00", "#0088CC", "#8877CC", "#CC77AA"], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+PLAYER_LIST = [];
+BULLET_LIST = [];
+COLORS = [['#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9900FF', '#FF00FF', '#000000', '#AA0000', '#996600', '#EECC33', '#00AA00', '#0088CC', '#8877CC', '#CC77AA'], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+remainingPlayers = null;
 
 // entity
 Entity = function() {
-    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:"", color:"#000000", debug:false};
+    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:'', color:'#000000', debug:false};
 
     self.update = function() {
         self.collide();
         self.updatePos();
-    }
+    };
     self.collide = function() {
         self.colliding.bottom = false;
         self.colliding.left = false;
@@ -20,6 +21,8 @@ Entity = function() {
         self.colliding.center = false;
         var px = Math.floor(self.x/40);
         var py = Math.floor(self.y/40);
+        var tempx;
+        var tempy;
         // bottomleft
         tempx = px-1;
         tempy = py+1;
@@ -83,8 +86,8 @@ Entity = function() {
             }
         }
         // topleft
-        var tempx = px-1;
-        var tempy = py-1;
+        tempx = px-1;
+        tempy = py-1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
@@ -134,22 +137,22 @@ Entity = function() {
                 }
             }
         }
-    }
+    };
     self.updatePos = function() {
         self.x += self.xspeed;
         self.y += self.yspeed;
-    }
+    };
 
     return self;
-}
+};
 
 // player
 Player = function() {
     var self = Entity();
     self.id = Math.random();
     self.name = null;
-    self.x = MAPS[CURRENT_MAP].spawnx;
-    self.y = MAPS[CURRENT_MAP].spawny;
+    self.x = MAPS[0].spawns[0].x;
+    self.y = MAPS[0].spawns[0].y;
     self.halfsize = 16;
     self.ingame = false;
     self.Wpressed = false;
@@ -160,12 +163,13 @@ Player = function() {
     self.lastclick = 0;
     self.hp = 5;
     self.score = 0;
+    self.alive = true;
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
             j++;
         }
-    }
+    };
     self.color = COLORS[0][j];
     COLORS[1][j] = 1;
     PLAYER_LIST[self.id] = self;
@@ -175,10 +179,13 @@ Player = function() {
         self.updatePos();
         self.lastclick++;
         if (self.hp < 1) {
-            self.respawn(MAPS[CURRENT_MAP].spawnx, MAPS[CURRENT_MAP].spawny);
-            self.hp = 5;
+            io.emit('playerdied', self.id);
+            remainingPlayers--;
+            if (remainingPlayers < 2 && round.inProgress) {
+                endRound();
+            }
         }
-    }
+    };
     self.updatePos = function() {
         if (self.Dpressed) {
             self.xspeed += 1;
@@ -211,25 +218,35 @@ Player = function() {
             self.xspeed = 0;
         }
         if (self.y+32 > (MAPS[CURRENT_MAP].height*40)+40) {
-            self.respawn(MAPS[CURRENT_MAP].spawnx, MAPS[CURRENT_MAP].spawny);
+            self.alive = false;
+            io.emit('playerdied', self.id);
+            remainingPlayers--;
+            if (remainingPlayers < 2 && round.inProgress) {
+                endRound();
+            }
         }
         self.collide();
         self.x += self.xspeed;
         self.y -= self.yspeed;
-    }
+    };
     self.respawn = function(x, y) {
         self.xspeed = 0;
         self.yspeed = 0;
         self.x = x;
         self.y = y;
-    }
+        self.alive = true;
+        self.hp = 5;
+    };
 
     return self;
-}
+};
 Player.update = function() {
     var pack = [];
     for (var i in PLAYER_LIST) {
         var localplayer = PLAYER_LIST[i];
+        if (!localplayer.alive) {
+            remainingPlayers--;
+        }
         if (localplayer.ingame) {
             localplayer.update();
             if (localplayer.debug) {
@@ -240,7 +257,7 @@ Player.update = function() {
         }
     }
     return pack;
-}
+};
 
 // bullets
 Bullet = function(mousex, mousey, x, y, parent, color) {
@@ -256,19 +273,32 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     self.color = color;
     BULLET_LIST[self.id] = self;
 
+    self.update = function() {
+        self.collide();
+        tempx = Math.floor(self.x/40);
+        tempy = Math.floor(self.y/40);
+        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
+            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                self.yspeed = 0;
+                self.colliding.center = true;
+            }
+        }
+        self.updatePos();
+    }
+
     return self;
-}
+};
 Bullet.update = function() {
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
-        if (localbullet.colliding.top || localbullet.colliding.left || localbullet.colliding.right || localbullet.colliding.bottom || localbullet.x < -500 || localbullet.x > ((MAPS[CURRENT_MAP].width*40)+500) || localbullet.y < -500 || localbullet.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
+        if (localbullet.colliding.top || localbullet.colliding.left || localbullet.colliding.right || localbullet.colliding.bottom || localbullet.colliding.center || localbullet.x < -500 || localbullet.x > ((MAPS[CURRENT_MAP].width*40)+500) || localbullet.y < -500 || localbullet.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
             delete BULLET_LIST[i];
             io.emit('deletebullet', localbullet.id);
         }
         for (var i in PLAYER_LIST) {
             var localplayer = PLAYER_LIST[i];
-            if (localplayer.id != localbullet.parent) {
+            if (localplayer.id != localbullet.parent && localplayer.alive) {
                 if (Math.abs(localbullet.x - localplayer.x) < 16 && Math.abs(localbullet.y - localplayer.y) < 16) {
                     delete BULLET_LIST[i];
                     localplayer.hp--;
@@ -278,4 +308,4 @@ Bullet.update = function() {
         }
     }
     return;
-}
+};

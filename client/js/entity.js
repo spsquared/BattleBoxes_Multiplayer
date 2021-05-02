@@ -2,15 +2,15 @@
 
 // entity
 Entity = function() {
-    var self = {x:0, y:0, relx:0, rely:0, id:"", color:"#000000", debug:false};
+    var self = {x:0, y:0, relx:0, rely:0, id:'', color:'#000000', debug:false};
 
     self.update = function() {
         self.draw();
-    }
-    self.draw = function() {}
+    };
+    self.draw = function() {};
 
     return self;
-}
+};
 
 // player
 Player = function(id, name, color) {
@@ -20,7 +20,8 @@ Player = function(id, name, color) {
     self.hp = 5;
     self.score = 0;
     self.color = color;
-    var HP_Color = ["#FFFFFF", "#FF0000", "#FF9900", "#FFFF00", "#99FF00", "#00FF00"];
+    self.alive = true;
+    var HP_Color = ['#FFFFFF', '#FF0000', '#FF9900', '#FFFF00', '#99FF00', '#00FF00'];
     
     self.update = function(x, y, hp) {
         self.x = x;
@@ -29,27 +30,29 @@ Player = function(id, name, color) {
         self.relx = -(camera.x - self.x);
         self.rely = -(camera.y - self.y);
         self.draw();
-    }
+    };
     self.draw = function() {
-        game.fillStyle = "#000000";
-        game.textAlign = "center";
-        game.font = '11px Pixel';
-        game.fillText(self.name, self.relx, self.rely-32);
-        var hpWidth = 60* (self.hp/5);
-        game.fillStyle = HP_Color[self.hp];
-        game.fillRect(self.relx-30, self.rely-24, hpWidth, 4);
-        game.fillStyle = color;
-        game.fillRect(self.relx-16, self.rely-16, 32, 32);
-    }
+        if (self.alive) {
+            game.fillStyle = '#000000';
+            game.textAlign = 'center';
+            game.font = '11px Pixel';
+            game.fillText(self.name, self.relx, self.rely-32);
+            var hpWidth = 60* (self.hp/5);
+            game.fillStyle = HP_Color[self.hp];
+            game.fillRect(self.relx-30, self.rely-24, hpWidth, 4);
+            game.fillStyle = self.color;
+            game.fillRect(self.relx-16, self.rely-16, 32, 32);
+        }
+    };
 
     return self;
-}
+};
 Player.update = function(players) {
     for (var i in players) {
         var localplayer = PLAYER_LIST[players[i].id];
         localplayer.update(players[i].x, players[i].y, players[i].hp);
     }
-}
+};
 
 // bullets
 Bullet = function(id, x, y, angle, parent, color) {
@@ -70,31 +73,31 @@ Bullet = function(id, x, y, angle, parent, color) {
         self.relx = -(camera.x - self.x);
         self.rely = -(camera.y - self.y);
         self.draw();
-    }
+    };
     self.draw = function() {
         game.fillStyle = color;
         game.fillRect(self.relx-4, self.rely-4, 8, 8);
-    }
+    };
 
     return self;
-}
+};
 Bullet.update = function() {
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
     }
-}
+};
 
 // game handlers
 socket.on('initgame', function(pkg) {
     for (var i in pkg.players) {
         var localplayer = Player(pkg.players[i].id, pkg.players[i].name, pkg.players[i].color);
         PLAYER_LIST[localplayer.id] = localplayer;
-    }
+    };
     for (var i in pkg.bullets) {
         var localbullet = Bullet(pkg.bullets[i].id, pkg.bullets[i].x, pkg.bullets[i].y, pkg.bullets[i].angle, pkg.bullets[i].parent, pkg.bullets[i].color);
         BULLET_LIST[localbullet.id] = localbullet;
-    }
+    };
     player = PLAYER_LIST[pkg.self];
 });
 socket.on('newplayer', function(pkg) {
@@ -110,4 +113,12 @@ socket.on('newbullet', function(pkg) {
 });
 socket.on('deletebullet', function(id) {
     delete BULLET_LIST[id];
+});
+socket.on('playerdied', function(id) {
+    PLAYER_LIST[id].alive = false;
+});
+socket.on('respawn', function() {
+    for (var i in PLAYER_LIST) {
+        PLAYER_LIST[i].alive = true;
+    };
 });
