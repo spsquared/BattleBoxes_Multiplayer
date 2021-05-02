@@ -7,13 +7,27 @@ function login() {
     if (document.getElementById('usrname').value == '') {
         window.alert('Please provide a Username.');
     } else {
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('mainmenuContainer').style.display = 'inline-block';
         socket.emit('login', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
     }
 }
+socket.on('login-aproved', function(correct) {
+    if (correct.correct){
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('mainmenuContainer').style.display = 'inline-block';
+    } else{
+        window.alert('Username (and/or) Password is incorrect')
+    }
+});
 
 // menu functions
+function Signup() {
+    if (document.getElementById('usrname').value == '' || document.getElementById('psword').value == '') {
+        window.alert('Please provide a Username (and/or) Password.');
+    } else {
+    socket.emit('signup', {'usrname': document.getElementById('usrname').value, 'psword':document.getElementById('psword').value});
+    window.alert('You can now login in with your creds')
+    }
+};
 function play() {
     socket.emit('join-game');
     document.getElementById('menuContainer').style.display = 'none';

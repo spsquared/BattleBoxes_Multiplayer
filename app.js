@@ -4,6 +4,8 @@
 console.warn("\nBattleBoxes Multiplayer Server v-0.4.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------");
 // start server
 console.log('\nThis server is running BattleBoxes Server v-0.4.2\n');
+ // getting-started.js
+ const { MongoClient } = require("mongodb");
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -13,6 +15,13 @@ const prompt = readline.createInterface({input: process.stdin, output: process.s
 const lineReader = require('line-reader');
 require('./server/entity.js');
 require('./server/game.js');
+MongoClient.connect("mongodb://localhost:27017", function(err, db) {
+    if (err) throw err;
+    
+    var dbo = db.db("BattleBoxes");
+  
+    //   dbo.createCollection("users", function(err, res) {if (err) throw err;});
+   
 MAPS = [];
 CURRENT_MAP = null;
 
@@ -116,14 +125,34 @@ io.on('connection', function(socket) {
         socket.emit('disconnected');
         socket.disconnect();
     });
-
     //login handlers
     socket.on('login', function(cred) {
+        var correct = false
         player.name = cred.usrname;
+        
+        dbo.collection("users").find().forEach( function(myDoc) { 
+           if(myDoc.username == cred.usrname && myDoc.password == cred.psword){
+               correct = true
+           }
+           
+
+        });
+        if (correct){
+            socket.emit('login-aproved', {'correct': true})
+        } else{
+        socket.emit('login-aproved', {'correct': false})
+        }
+        
         console.log('Player with username "' + player.name + '" attempted to login. Client ID is ' + socket.id + '.');
     });
 
     // game handlers
+    socket.on('signup', function(cred) {
+        dbo.collection("users").insertOne({"username":cred.usrname, "password":cred.psword}, function(err, res) {if (err) throw err;});
+        console.log('user signed up with a username of', cred.usrname, 'and a password of', cred.psword);
+        
+
+    });
     socket.on('join-game', function() {
         console.log('Player "' + player.name + '" attempted to join game.');
         var j = 0;
@@ -284,3 +313,4 @@ function queryStop(firstrun) {
         });
     }
 }
+});
