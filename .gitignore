@@ -126,3 +126,4 @@ server/PORTS.txt
 
 # Allow package-lock
 !node_modules/.package-lock.json
+*.ini
