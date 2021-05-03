@@ -3,6 +3,7 @@
 
 console.warn('\nBattleBoxes Multiplayer Server v-0.5.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
+
 console.log('\nThis server is running BattleBoxes Server v-0.5.0\n');
 const express = require('express');
 const app = express();
@@ -11,8 +12,12 @@ const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
+const { createDecipher } = require('crypto');
 require('./server/entity.js');
 require('./server/game.js');
+
+    //   dbo.createCollection("users", function(err, res) {if (err) throw err;});
+   
 MAPS = [];
 CURRENT_MAP = null;
 
@@ -102,17 +107,60 @@ io.on('connection', function(socket) {
         socket.emit('disconnected');
         socket.disconnect();
     });
-
     //login handlers
     socket.on('login', function(cred) {
+        
+        player.name = cred.usrname;
+        var correct = false;
+        fs.readFile('./users.txt','utf-8', function read(err, data) {
+            if (err) {
+                throw err;
+            }
+            
+            for(i of data.split('|')){
+                var UP = i.split("??")
+
+                if(cred.usrname == UP[0] && cred.psword == UP[1]){
+                    console.log(UP[0], cred.usrname)
+                    console.log(UP[1], cred.psword)
+                    socket.emit('login-approved', {correct: true})
+                    
+
+                } 
+            }
+           
+           
+        });
+        if (correct){
+            socket.emit('login-approved', {correct: true})
+        } else{
+            socket.emit('login-approved', {correct: false})
+        }
+
+        
+        
+        
+        console.log('Player with username "' + player.name + '" attempted to login. Client ID is ' + socket.id + '.');
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        player.name = cred.usrname;
-        console.log('Player with username ' + player.name + ' attempted to login. Client ID is ' + socket.id + '.');
     });
+    
 
     // game handlers
+    var users;
+    var userstring;
+    socket.on('signup', function(cred) {
+        fs.readFile('users.txt', 'utf8', function (err, data) {
+            fs.writeFile('users.txt', data+"|"+cred.username+"??"+cred.password, function(err, result) {
+               if(err) console.log('error', err);
+             });
+           });
+        
+        
+        
+
+    });
     socket.on('join-game', function() {
         console.log('Player ' + player.name + ' attempted to join game.');
         var j = 0;
@@ -174,8 +222,9 @@ io.on('connection', function(socket) {
     socket.on('debug', function() {
         player.debug = !player.debug;
     });
-    
 });
+    
+
 // server-side tps
 setInterval(function() {
     Bullet.update();

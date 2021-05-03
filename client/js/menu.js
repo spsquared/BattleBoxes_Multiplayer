@@ -9,13 +9,21 @@ function login() {
     } else if (document.getElementById('usrname').value == '64 or less characters') {
         socket.emit('disconnectclient');
     } else {
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('mainmenuContainer').style.display = 'inline-block';
+        
         socket.emit('login', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
     }
 };
+socket.on('login-approved', (correct) => {
+    if(correct.correct){
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('mainmenuContainer').style.display = 'inline-block';
+    } else {
+        window.alert("Username (and/or) Password are Incorrect")
+    }
+
+});
 function signup() {
-    socket.emit('disconnectclient');
+    socket.emit('signup',{username: document.getElementById('usrname').value, password: document.getElementById('psword').value})
 };
 
 // menu functions
