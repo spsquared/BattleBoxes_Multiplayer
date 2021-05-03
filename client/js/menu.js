@@ -9,27 +9,24 @@ function login() {
     } else if (document.getElementById('usrname').value == '64 or less characters') {
         socket.emit('disconnectclient');
     } else {
+        
         socket.emit('login', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
     }
-}
-socket.on('login-aproved', function(correct) {
-    if (correct.correct){
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('mainmenuContainer').style.display = 'inline-block';
-    } else{
-        window.alert('Username (and/or) Password is incorrect')
+};
+socket.on('login-approved', (correct) => {
+    if(correct.correct){
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('mainmenuContainer').style.display = 'inline-block';
+    } else {
+        window.alert("Username (and/or) Password are Incorrect")
     }
+
 });
+function signup() {
+    socket.emit('signup',{username: document.getElementById('usrname').value, password: document.getElementById('psword').value})
+};
 
 // menu functions
-function Signup() {
-    if (document.getElementById('usrname').value == '' || document.getElementById('psword').value == '') {
-        window.alert('Please provide a Username (and/or) Password.');
-    } else {
-    socket.emit('signup', {'usrname': document.getElementById('usrname').value, 'psword':document.getElementById('psword').value});
-    window.alert('You can now login in with your creds')
-    }
-};
 function play() {
     sfx[0].src = ('/client/sound/Play.mp3');
     sfx[0].play();

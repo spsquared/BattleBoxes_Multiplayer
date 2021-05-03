@@ -3,7 +3,7 @@
 
 console.warn('\nBattleBoxes Multiplayer Server v-0.5.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
- const { MongoClient } = require("mongodb");
+
 console.log('\nThis server is running BattleBoxes Server v-0.5.1\n');
 const express = require('express');
 const app = express();
@@ -12,13 +12,9 @@ const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
+const { createDecipher } = require('crypto');
 require('./server/entity.js');
 require('./server/game.js');
-MongoClient.connect("mongodb://localhost:27017", function(err, db) {
-    if (err) throw err;
-    
-    var dbo = db.db("BattleBoxes");
-  
     //   dbo.createCollection("users", function(err, res) {if (err) throw err;});
    
 MAPS = [];
@@ -112,37 +108,63 @@ io.on('connection', function(socket) {
     });
     //login handlers
     socket.on('login', function(cred) {
-        var correct = false
-        player.name = cred.usrname;
         
-        dbo.collection("users").find().forEach( function(myDoc) { 
-           if(myDoc.username == cred.usrname && myDoc.password == cred.psword){
-               correct = true
-           }
-           
+        player.name = cred.usrname;
+        var correct = false;
+        fs.readFile('./users.txt','utf-8', function read(err, data) {
+            if (err) {
+                throw err;
+            }
+            
+            for(i of data.split('|')){
+                var UP = i.split("??")
 
+                if(cred.usrname == UP[0] && cred.psword == UP[1]){
+                    console.log(UP[0], cred.usrname)
+                    console.log(UP[1], cred.psword)
+                    socket.emit('login-approved', {correct: true})
+                    
+
+                } 
+            }
+            if (cred.usrname.length > 64) {
+                socket.emit('disconnected');
+            }
+            player.name = cred.usrname;
+            if (cred.usrname == 'null') {
+                player.color = "#FFFFFF00";
+                player.name = '';
+            }
+            console.log('Player with username ' + player.name + ' attempted to login. Client ID is ' + socket.id + '.');
+           
         });
         if (correct){
-            socket.emit('login-aproved', {'correct': true})
+            socket.emit('login-approved', {correct: true})
         } else{
-        socket.emit('login-aproved', {'correct': false})
+            socket.emit('login-approved', {correct: false})
         }
+
         
+        
+        
+        console.log('Player with username "' + player.name + '" attempted to login. Client ID is ' + socket.id + '.');
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        player.name = cred.usrname;
-        if (cred.usrname == 'null') {
-            player.color = "#FFFFFF00";
-            player.name = '';
-        }
-        console.log('Player with username ' + player.name + ' attempted to login. Client ID is ' + socket.id + '.');
     });
+    
 
     // game handlers
+    var users;
+    var userstring;
     socket.on('signup', function(cred) {
-        dbo.collection("users").insertOne({"username":cred.usrname, "password":cred.psword}, function(err, res) {if (err) throw err;});
-        console.log('user signed up with a username of', cred.usrname, 'and a password of', cred.psword);
+        fs.readFile('users.txt', 'utf8', function (err, data) {
+            fs.writeFile('users.txt', data+"|"+cred.username+"??"+cred.password, function(err, result) {
+               if(err) console.log('error', err);
+             });
+           });
+        
+        
         
 
     });
@@ -207,8 +229,9 @@ io.on('connection', function(socket) {
     socket.on('debug', function() {
         player.debug = !player.debug;
     });
-    
 });
+    
+
 // server-side tps
 setInterval(function() {
     Bullet.update();
@@ -328,4 +351,3 @@ function queryStop(firstrun) {
         });
     }
 }
-});
