@@ -1,10 +1,10 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn('\nBattleBoxes Multiplayer Server v-0.5.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.warn('\nBattleBoxes Multiplayer Server v-0.5.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
  const { MongoClient } = require("mongodb");
-console.log('\nThis server is running BattleBoxes Server v-0.5.0\n');
+console.log('\nThis server is running BattleBoxes Server v-0.5.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -27,10 +27,37 @@ CURRENT_MAP = null;
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
-var port;
-
 // initialize
 console.log('Starting server...');
+function getMap(name, id) {
+    var data1 = require('./server/' + name);
+    var data2 = [];
+    data2[0] = [];
+    data2.width = data1.width;
+    data2.height = data1.height;
+    var j = 0;
+    for (var i in data1.data) {
+        data2[j][i-(j*data1.width)] = data1.data[i];
+        if (i-(j*data1.width > data1.width-2)) {
+            j++;
+            data2[j] = [];
+        }
+    }
+    data2.spawns = [];
+    for (var i in data1.spawns) {
+        data2.spawns[i] = {x:null, y:null};
+        data2.spawns[i].x = data1.spawns[i].x;
+        data2.spawns[i].y = data1.spawns[i].y;
+    }
+    MAPS[id] = data2;
+}
+getMap('Lobby.json', 0);
+getMap('Map1.json', 1);
+getMap('Map2.json', 2);
+getMap('Map3.json', 3);
+CURRENT_MAP = 0;
+var SOCKET_LIST = {};
+var port;
 fs.open('./server/PORTS.txt', 'a+', function(err) {
     if (err) throw err;
     lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -53,36 +80,8 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
         });
     });
 });
-function getMap(name, id) {
-    var data1 = require('./server/' + name);
-    var data2 = [];
-    data2[0] = [];
-    data2.width = data1.width;
-    data2.height = data1.height;
-    var j = 0;
-    for (var i in data1.data) {
-        data2[j][i-(j*data1.width)] = data1.data[i];
-        if (i-(j*data1.width) 
-            data1.width-2) {
-            j++;
-            data2[j] = [];
-        }
-    }
-    data2.spawns = [];
-    for (var i in data1.spawns) {
-        data2.spawns[i] = {x:null, y:null};
-        data2.spawns[i].x = data1.spawns[i].x;
-        data2.spawns[i].y = data1.spawns[i].y;
-    }
-    MAPS[id] = data2;
-}
-getMap('Lobby.json', 0);
-getMap('Map1.json', 1);
-getMap('Map2.json', 2);
-CURRENT_MAP = 0;
-var SOCKET_LIST = {};
 
-// enable connection
+// client connection
 io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
     socket.emit('init');
@@ -129,10 +128,15 @@ io.on('connection', function(socket) {
         socket.emit('login-aproved', {'correct': false})
         }
         
-        console.log('Player with username "' + player.name + '" attempted to login. Client ID is ' + socket.id + '.');
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
+        player.name = cred.usrname;
+        if (cred.usrname == 'null') {
+            player.color = "#FFFFFF00";
+            player.name = '';
+        }
+        console.log('Player with username ' + player.name + ' attempted to login. Client ID is ' + socket.id + '.');
     });
 
     // game handlers

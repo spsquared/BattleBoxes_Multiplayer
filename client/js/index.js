@@ -19,7 +19,10 @@ socket.on('init', function() {
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
     document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
     document.getElementById('gameCanvas').onmouseup = function() {shooting = false;};
-    document.getElementById('gameCanvas').getContext('2d').lineWidth = 2;
+    game.lineWidth = 2;
+    game.webkitImageSmoothingEnabled = false;
+    game.imageSmoothingEnabled = false;
+    game.filter = 'url(#remove-alpha)';
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
@@ -78,6 +81,10 @@ window.onresize = function() {
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
+    game.imageSmoothingEnabled = false;
+    game.webkitImageSmoothingEnabled = false;
+    game.mozImageSmoothingEnabled = false;
+    game.filter = 'url(#remove-alpha)';
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
@@ -100,4 +107,11 @@ document.getElementById('musicVolume').oninput = function() {
 document.getElementById('sfxVolume').oninput = function() {
     settings.sfxvolume = (document.getElementById('sfxVolume').value/100);
     updateSettings();
+}
+
+function debug() {
+    document.getElementById('fxOverlay').style.width = '800px';
+    document.getElementById('fxOverlay').style.height = '800px';
+    document.getElementById('fxOverlay').src = '/client/img/Debugging.png';
+    document.getElementById('fxOverlay').style.display = 'inline-block';
 }
