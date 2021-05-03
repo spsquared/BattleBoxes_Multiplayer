@@ -29,6 +29,7 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.4.1   | <ul><li>Fixed bullet collisions and added player damage</li><li>Fixed most player color dupes(leaving would cause new players to have duplicated colors)</li><li>Updated maps</li><li>Added community submission forms</li><li>Fixed README.md</li><li>Some changes to code formatting</li></ul> |
 | 0.4.2   | <ul><li>Fixed player color dupe bug</li><li>Patched major security vulnerability that allowed clients to see all other client socket ids</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/14" target="_blank">Partially fixed collision glitching</a></li><li>Added friction to walls</li><li>Added announcements</li><li>Increased bullet visibility</li><li>Updated maps again</li><li>Updated debug screen</li><li>Updated JavaScriptDisabled text</li><li>Optimized some code (collisions were left unoptimized)</li><li>Fixed some other bugs</li></ul> |
 | 0.5.0   | <ul><li>Added a fade effect</li><li>Created a round system</li><li>Added a lobby</li><li>Updated maps (fixed SUBSCRIBE floating bug)</li><li>Added a lot of spawnpoints</li><li>Added ingame music</li><li><a class="link" href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/21" target="_blank">Added arrowkey support (and fixed CAPSLOCK bug) (Issue #21)</a></li><li>Added volume sliders (kind of)</li><li>Created index.js for general functions/handlers</li><li>Added a LOT of semicolons</li></ul> |
+| 0.5.1   | <ul><li>Added credits/license pages</li><li>Fixed header shifting on debug</li><li>Fixed map randomization</li><li>Added another map</li><li><a class="link" href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/26" target="_blank">Partially fixed canvas blurring</a></li><li>Other small changes</li></ul>
 
 ***
 
@@ -49,7 +50,7 @@ Full license can be found in the LICENSE file.
 
 ##### Resources:
 - Various articles on the internet
-- [ScriptersWar](https://www.youtube.com/channel/UC8Yp-YagXZ4C5vOduEhcjRw) [turorial series](https://www.youtube.com/playlist?list=PLcIaPHraYF7k4FbeGIDY-1mZZdjTu9QyL)
+- [ScriptersWar](https://www.youtube.com/channel/UC8Yp-YagXZ4C5vOduEhcjRw) [tutorial series](https://www.youtube.com/playlist?list=PLcIaPHraYF7k4FbeGIDY-1mZZdjTu9QyL)
 
 ***
 

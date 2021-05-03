@@ -22,10 +22,18 @@ endGame = function() {
 }
 // round functions
 startRound = function() {
-    if (Math.random > 0.5) {
-        CURRENT_MAP = 2;
-    } else {
-        CURRENT_MAP = 1;
+    switch (Math.floor(Math.random()*3)) {
+        case 0:
+            CURRENT_MAP = 1;
+            break;
+        case 1:
+            CURRENT_MAP = 2;
+            break;
+        case 2:
+            CURRENT_MAP = 3;
+            break;
+        default:
+            break;
     }
     io.emit('map', CURRENT_MAP);
     var j = 0;

@@ -170,9 +170,9 @@ document.onkeyup = function(event) {
             player.debug = !player.debug;
             socket.emit('debug');
             if (PLAYER_LIST[player.id].debug) {
-                document.getElementById('versionLabel').style.top = '0px';
-            } else {
                 document.getElementById('versionLabel').style.top = '28px';
+            } else {
+                document.getElementById('versionLabel').style.top = '0px';
             }
             //socket.emit('debug');
         }

@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn('\nBattleBoxes Multiplayer Server v-0.5.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.warn('\nBattleBoxes Multiplayer Server v-0.5.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.5.0\n');
+console.log('\nThis server is running BattleBoxes Server v-0.5.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -19,32 +19,8 @@ CURRENT_MAP = null;
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
-var port;
-
 // initialize
 console.log('Starting server...');
-fs.open('./server/PORTS.txt', 'a+', function(err) {
-    if (err) throw err;
-    lineReader.open('./server/PORTS.txt', function (err, reader) {
-        if (err) throw err;
-        reader.nextLine(function(err, line) {
-            if (err) throw err;
-            if (line >=100) {
-                console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
-                process.abort();
-            }
-            ports = parseInt(line)+1;
-            console.log('There are ' + ports + ' servers running on this host.');
-            var portsstring = ports.toString();
-            fs.writeFileSync('./server/PORTS.txt', portsstring);
-            var i;
-            port = 1000
-            for (i = 1; i < ports; i++) {port += 100;}
-            server.listen(port);
-            console.log('Server started, listening to port ' + port + '.');
-        });
-    });
-});
 function getMap(name, id) {
     var data1 = require('./server/' + name);
     var data2 = [];
@@ -70,10 +46,34 @@ function getMap(name, id) {
 getMap('Lobby.json', 0);
 getMap('Map1.json', 1);
 getMap('Map2.json', 2);
+getMap('Map3.json', 3);
 CURRENT_MAP = 0;
 var SOCKET_LIST = {};
+var port;
+fs.open('./server/PORTS.txt', 'a+', function(err) {
+    if (err) throw err;
+    lineReader.open('./server/PORTS.txt', function (err, reader) {
+        if (err) throw err;
+        reader.nextLine(function(err, line) {
+            if (err) throw err;
+            if (line >=100) {
+                console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
+                process.abort();
+            }
+            ports = parseInt(line)+1;
+            console.log('There are ' + ports + ' servers running on this host.');
+            var portsstring = ports.toString();
+            fs.writeFileSync('./server/PORTS.txt', portsstring);
+            var i;
+            port = 1000
+            for (i = 1; i < ports; i++) {port += 100;}
+            server.listen(port);
+            console.log('Server started, listening to port ' + port + '.');
+        });
+    });
+});
 
-// enable connection
+// client connection
 io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
     socket.emit('init');
@@ -109,6 +109,10 @@ io.on('connection', function(socket) {
             socket.emit('disconnected');
         }
         player.name = cred.usrname;
+        if (cred.usrname == 'null') {
+            player.color = "#FFFFFF00";
+            player.name = '';
+        }
         console.log('Player with username ' + player.name + ' attempted to login. Client ID is ' + socket.id + '.');
     });
 

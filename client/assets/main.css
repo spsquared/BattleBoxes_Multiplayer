@@ -305,6 +305,13 @@
     user-select: none;
 }
 
+/* game fx overlay */
+#fxOverlay {
+    display: none;
+    position: absolute;
+    text-align: center;
+}
+
 /* jsdisabled */
 #jsdisabled {
     font-family: "Pixel";
