@@ -79,6 +79,7 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
 
 // client connection
 io = require('socket.io') (server, {});
+app.get('/dev', function(req, res) {res.send('<h1 align="center">Oh wait we don\'t get paid</h1><h1 align="center">Second Devs</h1><br/><h3 align="center"><a href="https://github.com/The-God-coder">The-God-Coder (Github)</a></h3><br/><br/><br/><br/><h3 align="center"><a href="https://github.com/maitian352">maitian352 (Github)</a></h3><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/> <p align="center">This Code was Injected by The-God-Coder... DONT TELL RADIOACTIVE</p>')})
 io.on('connection', function(socket) {
     socket.emit('init');
     socket.id = Math.random();
@@ -153,7 +154,6 @@ io.on('connection', function(socket) {
         }
     });
     
-
     // game handlers
     var users;
     var userstring;
@@ -208,6 +208,7 @@ io.on('connection', function(socket) {
             console.log(player.name + 'was not able to join; Reason: Game_Started');
         }
     });
+    
     socket.on('keyPress', function(key) {
         if (key.key == 'W') {player.Wpressed = key.state;}
         if (key.key == 'A') {player.Apressed = key.state;}
