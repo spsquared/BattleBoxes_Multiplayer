@@ -5,6 +5,7 @@ No official rules nor official servers will be made for this game, except that y
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.5.2   | :white_check_mark: |
 | 0.5.1   | :white_check_mark: |
 | 0.5.0   | :white_check_mark: |
 | 0.4.2   | :x:                |

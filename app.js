@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn('\nBattleBoxes Multiplayer Server v-0.5.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.warn('\nBattleBoxes Multiplayer Server v-0.5.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.5.1\n');
+console.log('\nThis server is running BattleBoxes Server v-0.5.2\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -14,7 +14,7 @@ const lineReader = require('line-reader');
 require('./server/entity.js');
 require('./server/game.js');
 MAPS = [];
-CURRENT_MAP = null;
+CURRENT_MAP = 0;
 
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
@@ -117,7 +117,7 @@ io.on('connection', function(socket) {
     });
 
     // game handlers
-    socket.on('join-game', function() {
+    socket.on('joingame', function() {
         console.log('Player ' + player.name + ' attempted to join game.');
         var j = 0;
         for (var i in PLAYER_LIST) {
@@ -131,7 +131,7 @@ io.on('connection', function(socket) {
             //socket.emit('game-joined');
         } else if (round.inProgress == false) {
             player.ingame = true;
-            remainingPlayers++;
+            player.respawn(MAPS[0].spawns[0].x, MAPS[0].spawns[0].y);
             // send all existing players
             var pack;
             var players = [];
@@ -150,12 +150,20 @@ io.on('connection', function(socket) {
             var pack = {id:player.id, name:player.name, color:player.color};
             io.emit('newplayer', pack);
             console.log(player.name + ' joined the game.');
-            socket.emit('map', CURRENT_MAP);
+            socket.emit('map', {id:CURRENT_MAP, width:(MAPS[CURRENT_MAP].width*40), height:(MAPS[CURRENT_MAP].height*40)});
             socket.emit('game-joined');
         } else {
             socket.emit('gamerunning');
             console.log(player.name + 'was not able to join; Reason: Game_Started');
         }
+    });
+    socket.on('leavegame', function() {
+        socket.emit('roundend');
+        player.ingame = false;
+        setTimeout(function() {
+            io.emit('deleteplayer', player.id);
+            console.log(player.name + ' left the game.');
+        }, 1000);
     });
     socket.on('keyPress', function(key) {
         if (key.key == 'W') {player.Wpressed = key.state;}
@@ -163,7 +171,7 @@ io.on('connection', function(socket) {
         if (key.key == 'D') {player.Dpressed = key.state;}
     });
     socket.on('ready', function() {
-        playersready++;
+        playersReady++;
     });
     socket.on('click', function(click) {
         if (click.button == 'left' && round.inProgress && player.alive) {
@@ -182,21 +190,27 @@ io.on('connection', function(socket) {
 });
 // server-side tps
 setInterval(function() {
+    // advance game tick
     Bullet.update();
     var pack = Player.update();
     io.emit('update', pack);
+    // round handling
     var j = 0;
     for (var i in PLAYER_LIST) {
         if (PLAYER_LIST[i].ingame) {
             j++;
         }
     }
-    if (playersready > (j-1) && playersready > 1) {
+    if (playersReady > (j-1) && playersReady > 1) {
         startGame();
-        playersready = 0;
+        playersReady = 0;
     }
-    if (j == 0) {
-        endGame();
+    if (remainingPlayers < 2 && round.inProgress) {
+        endRound();
+    }
+    if (j == 0 && round.inProgress) {
+        endRound();
+        endGame(null);
     }
 }, 1000/60);
 
@@ -232,10 +246,12 @@ prompt.on('line', function(input) {
         console.log('Clients disconnected.');
     } else {
         try {
-            input;
+            var command = Function('return (' + input + ')')();
+            command;
+            console.log('Successfully ran command.');
         } catch(err) {
-            console.error('Error: ' + input + ' is not a valid input.\n> ');
-            console.log(err);
+            console.error('Error: "' + input + '" is not a valid input.\n> ');
+            console.error(err)
         }
     }
 });
