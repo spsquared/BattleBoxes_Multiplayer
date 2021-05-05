@@ -17,6 +17,57 @@ app.use('/client',express.static(__dirname + '/client'));
 server.listen(2000);
 console.log('Server started, listening to port 2000.\n');
 
+// initialize
+console.log('Starting server...');
+fs.open('./server/PORTS.txt', 'a+', function(err) {
+    if (err) throw err;
+    lineReader.open('./server/PORTS.txt', function (err, reader) {
+        if (err) throw err;
+        reader.nextLine(function(err, line) {
+            if (err) throw err;
+            if (line >=100) {
+                console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
+                process.abort();
+            }
+            ports = parseInt(line)+1;
+            console.log('There are ' + ports + ' servers running on this host.');
+            var portsstring = ports.toString();
+            fs.writeFileSync('./server/PORTS.txt', portsstring);
+            var i;
+            port = 1000
+            for (i = 1; i < ports; i++) {port += 100;}
+            server.listen(1000);
+            console.log('Server started, listening to port ' + port + '.');
+        });
+    });
+});
+function getMap(name, id) {
+    var data1 = require('./server/' + name);
+    var data2 = [];
+    data2[0] = [];
+    data2.width = data1.width;
+    data2.height = data1.height;
+    var j = 0;
+    for (var i in data1.data) {
+        data2[j][i-(j*data1.width)] = data1.data[i];
+        if (i-(j*data1.width) > data1.width-2) {
+            j++;
+            data2[j] = [];
+        }
+    }
+    data2.spawns = [];
+    for (var i in data1.spawns) {
+        data2.spawns[i] = {x:null, y:null};
+        data2.spawns[i].x = data1.spawns[i].x;
+        data2.spawns[i].y = data1.spawns[i].y;
+    }
+    MAPS[id] = data2;
+}
+getMap('Lobby.json', 0);
+getMap('Map1.json', 1);
+getMap('Map4.json', 4);
+getMap('Map2.json', 2);
+CURRENT_MAP = 0;
 var SOCKET_LIST = {};
 
 // enable connection
@@ -94,6 +145,9 @@ function queryStop(firstrun) {
                 process.exit();
             } else if (answer=='n') {
                 console.log('Server stop cancelled.\n');
+				process.exit(0);
+            } else if (answer == 'n') {
+                console.log('Server stop cancelled.\n> ');
             } else {
                 console.warn(answer + ' is not a valid answer.');
                 queryStop(false);
