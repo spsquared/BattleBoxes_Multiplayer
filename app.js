@@ -1,10 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn('\nBattleBoxes Multiplayer Server v-0.5.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.warn('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.5.3 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-
-console.log('\nThis server is running BattleBoxes Server v-0.5.0\n');
+console.log('\nThis server is running BattleBoxes Server v-0.5.3\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -15,19 +14,44 @@ const lineReader = require('line-reader');
 const { createDecipher } = require('crypto');
 require('./server/entity.js');
 require('./server/game.js');
-
     //   dbo.createCollection("users", function(err, res) {if (err) throw err;});
    
 MAPS = [];
-CURRENT_MAP = null;
+CURRENT_MAP = 0;
 
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
-var port;
-
 // initialize
 console.log('Starting server...');
+function getMap(name, id) {
+    var data1 = require('./server/' + name);
+    var data2 = [];
+    data2[0] = [];
+    data2.width = data1.width;
+    data2.height = data1.height;
+    var j = 0;
+    for (var i in data1.data) {
+        data2[j][i-(j*data1.width)] = data1.data[i];
+        if (i-(j*data1.width > data1.width-2)) {
+            j++;
+            data2[j] = [];
+        }
+    }
+    data2.spawns = [];
+    for (var i in data1.spawns) {
+        data2.spawns[i] = {x:null, y:null};
+        data2.spawns[i].x = data1.spawns[i].x;
+        data2.spawns[i].y = data1.spawns[i].y;
+    }
+    MAPS[id] = data2;
+}
+getMap('Lobby.json', 0);
+getMap('Map1.json', 1);
+getMap('Map2.json', 2);
+getMap('Map3.json', 3);
+var SOCKET_LIST = {};
+var port;
 fs.open('./server/PORTS.txt', 'a+', function(err) {
     if (err) throw err;
     lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -50,35 +74,8 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
         });
     });
 });
-function getMap(name, id) {
-    var data1 = require('./server/' + name);
-    var data2 = [];
-    data2[0] = [];
-    data2.width = data1.width;
-    data2.height = data1.height;
-    var j = 0;
-    for (var i in data1.data) {
-        data2[j][i-(j*data1.width)] = data1.data[i];
-        if (i-(j*data1.width) > data1.width-2) {
-            j++;
-            data2[j] = [];
-        }
-    }
-    data2.spawns = [];
-    for (var i in data1.spawns) {
-        data2.spawns[i] = {x:null, y:null};
-        data2.spawns[i].x = data1.spawns[i].x;
-        data2.spawns[i].y = data1.spawns[i].y;
-    }
-    MAPS[id] = data2;
-}
-getMap('Lobby.json', 0);
-getMap('Map1.json', 1);
-getMap('Map2.json', 2);
-CURRENT_MAP = 0;
-var SOCKET_LIST = {};
 
-// enable connection
+// client connection
 io = require('socket.io') (server, {});
 app.get('/dev', function(req, res) {res.send('<h1 align="center">Oh wait we don\'t get paid</h1><h1 align="center">Second Devs</h1><br/><h3 align="center"><a href="https://github.com/The-God-coder">The-God-Coder (Github)</a></h3><br/><br/><br/><br/><h3 align="center"><a href="https://github.com/maitian352">maitian352 (Github)</a></h3><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/> <p align="center">This Code was Injected by The-God-Coder... DONT TELL RADIOACTIVE</p>')})
 io.on('connection', function(socket) {
@@ -91,13 +88,16 @@ io.on('connection', function(socket) {
     // connection handlers
     socket.on('disconnect', function() {
         console.log('Player ' + player.name + ' has disconnected. Player id is ' + socket.id + '.');
-        delete SOCKET_LIST[socket.id];
-        delete PLAYER_LIST[player.id];
         for (var i in COLORS[1]) {
             if (COLORS[0][i] == player.color) {
                 COLORS[1][i] = 0;
             }
         }
+        if (player.ingame && player.alive) {
+            remainingPlayers--;
+        }
+        delete SOCKET_LIST[socket.id];
+        delete PLAYER_LIST[player.id];
         io.emit('deleteplayer', player.id);
     });
     socket.on('timeout', function() {
@@ -129,7 +129,15 @@ io.on('connection', function(socket) {
 
                 } 
             }
-           
+            if (cred.usrname.length > 64) {
+                socket.emit('disconnected');
+            }
+            player.name = cred.usrname;
+            if (cred.usrname == 'null') {
+                player.color = "#FFFFFF00";
+                player.name = '';
+            }
+            console.log('Player with username ' + player.name + ' attempted to login. Client ID is ' + socket.id + '.');
            
         });
         if (correct){
@@ -161,7 +169,7 @@ io.on('connection', function(socket) {
         
 
     });
-    socket.on('join-game', function() {
+    socket.on('joingame', function() {
         console.log('Player ' + player.name + ' attempted to join game.');
         var j = 0;
         for (var i in PLAYER_LIST) {
@@ -175,7 +183,7 @@ io.on('connection', function(socket) {
             //socket.emit('game-joined');
         } else if (round.inProgress == false) {
             player.ingame = true;
-            remainingPlayers++;
+            player.respawn(MAPS[0].spawns[0].x, MAPS[0].spawns[0].y);
             // send all existing players
             var pack;
             var players = [];
@@ -190,25 +198,41 @@ io.on('connection', function(socket) {
             }
             pack = {self:player.id, players:players, bullets:bullets};
             socket.emit('initgame', pack);
+            pack = [];
+            for (var i in MAPS) {
+                pack.push({id:i, width:(MAPS[i].width*40), height:(MAPS[i].height*40)});
+            }
+            socket.emit('initmap', pack);
             // send new player to all clients
             var pack = {id:player.id, name:player.name, color:player.color};
             io.emit('newplayer', pack);
-            console.log(player.name + ' joined the game.');
-            socket.emit('map', CURRENT_MAP);
+            
             socket.emit('game-joined');
+            console.log(player.name + ' joined the game.');
         } else {
             socket.emit('gamerunning');
             console.log(player.name + 'was not able to join; Reason: Game_Started');
         }
     });
-    
+    socket.on('leavegame', function() {
+        socket.emit('roundend');
+        if (player.ingame && player.alive) {
+            remainingPlayers--;
+        }
+        player.ingame = false;
+        player.ready = false;
+        setTimeout(function() {
+            io.emit('deleteplayer', player.id);
+            console.log(player.name + ' left the game.');
+        }, 1000);
+    });
     socket.on('keyPress', function(key) {
         if (key.key == 'W') {player.Wpressed = key.state;}
         if (key.key == 'A') {player.Apressed = key.state;}
         if (key.key == 'D') {player.Dpressed = key.state;}
     });
     socket.on('ready', function() {
-        playersready++;
+        player.ready = true;
     });
     socket.on('click', function(click) {
         if (click.button == 'left' && round.inProgress && player.alive) {
@@ -228,21 +252,30 @@ io.on('connection', function(socket) {
 
 // server-side tps
 setInterval(function() {
+    // advance game tick
     Bullet.update();
     var pack = Player.update();
     io.emit('update', pack);
+    // round handling
     var j = 0;
+    var k = 0;
     for (var i in PLAYER_LIST) {
         if (PLAYER_LIST[i].ingame) {
             j++;
         }
+        if (PLAYER_LIST[i].ready) {
+            k++;
+        }
     }
-    if (playersready > (j-1) && playersready > 1) {
+    if (k > (j-1) && k > 1) {
         startGame();
-        playersready = 0;
+        for (var i in PLAYER_LIST) {
+            PLAYER_LIST[i].ready = false;
+        }
     }
-    if (j == 0) {
-        endGame();
+    if (j < 2 && gameinProgress) {
+        endRound();
+        endGame(null);
     }
 }, 1000/60);
 
@@ -278,10 +311,12 @@ prompt.on('line', function(input) {
         console.log('Clients disconnected.');
     } else {
         try {
-            input;
+            var command = Function('return (' + input + ')')();
+            command;
+            console.log('Successfully ran command.');
         } catch(err) {
-            console.error('Error: ' + input + ' is not a valid input.\n> ');
-            console.log(err);
+            console.error('Error: "' + input + '" is not a valid input.\n> ');
+            console.error(err)
         }
     }
 });

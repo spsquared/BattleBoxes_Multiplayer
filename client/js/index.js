@@ -1,5 +1,6 @@
 // Copyright (C) 2021 Radioactive64
 
+game = document.getElementById('gameCanvas').getContext('2d');
 music = new Audio();
 sfx = [new Audio(), new Audio(), new Audio(), new Audio()];
 settings = {globalvolume:(document.getElementById('globalVolume').value/100), musicvolume:(document.getElementById('musicVolume').value/100), sfxvolume:(document.getElementById('sfxVolume').value/100)};
@@ -19,15 +20,23 @@ socket.on('init', function() {
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
     document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
     document.getElementById('gameCanvas').onmouseup = function() {shooting = false;};
-    document.getElementById('gameCanvas').getContext('2d').lineWidth = 2;
+    game.lineWidth = 2;
+    game.webkitImageSmoothingEnabled = false;
+    game.imageSmoothingEnabled = false;
+    game.filter = 'url(#remove-alpha)';
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
     document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
     document.getElementById('announcementsPage').width = (window.innerWidth-64);
+    try {
+        document.getElementById('announcementsEmbed').remove();
+    } catch (error) {}
     var announcementsEmbed = document.createElement('div');
+    announcementsEmbed.id = 'announcementsEmbed';
     $.get('https://raw.githubusercontent.com/definitely-nobody-is-here/BBmulti_Announcements/master/Announcements.html', function(file) {
         announcementsEmbed.innerHTML = file;
+        document.getElementById('announcements-failedLoadimg').style.display = 'none';
         document.getElementById('announcements-failedLoad').style.display = 'none';
     });
     document.getElementById('announcementsPage').appendChild(announcementsEmbed);
@@ -54,6 +63,9 @@ function updateSettings() {
     for (var i in sfx) {
         sfx[i].volume = (settings.globalvolume*settings.sfxvolume);
     }
+    document.getElementById('GV-label').innerHTML = (Math.floor(settings.globalvolume*100) + '%');
+    document.getElementById('MV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
+    document.getElementById('EV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
 }
 
 // sound
@@ -78,13 +90,17 @@ window.onresize = function() {
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
+    game.imageSmoothingEnabled = false;
+    game.webkitImageSmoothingEnabled = false;
+    game.mozImageSmoothingEnabled = false;
+    game.filter = 'url(#remove-alpha)';
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
     document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
-    camera.w = window.innerWidth/2;
-    camera.h = window.innerHeight/2;
-};
+    camera.width = window.innerWidth/2;
+    camera.height = window.innerHeight/2;
+}
 // init
 document.addEventListener('mousedown', function() {
     music.play();
@@ -100,4 +116,11 @@ document.getElementById('musicVolume').oninput = function() {
 document.getElementById('sfxVolume').oninput = function() {
     settings.sfxvolume = (document.getElementById('sfxVolume').value/100);
     updateSettings();
+}
+
+function debug() {
+    document.getElementById('fxOverlay').style.width = '800px';
+    document.getElementById('fxOverlay').style.height = '800px';
+    document.getElementById('fxOverlay').src = '/client/img/Debugging.png';
+    document.getElementById('fxOverlay').style.display = 'inline-block';
 }
