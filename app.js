@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn('\nBattleBoxes Multiplayer Server v-0.5.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.warn('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.5.3 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.5.2\n');
+console.log('\nThis server is running BattleBoxes Server v-0.5.3\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -47,7 +47,6 @@ getMap('Lobby.json', 0);
 getMap('Map1.json', 1);
 getMap('Map2.json', 2);
 getMap('Map3.json', 3);
-CURRENT_MAP = 0;
 var SOCKET_LIST = {};
 var port;
 fs.open('./server/PORTS.txt', 'a+', function(err) {
@@ -85,13 +84,16 @@ io.on('connection', function(socket) {
     // connection handlers
     socket.on('disconnect', function() {
         console.log('Player ' + player.name + ' has disconnected. Player id is ' + socket.id + '.');
-        delete SOCKET_LIST[socket.id];
-        delete PLAYER_LIST[player.id];
         for (var i in COLORS[1]) {
             if (COLORS[0][i] == player.color) {
                 COLORS[1][i] = 0;
             }
         }
+        if (player.ingame && player.alive) {
+            remainingPlayers--;
+        }
+        delete SOCKET_LIST[socket.id];
+        delete PLAYER_LIST[player.id];
         io.emit('deleteplayer', player.id);
     });
     socket.on('timeout', function() {
@@ -146,12 +148,17 @@ io.on('connection', function(socket) {
             }
             pack = {self:player.id, players:players, bullets:bullets};
             socket.emit('initgame', pack);
+            pack = [];
+            for (var i in MAPS) {
+                pack.push({id:i, width:(MAPS[i].width*40), height:(MAPS[i].height*40)});
+            }
+            socket.emit('initmap', pack);
             // send new player to all clients
             var pack = {id:player.id, name:player.name, color:player.color};
             io.emit('newplayer', pack);
-            console.log(player.name + ' joined the game.');
-            socket.emit('map', {id:CURRENT_MAP, width:(MAPS[CURRENT_MAP].width*40), height:(MAPS[CURRENT_MAP].height*40)});
+            
             socket.emit('game-joined');
+            console.log(player.name + ' joined the game.');
         } else {
             socket.emit('gamerunning');
             console.log(player.name + 'was not able to join; Reason: Game_Started');
@@ -159,7 +166,11 @@ io.on('connection', function(socket) {
     });
     socket.on('leavegame', function() {
         socket.emit('roundend');
+        if (player.ingame && player.alive) {
+            remainingPlayers--;
+        }
         player.ingame = false;
+        player.ready = false;
         setTimeout(function() {
             io.emit('deleteplayer', player.id);
             console.log(player.name + ' left the game.');
@@ -171,7 +182,7 @@ io.on('connection', function(socket) {
         if (key.key == 'D') {player.Dpressed = key.state;}
     });
     socket.on('ready', function() {
-        playersReady++;
+        player.ready = true;
     });
     socket.on('click', function(click) {
         if (click.button == 'left' && round.inProgress && player.alive) {
@@ -196,19 +207,22 @@ setInterval(function() {
     io.emit('update', pack);
     // round handling
     var j = 0;
+    var k = 0;
     for (var i in PLAYER_LIST) {
         if (PLAYER_LIST[i].ingame) {
             j++;
         }
+        if (PLAYER_LIST[i].ready) {
+            k++;
+        }
     }
-    if (playersReady > (j-1) && playersReady > 1) {
+    if (k > (j-1) && k > 1) {
         startGame();
-        playersReady = 0;
+        for (var i in PLAYER_LIST) {
+            PLAYER_LIST[i].ready = false;
+        }
     }
-    if (remainingPlayers < 2 && round.inProgress) {
-        endRound();
-    }
-    if (j == 0 && round.inProgress) {
+    if (j < 2 && gameinProgress) {
         endRound();
         endGame(null);
     }

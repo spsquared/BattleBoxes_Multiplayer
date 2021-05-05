@@ -8,6 +8,8 @@ function login() {
         window.alert('Your username must be 64 or less characters.')
     } else if (document.getElementById('usrname').value == '64 or less characters') {
         socket.emit('disconnectclient');
+    } else if (document.getElementById('usrname').value.indexOf(' ') > 0) {
+        window.alert('Your username cannot contain whitespaces');
     } else {
         document.getElementById('loginContainer').style.display = 'none';
         document.getElementById('mainmenuContainer').style.display = 'inline-block';

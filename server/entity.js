@@ -23,24 +23,24 @@ Entity = function() {
         var py = Math.floor(self.y/40);
         var tempx;
         var tempy;
-        // bottomleft
-        tempx = px-1;
-        tempy = py+1;
-        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
-            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    self.y += (tempy*40) - (self.y+self.halfsize);
-                    self.yspeed = 0;
-                    self.colliding.bottom = true;
-                }
-            }
-        }
         // bottom
         tempx = px;
         tempy = py+1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if ((tempx*40) < (self.x+self.halfsize) && ((tempx*40)+40) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
+                    self.y += (tempy*40) - (self.y+self.halfsize);
+                    self.yspeed = 0;
+                    self.colliding.bottom = true;
+                }
+            }
+        }
+        // bottomleft
+        tempx = px-1;
+        tempy = py+1;
+        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
+            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
                     self.y += (tempy*40) - (self.y+self.halfsize);
                     self.yspeed = 0;
                     self.colliding.bottom = true;
@@ -85,18 +85,6 @@ Entity = function() {
                 }
             }
         }
-        // topleft
-        tempx = px-1;
-        tempy = py-1;
-        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
-            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
-                    self.y += ((tempy*40)+40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.25;
-                    self.colliding.top = true;
-                }
-            }
-        }
         // top
         tempx = px;
         tempy = py-1;
@@ -109,15 +97,41 @@ Entity = function() {
                 }
             }
         }
+        // topleft
+        tempx = px-1;
+        tempy = py-1;
+        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
+            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
+                    if (self.Wpressed && !self.colliding.top && self.xspeed < -2) {
+                        self.x += ((tempx*40)+40) - (self.x-self.halfsize);
+                        self.xspeed = 0;
+                        self.yspeed *=0.75;
+                        self.colliding.left = true;
+                    } else {
+                        self.y += ((tempy*40)+40) - (self.y-self.halfsize);
+                        self.yspeed *= -0.25;
+                        self.colliding.top = true;
+                    }
+                }
+            }
+        }
         // topright
         tempx = px+1;
         tempy = py-1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && ((tempy*40) > self.y-self.halfsize)) {
-                    self.y += (tempy*40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.25;
-                    self.colliding.top = true;
+                    if (self.Wpressed && !self.colliding.top && self.xspeed > 2) {
+                        self.x += (tempx*40) - (self.x+self.halfsize);
+                        self.xspeed = 0;
+                        self.yspeed *=0.75;
+                        self.colliding.right = true;
+                    } else {
+                        self.y += (tempy*40) - (self.y-self.halfsize);
+                        self.yspeed *= -0.25;
+                        self.colliding.top = true;
+                    }
                 }
             }
         }
@@ -152,7 +166,6 @@ Player = function() {
     self.id = Math.random();
     self.name = null;
     self.halfsize = 16;
-    self.ingame = false;
     self.Wpressed = false;
     self.Apressed = false;
     self.Dpressed = false;
@@ -162,6 +175,8 @@ Player = function() {
     self.hp = 5;
     self.score = 0;
     self.alive = true;
+    self.ready = false;
+    self.ingame = false;
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
@@ -219,9 +234,14 @@ Player = function() {
         self.y -= self.yspeed;
     }
     self.death = function() {
-        self.alive = false;
-        remainingPlayers--;
-        io.emit('playerdied', self.id);
+        if (self.alive) {
+            self.alive = false;
+            remainingPlayers--;
+            io.emit('playerdied', self.id);
+            if (remainingPlayers < 2 && round.inProgress) {
+                endRound();
+            }
+        }
     }
     self.respawn = function(x, y) {
         self.xspeed = 0;
