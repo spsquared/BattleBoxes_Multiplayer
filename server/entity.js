@@ -3,7 +3,7 @@
 PLAYER_LIST = [];
 BULLET_LIST = [];
 COLORS = [['#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9900FF', '#FF00FF', '#000000', '#AA0000', '#996600', '#EECC33', '#00AA00', '#0088CC', '#8877CC', '#CC77AA'], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
-remainingPlayers = null;
+remainingPlayers = 0;
 
 // entity
 Entity = function() {
@@ -12,7 +12,7 @@ Entity = function() {
     self.update = function() {
         self.collide();
         self.updatePos();
-    };
+    }
     self.collide = function() {
         self.colliding.bottom = false;
         self.colliding.left = false;
@@ -23,24 +23,24 @@ Entity = function() {
         var py = Math.floor(self.y/40);
         var tempx;
         var tempy;
-        // bottomleft
-        tempx = px-1;
-        tempy = py+1;
-        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
-            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    self.y += (tempy*40) - (self.y+self.halfsize);
-                    self.yspeed = 0;
-                    self.colliding.bottom = true;
-                }
-            }
-        }
         // bottom
         tempx = px;
         tempy = py+1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if ((tempx*40) < (self.x+self.halfsize) && ((tempx*40)+40) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
+                    self.y += (tempy*40) - (self.y+self.halfsize);
+                    self.yspeed = 0;
+                    self.colliding.bottom = true;
+                }
+            }
+        }
+        // bottomleft
+        tempx = px-1;
+        tempy = py+1;
+        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
+            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
                     self.y += (tempy*40) - (self.y+self.halfsize);
                     self.yspeed = 0;
                     self.colliding.bottom = true;
@@ -85,18 +85,6 @@ Entity = function() {
                 }
             }
         }
-        // topleft
-        tempx = px-1;
-        tempy = py-1;
-        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
-            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
-                    self.y += ((tempy*40)+40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.25;
-                    self.colliding.top = true;
-                }
-            }
-        }
         // top
         tempx = px;
         tempy = py-1;
@@ -109,15 +97,41 @@ Entity = function() {
                 }
             }
         }
+        // topleft
+        tempx = px-1;
+        tempy = py-1;
+        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
+            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
+                    if (self.Wpressed && !self.colliding.top && self.xspeed < -2) {
+                        self.x += ((tempx*40)+40) - (self.x-self.halfsize);
+                        self.xspeed = 0;
+                        self.yspeed *=0.75;
+                        self.colliding.left = true;
+                    } else {
+                        self.y += ((tempy*40)+40) - (self.y-self.halfsize);
+                        self.yspeed *= -0.25;
+                        self.colliding.top = true;
+                    }
+                }
+            }
+        }
         // topright
         tempx = px+1;
         tempy = py-1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && ((tempy*40) > self.y-self.halfsize)) {
-                    self.y += (tempy*40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.25;
-                    self.colliding.top = true;
+                    if (self.Wpressed && !self.colliding.top && self.xspeed > 2) {
+                        self.x += (tempx*40) - (self.x+self.halfsize);
+                        self.xspeed = 0;
+                        self.yspeed *=0.75;
+                        self.colliding.right = true;
+                    } else {
+                        self.y += (tempy*40) - (self.y-self.halfsize);
+                        self.yspeed *= -0.25;
+                        self.colliding.top = true;
+                    }
                 }
             }
         }
@@ -137,24 +151,21 @@ Entity = function() {
                 }
             }
         }
-    };
+    }
     self.updatePos = function() {
         self.x += self.xspeed;
         self.y += self.yspeed;
-    };
+    }
 
     return self;
-};
+}
 
 // player
 Player = function() {
     var self = Entity();
     self.id = Math.random();
     self.name = null;
-    self.x = MAPS[0].spawns[0].x;
-    self.y = MAPS[0].spawns[0].y;
     self.halfsize = 16;
-    self.ingame = false;
     self.Wpressed = false;
     self.Apressed = false;
     self.Dpressed = false;
@@ -164,12 +175,14 @@ Player = function() {
     self.hp = 5;
     self.score = 0;
     self.alive = true;
+    self.ready = false;
+    self.ingame = false;
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
             j++;
         }
-    };
+    }
     self.color = COLORS[0][j];
     COLORS[1][j] = 1;
     PLAYER_LIST[self.id] = self;
@@ -179,13 +192,9 @@ Player = function() {
         self.updatePos();
         self.lastclick++;
         if (self.hp < 1) {
-            io.emit('playerdied', self.id);
-            remainingPlayers--;
-            if (remainingPlayers < 2 && round.inProgress) {
-                endRound();
-            }
+            self.death();
         }
-    };
+    }
     self.updatePos = function() {
         if (self.Dpressed) {
             self.xspeed += 1;
@@ -218,17 +227,22 @@ Player = function() {
             self.xspeed = 0;
         }
         if (self.y+32 > (MAPS[CURRENT_MAP].height*40)+40) {
-            self.alive = false;
-            io.emit('playerdied', self.id);
-            remainingPlayers--;
-            if (remainingPlayers < 2 && round.inProgress) {
-                endRound();
-            }
+            self.death();
         }
         self.collide();
         self.x += self.xspeed;
         self.y -= self.yspeed;
-    };
+    }
+    self.death = function() {
+        if (self.alive) {
+            self.alive = false;
+            remainingPlayers--;
+            io.emit('playerdied', self.id);
+            if (remainingPlayers < 2 && round.inProgress) {
+                endRound();
+            }
+        }
+    }
     self.respawn = function(x, y) {
         self.xspeed = 0;
         self.yspeed = 0;
@@ -239,7 +253,7 @@ Player = function() {
     };
 
     return self;
-};
+}
 Player.update = function() {
     var pack = [];
     for (var i in PLAYER_LIST) {
@@ -257,7 +271,7 @@ Player.update = function() {
         }
     }
     return pack;
-};
+}
 
 // bullets
 Bullet = function(mousex, mousey, x, y, parent, color) {
@@ -287,7 +301,7 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     }
 
     return self;
-};
+}
 Bullet.update = function() {
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
@@ -308,4 +322,4 @@ Bullet.update = function() {
         }
     }
     return;
-};
+}

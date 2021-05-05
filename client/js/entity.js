@@ -6,11 +6,11 @@ Entity = function() {
 
     self.update = function() {
         self.draw();
-    };
+    }
     self.draw = function() {};
 
     return self;
-};
+}
 
 // player
 Player = function(id, name, color) {
@@ -43,16 +43,16 @@ Player = function(id, name, color) {
             game.fillStyle = self.color;
             game.fillRect(self.relx-16, self.rely-16, 32, 32);
         }
-    };
+    }
 
     return self;
-};
+}
 Player.update = function(players) {
     for (var i in players) {
         var localplayer = PLAYER_LIST[players[i].id];
         localplayer.update(players[i].x, players[i].y, players[i].hp);
     }
-};
+}
 
 // bullets
 Bullet = function(id, x, y, angle, parent, color) {
@@ -73,31 +73,31 @@ Bullet = function(id, x, y, angle, parent, color) {
         self.relx = -(camera.x - self.x);
         self.rely = -(camera.y - self.y);
         self.draw();
-    };
+    }
     self.draw = function() {
         game.fillStyle = color;
         game.fillRect(self.relx-4, self.rely-4, 8, 8);
-    };
+    }
 
     return self;
-};
+}
 Bullet.update = function() {
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
     }
-};
+}
 
 // game handlers
 socket.on('initgame', function(pkg) {
     for (var i in pkg.players) {
         var localplayer = Player(pkg.players[i].id, pkg.players[i].name, pkg.players[i].color);
         PLAYER_LIST[localplayer.id] = localplayer;
-    };
+    }
     for (var i in pkg.bullets) {
         var localbullet = Bullet(pkg.bullets[i].id, pkg.bullets[i].x, pkg.bullets[i].y, pkg.bullets[i].angle, pkg.bullets[i].parent, pkg.bullets[i].color);
         BULLET_LIST[localbullet.id] = localbullet;
-    };
+    }
     player = PLAYER_LIST[pkg.self];
 });
 socket.on('newplayer', function(pkg) {
@@ -116,9 +116,4 @@ socket.on('deletebullet', function(id) {
 });
 socket.on('playerdied', function(id) {
     PLAYER_LIST[id].alive = false;
-});
-socket.on('respawn', function() {
-    for (var i in PLAYER_LIST) {
-        PLAYER_LIST[i].alive = true;
-    };
 });

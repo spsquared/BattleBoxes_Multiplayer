@@ -195,6 +195,20 @@
     display: none;
     text-align: center;
 }
+/* settings table */
+#settingsTable {
+    font-family: 'Pixel';
+}
+/* volume sliders */
+#globalVolume {
+    width: 512px;
+}
+#musicVolume {
+    width: 252px;
+}
+#sfxVolume {
+    width: 252px;
+}
 
 /* announcements contaier */
 #announcementsContainer {

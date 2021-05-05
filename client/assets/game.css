@@ -71,79 +71,21 @@
 }
 /* resume button */
 #resume {
-    padding: 10px 10px;
-    border-color: black;
-    border-width: 4px;
-    font-family: 'Pixel';
-    font-size: 32px;
-    color: black;
     background-color: forestgreen;
-    cursor: pointer;
-    transition: all .1s ease-in-out;
-}
-#resume:hover {
-    transform: scale(1.1) perspective(1px);
-    transform: translateY(-10px);
-}
-#resume:active {
-    transform: translateY(10px);
 }
 /* ingameSettings button */
 #ingameSettings {
-    padding: 10px 10px;
-    border-color: black;
-    border-width: 4px;
-    font-family: 'Pixel';
-    font-size: 32px;
-    color: black;
     background-color: lime;
-    cursor: pointer;
-    transition: all .1s ease-in-out;
-}
-#ingameSettings:hover {
-    transform: scale(1.1) perspective(1px);
-    transform: translateY(-10px);
-}
-#ingameSettings:active {
-    transform: translateY(10px);
 }
 /* ingameAchievements button */
 #ingameAchievements {
-    padding: 10px 10px;
-    border-color: black;
-    border-width: 4px;
-    font-family: 'Pixel';
-    font-size: 32px;
-    color: black;
     background-color: orange;
-    cursor: pointer;
-    transition: all .1s ease-in-out;
-}
-#ingameAchievements:hover {
-    transform: scale(1.1) perspective(1px);
-    transform: translateY(-10px);
-}
-#ingameAchievements:active {
-    transform: translateY(10px);
 }
 /* leavegame button */
 #leavegame {
     padding: 8px 8px;
-    border-color: black;
-    border-width: 4px;
-    font-family: 'Pixel';
     font-size: 24px;
-    color: black;
     background-color: red;
-    cursor: pointer;
-    transition: all .1s ease-in-out;
-}
-#leavegame:hover {
-    transform: scale(1.1) perspective(1px);
-    transform: translateY(-10px);
-}
-#leavegame:active {
-    transform: translateY(10px);
 }
 
 /* ready button */

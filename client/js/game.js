@@ -4,14 +4,12 @@ $.ajaxSetup({cache: true, async:false});
 $.getScript('/client/js/index.js');
 $.getScript('/client/js/entity.js');
 $.getScript('/client/js/menu.js');
-game = document.getElementById('gameCanvas').getContext('2d');
 PLAYER_LIST = {};
 BULLET_LIST = {};
+MAPS = [];
+CURRENT_MAP = 0;
 player = null;
-map = new Image();
-map.width = 0;
-map.height = 0;
-camera = {x:0, y:0, w:window.innerWidth/2, h:window.innerHeight/2};
+camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
 var mouseX;
 var mouseY;
 var shooting = false;
@@ -36,17 +34,25 @@ socket.on('gamefull', function() {
 socket.on('gamerunning', function() {
     document.getElementById('gamelocked').style.display = 'block';
 });
-socket.on('map', function(id) {
-    if (id == 0) {
-        map.src = '/client/img/Lobby.png';
-    } else {
-        map.src = '/client/img/map' + id + '.png';
+socket.on('initmap', function(maps) {
+    for (var i in maps) {
+        MAPS[i] = new Image(maps[i].width, maps[i].height);
+        if (maps[i].id == 0) {
+            MAPS[i].src = '/client/img/Lobby.png';
+        } else {
+            MAPS[i].src = '/client/img/map' + maps[i].id + '.png';
+        }
     }
 });
-socket.on('gamestart', function() {
-    document.getElementById('ready').style.display = 'none';
+socket.on('map', function(id) {
+    CURRENT_MAP = id;
 });
-socket.on('roundstart', function() {
+socket.on('gamestart', function() {
+    if (ingame) {
+        document.getElementById('ready').style.display = 'none';
+    }
+});
+socket.on('roundstart', function(scores) {
     if (ingame) {
         fadeOut();
         setTimeout(function() {
@@ -54,6 +60,12 @@ socket.on('roundstart', function() {
         }, 3000);
         sfx[0].src = '/client/sound/Countdown.mp3';
         sfx[0].play();
+        for (var i in PLAYER_LIST) {
+            PLAYER_LIST[i].alive = true;
+        }
+        for (var i in scores) {
+            PLAYER_LIST[scores[i].id].score = scores[i].score;
+        }
     }
 });
 socket.on('roundend', function() {
@@ -83,24 +95,35 @@ socket.on('update', function(pkg) {
     }
 });
 function drawMap() {
-    game.drawImage(map, -camera.x, -camera.y);
-};
+    game.drawImage(MAPS[CURRENT_MAP], -camera.x, -camera.y);
+}
 function updateCamera() {
-    //collisions to move camera
-    if ((camera.w/2) > (player.relx-16)) {
-        camera.x -= (camera.w/2) - (player.relx-16);
+    // collisions to move camera
+    if ((camera.width/2) > (player.relx-16)) {
+        camera.x -= (camera.width/2) - (player.relx-16);
     }
-    if ((camera.w*(3/2)) < (player.relx+16)) {
-        camera.x -= (camera.w*(3/2)) - (player.relx+16);
+    if ((camera.width*(3/2)) < (player.relx+16)) {
+        camera.x -= (camera.width*(3/2)) - (player.relx+16);
     }
-    if ((camera.h/2) > (player.rely-16)) {
-        camera.y -= (camera.h/2) - (player.rely-16);
+    if ((camera.height/2) > (player.rely-16)) {
+        camera.y -= (camera.height/2) - (player.rely-16);
     }
-    if ((camera.h*(3/2)) < (player.rely+16)) {
-        camera.y -= (camera.h*(3/2)) - (player.rely+16);
+    if ((camera.height*(3/2)) < (player.rely+16)) {
+        camera.y -= (camera.height*(3/2)) - (player.rely+16);
     }
-
-};
+    if (camera.x < 0) {
+        camera.x = 0;
+    }
+    if (camera.y < -200) {
+        camera.y = -200;
+    }
+    if ((camera.x+(camera.width*2)) > MAPS[CURRENT_MAP].width) {
+        camera.x = (MAPS[CURRENT_MAP].width-(camera.width*2));
+    }
+    if ((camera.y+(camera.height*2)) > MAPS[CURRENT_MAP].height) {
+       camera.y = (MAPS[CURRENT_MAP].height-(camera.height*2));
+    }
+}
 function drawDebug(debugInfo) {
     game.fillStyle = '#FFFFFF88';
     game.fillRect(4, 4, 380, 48);
@@ -126,7 +149,7 @@ function drawDebug(debugInfo) {
     game.moveTo(tempx, tempy+40);
     game.lineTo(tempx+40, tempy+40);
     //game.stroke();
-};
+}
 
 // input sending
 document.onkeydown = function(event) {
@@ -141,7 +164,7 @@ document.onkeydown = function(event) {
             socket.emit('keyPress', {key:'D', state:true});
         }
     }
-};
+}
 document.onkeyup = function(event) {
     if (ingame) {
         if (event.key == 'w' || event.key == 'W' || event.key == 'ArrowUp') {
@@ -159,10 +182,10 @@ document.onkeyup = function(event) {
                 inmenu = false;
             } else {
                 document.getElementById('ingameMenu').style.display = 'inline-block';
+                inmenu = true;
                 socket.emit('keyPress', {key:'W', state:false});
                 socket.emit('keyPress', {key:'A', state:false});
                 socket.emit('keyPress', {key:'D', state:false});
-                inmenu = true;
             }
             
         }
@@ -177,27 +200,25 @@ document.onkeyup = function(event) {
             //socket.emit('debug');
         }
     }
-};
+}
 document.onmousemove = function(event) {
     mouseX = camera.x+event.clientX;
     mouseY = camera.y+event.clientY;
-};
+}
 document.onmousedown = function(event) {
     mouseX = camera.x+event.clientX;
     mouseY = camera.y+event.clientY;
-    if (ingame && !inmenu) {
-        if (!shooting) {
-            switch (event.button) {
-                case 0:
-                    socket.emit('click', {button:'left', x:mouseX, y:mouseY});
-                    shooting = true; 
-                case 2:
-                    socket.emit('click', {button:'right'});
-                    shooting = true;
-            }
+    if (ingame && !inmenu && canmove && !shooting) {
+        switch (event.button) {
+            case 0:
+                socket.emit('click', {button:'left', x:mouseX, y:mouseY});
+                shooting = true; 
+            case 2:
+                socket.emit('click', {button:'right'});
+                shooting = true;
         }
     }
-};
+}
 
 // game functions
 function fadeIn() {
@@ -216,10 +237,11 @@ function fadeIn() {
         document.getElementById('fade').style.opacity = fadeAmount;
         music.volume = audiofade;
     }, 1);
-};
+}
 function fadeOut() {
     var fadeAmount = 1;
     var audiofade = 0;
+    document.getElementById('loading').style.display = 'none';
     var fadeInterval = setInterval(function() {
         fadeAmount -= 0.01;
         audiofade += ((settings.musicvolume*settings.globalvolume)/100);
@@ -227,12 +249,11 @@ function fadeOut() {
             clearInterval(fadeInterval);
             document.getElementById('loadingContainer').style.display = 'none';
             document.getElementById('fade').style.display = 'none';
-            document.getElementById('loading').style.display = 'none';
         }
         document.getElementById('fade').style.opacity = fadeAmount;
         music.volume = audiofade;
     }, 1);
-};
+}
 function ready() {
     if (!readyforstart) {
         socket.emit('ready');
@@ -246,7 +267,7 @@ function ready() {
         }, 1); 
         readyforstart = true;
     }
-};
+}
 
 // fps counter
 setInterval(function() {
@@ -258,12 +279,10 @@ setInterval(function() {
 setInterval(function() {
     if (ingame) {
         connected++;
-        if (connected >= 10) {
+        if (connected == 10) {
+            fadeIn();
             document.getElementById('loading').style.display = 'inline-block';
             document.getElementById('waiting').style.display = 'inline-block';
-        } else {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('waiting').style.display = 'none';
         }
     }
 }, 1000/10);
