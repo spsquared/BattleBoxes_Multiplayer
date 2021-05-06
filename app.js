@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.5.3 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.warn('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.5.4 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.5.3\n');
+console.log('\nThis server is running BattleBoxes Server v-0.5.4\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);

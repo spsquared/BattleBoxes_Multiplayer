@@ -41,9 +41,16 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    self.y += (tempy*40) - (self.y+self.halfsize);
-                    self.yspeed = 0;
-                    self.colliding.bottom = true;
+                    if (self.Wpressed && self.Apressed && !self.colliding.top) {
+                        self.x += ((tempx*40)+40) - (self.x-self.halfsize);
+                        self.xspeed = 0;
+                        self.yspeed *=0.75;
+                        self.colliding.left = true;
+                    } else {
+                        self.y += (tempy*40) - (self.y+self.halfsize);
+                        self.yspeed = 0;
+                        self.colliding.bottom = true;
+                    }
                 }
             }
         }
@@ -53,9 +60,16 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    self.y += (tempy*40) - (self.y+self.halfsize);
-                    self.yspeed = 0;
-                    self.colliding.bottom = true;
+                    if (self.Wpressed && self.Dpressed && !self.colliding.top) {
+                        self.x += (tempx*40) - (self.x+self.halfsize);
+                        self.xspeed = 0;
+                        self.yspeed *=0.75;
+                        self.colliding.right = true;
+                    } else {
+                        self.y += (tempy*40) - (self.y+self.halfsize);
+                        self.yspeed = 0;
+                        self.colliding.bottom = true;
+                    }
                 }
             }
         }
@@ -103,7 +117,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
-                    if (self.Wpressed && !self.colliding.top && self.xspeed < -2) {
+                    if (self.Wpressed && self.Apressed && !self.colliding.top) {
                         self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;
@@ -121,14 +135,14 @@ Entity = function() {
         tempy = py-1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+1) < (self.x+self.halfsize) && ((tempy*40) > self.y-self.halfsize)) {
-                    if (self.Wpressed && !self.colliding.top && self.xspeed > 2) {
+                if (((tempx*40)+1) < (self.x+self.halfsize) && (((tempy*40)+40) > self.y-self.halfsize)) {
+                    if (self.Wpressed && self.Dpressed && !self.colliding.top) {
                         self.x += (tempx*40) - (self.x+self.halfsize);
                         self.xspeed = 0;
-                        self.yspeed *=0.75;
+                        self.yspeed *=0.75;  
                         self.colliding.right = true;
                     } else {
-                        self.y += (tempy*40) - (self.y-self.halfsize);
+                        self.y += ((tempy*40)+40) - (self.y-self.halfsize);
                         self.yspeed *= -0.25;
                         self.colliding.top = true;
                     }
@@ -140,15 +154,16 @@ Entity = function() {
         tempy = py;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (self.yspeed <= -20) {
+                if (self.yspeed <= -10) {
                     self.y += (tempy*40) - (self.y+self.halfsize);
                     self.yspeed = 0;
                     self.colliding.bottom = true;
-                } else if (self.yspeed >= 20) {
+                } else if (self.yspeed >= 10) {
                     self.y += ((tempy*40)+40) - (self.y-self.halfsize);
                     self.yspeed *= -0.25;
                     self.colliding.top = true;
                 }
+                self.colliding.center = true;
             }
         }
     }
@@ -205,11 +220,11 @@ Player = function() {
         if (self.Wpressed && self.colliding.bottom && !self.colliding.left && !self.colliding.right) {
             self.yspeed = 15;
         }
-        if (self.Wpressed && self.colliding.left) {
+        if (self.Wpressed && self.Apressed && self.colliding.left) {
             self.yspeed = 15;
             self.xspeed = 15;
         }
-        if (self.Wpressed && self.colliding.right) {
+        if (self.Wpressed && self.Dpressed && self.colliding.right) {
             self.yspeed = 15;
             self.xspeed = -15;
         }
@@ -289,14 +304,6 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
 
     self.update = function() {
         self.collide();
-        tempx = Math.floor(self.x/40);
-        tempy = Math.floor(self.y/40);
-        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
-            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                self.yspeed = 0;
-                self.colliding.center = true;
-            }
-        }
         self.updatePos();
     }
 
