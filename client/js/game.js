@@ -1,9 +1,6 @@
 // Copyright (C) 2021 Radioactive64
 
 $.ajaxSetup({cache: true, async:false});
-$.getScript('/client/js/index.js');
-$.getScript('/client/js/entity.js');
-$.getScript('/client/js/menu.js');
 PLAYER_LIST = {};
 BULLET_LIST = {};
 MAPS = [];
@@ -125,6 +122,7 @@ function updateCamera() {
     }
 }
 function drawDebug(debugInfo) {
+    // draw debug headers
     game.fillStyle = '#FFFFFF88';
     game.fillRect(4, 4, 380, 48);
     game.fillRect((window.innerWidth - 94), 4, 90, 32)
@@ -139,16 +137,46 @@ function drawDebug(debugInfo) {
     game.font = '24px Pixel';
     game.textAlign = 'right';
     game.fillText('TPS:' + fps, (window.innerWidth-8), 32);
+    // draw collision debug
+    game.beginPath();
     var tempx = (Math.floor(player.relx/40)*40);
     var tempy = (Math.floor(player.rely/40)*40);
     if (debugInfo.colliding.bottom) {
-        game.strokeStyle = 'FF9900';
+        game.strokeStyle = 'FF0000';
     } else {
         game.strokeStyle = '000000';
     }
     game.moveTo(tempx, tempy+40);
     game.lineTo(tempx+40, tempy+40);
-    //game.stroke();
+    var tempx = (Math.floor(player.relx/40)*40);
+    var tempy = (Math.floor(player.rely/40)*40);
+    if (debugInfo.colliding.top) {
+        game.strokeStyle = 'FF0000';
+    } else {
+        game.strokeStyle = '000000';
+    }
+    game.moveTo(tempx, tempy);
+    game.lineTo(tempx+40, tempy);
+    var tempx = (Math.floor(player.relx/40)*40);
+    var tempy = (Math.floor(player.rely/40)*40);
+    if (debugInfo.colliding.left) {
+        game.strokeStyle = 'FF0000';
+    } else {
+        game.strokeStyle = '000000';
+    }
+    game.moveTo(tempx, tempy);
+    game.lineTo(tempx, tempy+40);
+    var tempx = (Math.floor(player.relx/40)*40);
+    var tempy = (Math.floor(player.rely/40)*40);
+    if (debugInfo.colliding.right) {
+        game.strokeStyle = 'FF0000';
+    } else {
+        game.strokeStyle = '000000';
+    }
+    game.moveTo(tempx+40, tempy);
+    game.lineTo(tempx+40, tempy+40);
+    game.closePath();
+    game.stroke();
 }
 
 // input sending
@@ -202,12 +230,12 @@ document.onkeyup = function(event) {
     }
 }
 document.onmousemove = function(event) {
-    mouseX = camera.x+event.clientX;
-    mouseY = camera.y+event.clientY;
+    mouseX = camera.x+event.clientX-16;
+    mouseY = camera.y+event.clientY-16;
 }
 document.onmousedown = function(event) {
-    mouseX = camera.x+event.clientX;
-    mouseY = camera.y+event.clientY;
+    mouseX = camera.x+event.clientX-16;
+    mouseY = camera.y+event.clientY-16;
     if (ingame && !inmenu && canmove && !shooting) {
         switch (event.button) {
             case 0:
@@ -286,7 +314,3 @@ setInterval(function() {
         }
     }
 }, 1000/10);
-
-// console access
-consoleAccess = URLSearchParams(window.location.search).get('console');
-console.log(consoleAccess)

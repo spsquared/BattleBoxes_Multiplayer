@@ -206,7 +206,7 @@ Player = function() {
         self.collide();
         self.updatePos();
         self.lastclick++;
-        if (self.hp < 1) {
+        if (self.hp < 1 && self.alive) {
             self.death();
         }
     }
@@ -273,9 +273,6 @@ Player.update = function() {
     var pack = [];
     for (var i in PLAYER_LIST) {
         var localplayer = PLAYER_LIST[i];
-        if (!localplayer.alive) {
-            remainingPlayers--;
-        }
         if (localplayer.ingame) {
             localplayer.update();
             if (localplayer.debug) {

@@ -11,14 +11,52 @@ function login() {
     } else if (document.getElementById('usrname').value.indexOf(' ') > 0) {
         window.alert('Your username cannot contain whitespaces');
     } else {
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('mainmenuContainer').style.display = 'inline-block';
         socket.emit('login', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
     }
 }
 function signup() {
-    socket.emit('disconnectclient');
+    console.log(document.getElementById('usrname').value.indexOf(' '))
+    if (document.getElementById('usrname').value == '') {
+        window.alert('Please provide a Username.');
+    } else if (document.getElementById('usrname').value.length > 64) {
+        window.alert('Your username must be 64 or less characters.')
+    } else if (document.getElementById('usrname').value == '64 or less characters') {
+        socket.emit('disconnectclient');
+    } else if (document.getElementById('usrname').value.indexOf(' ') == 0) {
+        window.alert('Your username cannot contain whitespaces');
+    } else if (document.getElementById('usrname').value.indexOf('\\') == 0 || document.getElementById('usrname').value.indexOf('"') == 0) {
+        window.alert('Your username cannot contain any of these special characters:\n\\  "');
+    } else if (document.getElementById('psword').value.indexOf('\\') == 0 || document.getElementById('psword').value.indexOf('"') == 0) {
+        window.alert('Your password cannot contain any of these special characters:\n\\  "');
+    } else {
+        socket.emit('signup', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
+    }
 }
+function deleteAccount(state) {
+    if (state == 1) {
+        document.getElementById('deleteAccount').innerHTML = ' Are you sure? ';
+        document.getElementById('deleteAccount').addEventListener('mouseup', function() {
+            document.getElementById('deleteAccount').onclick = deleteAccount(2);
+        });
+    } else {
+        socket.emit('deleteAccount', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
+        window.alert('Account successfully deleted');
+        window.location.reload();
+    }
+}
+socket.on('loginConfirmed', function() {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('mainmenuContainer').style.display = 'inline-block';
+});
+socket.on('loginFailed', function(state) {
+    if (state == 'invalidusrname') {
+        window.alert('No user with username "' + document.getElementById('usrname').value + '" found. Please check your spelling or sign up.');
+    } else if (state == 'incorrect') {
+        window.alert('Incorrect username or password. Please try again.');
+    } else if (state == 'usrexists') {
+        window.alert('User with username "' + document.getElementById('usrname').value + '" already exists. Please choose a different username.');
+    }
+});
 
 // menu functions
 function play() {

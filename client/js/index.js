@@ -1,5 +1,8 @@
 // Copyright (C) 2021 Radioactive64
 
+$.getScript('/client/js/game.js');
+$.getScript('/client/js/entity.js');
+$.getScript('/client/js/menu.js');
 game = document.getElementById('gameCanvas').getContext('2d');
 music = new Audio();
 sfx = [new Audio(), new Audio(), new Audio(), new Audio()];
@@ -20,7 +23,7 @@ socket.on('init', function() {
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
     document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
     document.getElementById('gameCanvas').onmouseup = function() {shooting = false;};
-    game.lineWidth = 2;
+    game.lineWidth = 4;
     game.webkitImageSmoothingEnabled = false;
     game.imageSmoothingEnabled = false;
     game.filter = 'url(#remove-alpha)';
@@ -90,6 +93,7 @@ window.onresize = function() {
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
+    game.lineWidth = 4;
     game.imageSmoothingEnabled = false;
     game.webkitImageSmoothingEnabled = false;
     game.mozImageSmoothingEnabled = false;
@@ -123,4 +127,10 @@ function debug() {
     document.getElementById('fxOverlay').style.height = '800px';
     document.getElementById('fxOverlay').src = '/client/img/Debugging.png';
     document.getElementById('fxOverlay').style.display = 'inline-block';
+}
+
+// console access
+consoleAccess = new URLSearchParams(window.location.search).get('console');
+if (consoleAccess == null) {
+    consoleAccess = false;
 }

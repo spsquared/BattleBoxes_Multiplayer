@@ -1,4 +1,3 @@
-add announcements button (opens a window with announcements)
 Add accounts
 Add settings
 add ingame menu

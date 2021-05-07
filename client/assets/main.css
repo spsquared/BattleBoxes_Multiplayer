@@ -33,7 +33,6 @@
     font-size: 16px;
     color: black;
     cursor: pointer;
-    transition: 0.1s all ease-in-out;
 }
 .ui-largeButton {
     padding: 10px 10px;
@@ -113,30 +112,18 @@
     user-select: none;
 }
 #login {
-    padding: 4px 4px;
     border-color: rgb(0, 130, 0);
-    border-width: 2px;
     border-radius: 4px;
     background-color: rgb(0, 160, 0);
-    font-family: 'Pixel';
-    font-size: 20;
-    color: black;
-    cursor: pointer;
 }
 #login:active {
     border-color: rgb(0, 70, 0);
     background-color: rgb(0, 100, 0);
 }
 #signup {
-    padding: 4px 4px;
     border-color: rgb(0, 0, 200);
-    border-width: 2px;
     border-radius: 4px;
     background-color: rgb(60, 60, 255);
-    font-family: 'Pixel';
-    font-size: 20;
-    color: black;
-    cursor: pointer;
 }
 #signup:active {
     border-color: rgb(0, 0, 140);
@@ -209,8 +196,17 @@
 #sfxVolume {
     width: 252px;
 }
+/* delete account button */
+#deleteAccount {
+    border-width: 3px;
+    background-color: tomato;
+    font-size: 20px;
+}
+#deleteAccount:active {
+    background-color: red;
+}
 
-/* announcements contaier */
+/* announcements contaimer */
 #announcementsContainer {
     display: none;
     text-align: left;
@@ -256,7 +252,6 @@
 #credits {
     position: fixed;
     bottom: 18px;
-    padding: 16px;
     font-family: 'Pixel';
     font-size: 10px;
     text-decoration: none;
@@ -271,7 +266,6 @@
 #githublink {
     position: fixed;
     bottom: 0px;
-    padding: 16px;
     font-family: 'Pixel';
     font-size: 10px;
     text-decoration: none;
