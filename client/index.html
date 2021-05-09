@@ -88,7 +88,47 @@
         <div id="gameContainer">
             <canvas id="gameCanvas"></canvas>
             <input type="image" src="/client/img/Ready.png" alt="ready" id="ready" onclick="ready();">
-            <div id=ingameMenu>
+            <div id="scoreContainer">
+                <table class="scoreTable" id="scoreTable">
+                    <tr>
+                        <td class="scoreTable" id="score0">--</td>
+                        <td class="scoreTable" id="score1">--</td>
+                        <td class="scoreTable" id="score2">--</td>
+                        <td class="scoreTable" id="score3">--</td>
+                        <td class="scoreTable" id="score4">--</td>
+                        <td class="scoreTable" id="score5">--</td>
+                        <td class="scoreTable" id="score6">--</td>
+                        <td class="scoreTable" id="score7">--</td>
+                        <td class="scoreTable" id="score8">--</td>
+                        <td class="scoreTable" id="score9">--</td>
+                        <td class="scoreTable" id="score10">--</td>
+                        <td class="scoreTable" id="score11">--</td>
+                        <td class="scoreTable" id="score12">--</td>
+                        <td class="scoreTable" id="score13">--</td>
+                        <td class="scoreTable" id="score14">--</td>
+                        <td class="scoreTable" id="score15">--</td>
+                    </tr>
+                    <tr>
+                        <td class="scoreTable" id="player0">--</td>
+                        <td class="scoreTable" id="player1">--</td>
+                        <td class="scoreTable" id="player2">--</td>
+                        <td class="scoreTable" id="player3">--</td>
+                        <td class="scoreTable" id="player4">--</td>
+                        <td class="scoreTable" id="player5">--</td>
+                        <td class="scoreTable" id="player6">--</td>
+                        <td class="scoreTable" id="player7">--</td>
+                        <td class="scoreTable" id="player8">--</td>
+                        <td class="scoreTable" id="player9">--</td>
+                        <td class="scoreTable" id="player10">--</td>
+                        <td class="scoreTable" id="player11">--</td>
+                        <td class="scoreTable" id="player12">--</td>
+                        <td class="scoreTable" id="player13">--</td>
+                        <td class="scoreTable" id="player14">--</td>
+                        <td class="scoreTable" id="player15">--</td>
+                    </tr>
+                </table>
+            </div>
+            <div id="ingameMenu">
                 <input type="button" class="ui-largeButton" id="resume" value="RESUME" onclick="resume();"><br><br>
                 <input type="button" class="ui-largeButton" id="ingameSettings" value="SETTINGS" onclick="ingamesettings();"><br><br>
                 <input type="button" class="ui-largeButton" id="ingameAchievements" value="ACHIEVEMENTS" onclick="ingameachievements();"><br><br>
@@ -106,7 +146,7 @@
             <p id="serverfull" style="font-family: Pixel; color:white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Server is full...</p>
             <p id="gamelocked" style="font-family: Pixel; color: white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Game is in progress, cannot join...</p>
         </div>
-        <h5 id="versionLabel">v0.6.0</h5>
+        <h5 id="versionLabel">v0.6.1</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

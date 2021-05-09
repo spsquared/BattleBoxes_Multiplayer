@@ -6,17 +6,22 @@ gameinProgress = false;
 // game functions
 startGame = function() {
     endRound();
+    var pack = [];
+    for (var i in PLAYER_LIST) {
+        PLAYER_LIST[i].score = 0;
+        pack.push(PLAYER_LIST[i].name);
+    }
     setTimeout(function () {
-        io.emit('gamestart');
+        io.emit('gamestart', pack);
         gameinProgress = true;
         startRound();
     }, 1000);
 }
-endGame = function(winner) {
+endGame = function(id) {
     CURRENT_MAP = 0;
     io.emit('map', CURRENT_MAP);
-    if (winner != null) {
-        io.emit('winner', winner);
+    if (id != null) {
+        io.emit('winner', id);
     }
     round.inProgress = false;
     gameinProgress = false;
@@ -44,11 +49,7 @@ startRound = function() {
         for (var i in PLAYER_LIST) {
             localplayer = PLAYER_LIST[i];
             localplayer.respawn(MAPS[CURRENT_MAP].spawns[j].x, MAPS[CURRENT_MAP].spawns[j].y);
-            if (localplayer.debug) {
-                pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, score:localplayer.score, debug:{xspeed:localplayer.xspeed, yspeed:localplayer.yspeed, colliding:{left:localplayer.colliding.left, right:localplayer.colliding.right, bottom:localplayer.colliding.bottom, top:localplayer.colliding.top}}});
-            } else {
-                pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, score:localplayer.score});
-            }
+            pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, debug:{xspeed:localplayer.xspeed, yspeed:localplayer.yspeed, colliding:{left:localplayer.colliding.left, right:localplayer.colliding.right, bottom:localplayer.colliding.bottom, top:localplayer.colliding.top}}});
             pack2.push({id:localplayer.id, score:localplayer.score});
             j++;
         }
@@ -85,5 +86,3 @@ endRound = function() {
         }, 1000);
     }
 }
-
-// handlers

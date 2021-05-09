@@ -22,7 +22,7 @@ socket.on('init', function() {
     document.getElementById('gameCanvas').width = window.innerWidth;
     document.getElementById('gameCanvas').height = window.innerHeight - 1;
     document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
-    document.getElementById('gameCanvas').onmouseup = function() {shooting = false;};
+    document.getElementById('scoreContainer').addEventListener('contextmenu', e => e.preventDefault());
     game.lineWidth = 4;
     game.webkitImageSmoothingEnabled = false;
     game.imageSmoothingEnabled = false;

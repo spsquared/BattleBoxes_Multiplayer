@@ -44,11 +44,65 @@ socket.on('initmap', function(maps) {
 socket.on('map', function(id) {
     CURRENT_MAP = id;
 });
-socket.on('gamestart', function() {
+socket.on('gamestart', function(pkg) {
     if (ingame) {
         document.getElementById('ready').style.display = 'none';
+        for (var i in pkg) {
+            document.getElementById('player' + i).innerText = pkg[i];
+        }
+        document.getElementById('scoreContainer').style.display = 'inline';
     }
 });
+socket.on('winner', function(id) {
+    ingame = false;
+    canmove = false;
+    document.getElementById('loadingContainer').style.display = 'none';
+    var v = -10;
+    var x = window.innerWidth;
+    var slide = setInterval(function() {
+        if (x < 200) {
+            v *= 0.96;
+        }
+        x += v;
+        game.fillStyle = PLAYER_LIST[id].color;
+        game.fillRect(x, 0, window.innerWidth, window.innerHeight);
+        if (x < 0.1) {
+            game.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            document.addEventListener('resize', function() {game.fillRect(0, 0, window.innerWidth, window.innerHeight);})
+            clearInterval(slide);
+        }
+    }, 5);
+    var fadeAmount = 1;
+    var audiofade = (settings.musicvolume*settings.globalvolume);
+    var fadeInterval = setInterval(function() {
+        fadeAmount -= 0.01;
+        audiofade -= ((settings.musicvolume*settings.globalvolume)/50);
+        if (audiofade < 0) {
+            audiofade = 0;
+        }
+        if (fadeAmount > 0.5) {
+            clearInterval(fadeInterval);
+        }
+        document.getElementById('scoreContainer').style.opacity = fadeAmount;
+        music.volume = audiofade;
+    }, 1);
+    setTimeout(function() {
+        music.src = '/client/sound/Endscreen.mp3';
+        music.play();
+        var fadeInterval = setInterval(function() {
+            fadeAmount -= 0.01;
+            audiofade += ((settings.musicvolume*settings.globalvolume)/50);
+            if (audiofade < 0) {
+                audiofade = 0;
+            }
+            if (fadeAmount > 1) {
+                clearInterval(fadeInterval);
+            }
+            document.getElementById('scoreContainer').style.opacity = fadeAmount;
+            music.volume = audiofade;
+        }, 1);
+    }, 500);
+})
 socket.on('roundstart', function(scores) {
     if (ingame) {
         fadeOut();
@@ -62,6 +116,7 @@ socket.on('roundstart', function(scores) {
         }
         for (var i in scores) {
             PLAYER_LIST[scores[i].id].score = scores[i].score;
+            document.getElementById('score' + i).innerText = scores[i].score;
         }
     }
 });
@@ -80,7 +135,9 @@ socket.on('update', function(pkg) {
         if (player.debug) {
             for (var i in pkg) {
                 if (pkg[i].id == player.id) {
-                    drawDebug(pkg[i].debug);
+                    drawDebug(pkg[i], true);
+                } else {
+                    drawDebug(pkg[i], false);
                 }
             }
         }
@@ -121,60 +178,65 @@ function updateCamera() {
        camera.y = (MAPS[CURRENT_MAP].height-(camera.height*2));
     }
 }
-function drawDebug(debugInfo) {
-    // draw debug headers
-    game.fillStyle = '#FFFFFF88';
-    game.fillRect(4, 4, 380, 48);
-    game.fillRect((window.innerWidth - 94), 4, 90, 32)
-    game.fillStyle = '#000000';
-    game.font = '16px Pixel';
-    game.textAlign = 'left';
-    game.fillText('(x:' + (Math.round(player.x)/40) + ', y:' + (Math.round(player.y)/40) + ')', 8, 24);
-    game.fillText('(x:' + (Math.floor(player.x/40)) + ', y:' + (Math.floor(player.y/40)) + ')', 172, 24);
-    game.fillText('^x:' + Math.round(debugInfo.xspeed) + ', ^y:' + Math.round(debugInfo.yspeed), 270, 24);
-    game.fillText('(x:' + (Math.round(mouseX)/40) + ', y:' + (Math.round(mouseY)/40) + ')', 8, 48);
-    game.fillText('Angle:' + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
-    game.font = '24px Pixel';
-    game.textAlign = 'right';
-    game.fillText('TPS:' + fps, (window.innerWidth-8), 32);
+function drawDebug(data, isplayer) {
+    if (isplayer) {
+        // draw debug headers
+        game.fillStyle = '#FFFFFF88';
+        game.fillRect(4, 4, 380, 48);
+        game.fillRect((window.innerWidth - 94), 4, 90, 32)
+        game.fillStyle = '#000000';
+        game.font = '16px Pixel';
+        game.textAlign = 'left';
+        game.fillText('(x:' + (Math.round(player.x)/40) + ', y:' + (Math.round(player.y)/40) + ')', 8, 24);
+        game.fillText('(x:' + (Math.floor(player.x/40)) + ', y:' + (Math.floor(player.y/40)) + ')', 172, 24);
+        game.fillText('^x:' + Math.round(data.debug.xspeed) + ', ^y:' + Math.round(data.debug.yspeed), 270, 24);
+        game.fillText('(x:' + (Math.round(mouseX)/40) + ', y:' + (Math.round(mouseY)/40) + ')', 8, 48);
+        game.fillText('Angle:' + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
+        game.font = '24px Pixel';
+        game.textAlign = 'right';
+        game.fillText('TPS:' + fps, (window.innerWidth-8), 32);
+    }
     // draw collision debug
     game.beginPath();
-    var tempx = (Math.floor(player.relx/40)*40);
-    var tempy = (Math.floor(player.rely/40)*40);
-    if (debugInfo.colliding.bottom) {
-        game.strokeStyle = 'FF0000';
+    var tempx = ((Math.floor(data.x/40)*40)-camera.x);
+    var tempy = ((Math.floor(data.y/40)*40)-camera.y);
+    if (data.debug.colliding.bottom) {
+        game.strokeStyle = '#FF0000';
     } else {
-        game.strokeStyle = '000000';
+        game.strokeStyle = '#000000';
     }
-    game.moveTo(tempx, tempy+40);
-    game.lineTo(tempx+40, tempy+40);
-    var tempx = (Math.floor(player.relx/40)*40);
-    var tempy = (Math.floor(player.rely/40)*40);
-    if (debugInfo.colliding.top) {
-        game.strokeStyle = 'FF0000';
+    game.moveTo(tempx-1, tempy+40);
+    game.lineTo(tempx+41, tempy+40);
+    game.closePath();
+    game.stroke();
+    game.beginPath();
+    if (data.debug.colliding.top) {
+        game.strokeStyle = '#FF0000';
     } else {
-        game.strokeStyle = '000000';
+        game.strokeStyle = '#000000';
     }
-    game.moveTo(tempx, tempy);
-    game.lineTo(tempx+40, tempy);
-    var tempx = (Math.floor(player.relx/40)*40);
-    var tempy = (Math.floor(player.rely/40)*40);
-    if (debugInfo.colliding.left) {
-        game.strokeStyle = 'FF0000';
+    game.moveTo(tempx-1, tempy);
+    game.lineTo(tempx+41, tempy);
+    game.closePath();
+    game.stroke();
+    game.beginPath();
+    if (data.debug.colliding.left) {
+        game.strokeStyle = '#FF0000';
     } else {
-        game.strokeStyle = '000000';
+        game.strokeStyle = '#000000';
     }
-    game.moveTo(tempx, tempy);
-    game.lineTo(tempx, tempy+40);
-    var tempx = (Math.floor(player.relx/40)*40);
-    var tempy = (Math.floor(player.rely/40)*40);
-    if (debugInfo.colliding.right) {
-        game.strokeStyle = 'FF0000';
+    game.moveTo(tempx, tempy-1);
+    game.lineTo(tempx, tempy+41);
+    game.closePath();
+    game.stroke();
+    game.beginPath();
+    if (data.debug.colliding.right) {
+        game.strokeStyle = '#FF0000';
     } else {
-        game.strokeStyle = '000000';
+        game.strokeStyle = '#000000';
     }
-    game.moveTo(tempx+40, tempy);
-    game.lineTo(tempx+40, tempy+40);
+    game.moveTo(tempx+40, tempy-1);
+    game.lineTo(tempx+40, tempy+41);
     game.closePath();
     game.stroke();
 }
@@ -219,7 +281,6 @@ document.onkeyup = function(event) {
         }
         if (event.code == 'Backslash') {
             player.debug = !player.debug;
-            socket.emit('debug');
             if (PLAYER_LIST[player.id].debug) {
                 document.getElementById('versionLabel').style.top = '28px';
             } else {
@@ -247,6 +308,9 @@ document.onmousedown = function(event) {
         }
     }
 }
+document.onmouseup = function() {
+    shooting = false;
+};
 
 // game functions
 function fadeIn() {
@@ -257,7 +321,10 @@ function fadeIn() {
     document.getElementById('fade').style.display = 'block';
     var fadeInterval = setInterval(function() {
         fadeAmount += 0.01;
-        audiofade -= (settings.musicvolume/100);
+        audiofade -= ((settings.musicvolume*settings.globalvolume)/100);
+        if (audiofade < 0) {
+            audiofade = 0;
+        }
         if (fadeAmount > 1) {
             clearInterval(fadeInterval);
             document.getElementById('loading').style.display = 'inline-block';

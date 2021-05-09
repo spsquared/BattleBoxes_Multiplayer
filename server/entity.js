@@ -7,11 +7,11 @@ remainingPlayers = 0;
 
 // entity
 Entity = function() {
-    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:'', color:'#000000', debug:false};
+    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:'', color:'#000000'};
 
     self.update = function() {
-        self.collide();
         self.updatePos();
+        self.collide();
     }
     self.collide = function() {
         self.colliding.bottom = false;
@@ -203,8 +203,8 @@ Player = function() {
     PLAYER_LIST[self.id] = self;
 
     self.update = function() {
-        self.collide();
         self.updatePos();
+        self.collide();
         self.lastclick++;
         if (self.hp < 1 && self.alive) {
             self.death();
@@ -244,7 +244,6 @@ Player = function() {
         if (self.y+32 > (MAPS[CURRENT_MAP].height*40)+40) {
             self.death();
         }
-        self.collide();
         self.x += self.xspeed;
         self.y -= self.yspeed;
     }
@@ -275,11 +274,7 @@ Player.update = function() {
         var localplayer = PLAYER_LIST[i];
         if (localplayer.ingame) {
             localplayer.update();
-            if (localplayer.debug) {
-                pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, score:localplayer.score, debug:{xspeed:localplayer.xspeed, yspeed:localplayer.yspeed, colliding:{left:localplayer.colliding.left, right:localplayer.colliding.right, bottom:localplayer.colliding.bottom, top:localplayer.colliding.top}}})
-            } else {
-                pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, score:localplayer.score});
-            }
+            pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, debug:{xspeed:localplayer.xspeed, yspeed:localplayer.yspeed, colliding:{left:localplayer.colliding.left, right:localplayer.colliding.right, bottom:localplayer.colliding.bottom, top:localplayer.colliding.top}}});
         }
     }
     return pack;
@@ -298,11 +293,6 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     self.parent = parent;
     self.color = color;
     BULLET_LIST[self.id] = self;
-
-    self.update = function() {
-        self.collide();
-        self.updatePos();
-    }
 
     return self;
 }
