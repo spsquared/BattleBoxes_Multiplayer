@@ -35,6 +35,7 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.5.4   | <ul><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/15" target="_blank">Improved corner collisions again and reduced chances of glitching out of the lobby (Issue #15)</a></li><li>Improved wall jumping (you no longer wall jump by walking into walls)</li></ul> |
 | 0.6.0   | <ul><li>Added account system</li><li>Fixed script double-loading</li><li>Fixed aim offset</li><li>Added collision debug</li><li>Fixed player infinite death bug</li></ul> |
 | 0.6.1   | <ul><li>Fixed debug rendering</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/15" target="_blank">Fixed collision rubberbanding (Issue #15)</a></li><li>Added a scoreboard</li><li>Fixed random errors in client console</li><li>Replaced black win screen with a more finished colored page</li></ul> |
+| 0.6.2   | <ul><li>Added more settings</li><li>Migrated to PostGreSQL database for login</li><li>Added "change password" option</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/26" target="_blank">Fixed some map blurring (Issue #26)</a></li><li>Fixed some spelling mistakes</li><li>Made server close when an error occurs</li></ul> |
 
 ***
 

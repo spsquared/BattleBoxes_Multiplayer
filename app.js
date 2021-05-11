@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.6.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.6.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.6.1\n');
+console.log('\nThis server is running BattleBoxes Server v-0.6.2\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -11,6 +11,9 @@ const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
+const { Client } = require('pg');
+const validation = require('./server/validation.txt');
+const database = new Client({connectionString: 'postgres://wwiupyglrcpguu:c2c6fb4c268287b595a05026db98bd45cc419f7459ebe3e941447ce84bcde038@ec2-54-87-112-29.compute-1.amazonaws.com:5432/dc145r7tq09fjv', ssl:{rejectUnauthorized:false}});
 require('./server/entity.js');
 require('./server/game.js');
 MAPS = [];
@@ -20,10 +23,9 @@ var USERS = [];
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
-// initialize
-console.log('Starting server...');
-function getMap(name, id) {
-    var data1 = require('./server/' + name);
+// init functions
+getMap = function(name, id) {
+    var data1 = require('./' + name);
     var data2 = [];
     data2[0] = [];
     data2.width = data1.width;
@@ -44,19 +46,33 @@ function getMap(name, id) {
     }
     MAPS[id] = data2;
 }
-getMap('Lobby.json', 0);
-getMap('Map1.json', 1);
-getMap('Map2.json', 2);
-getMap('Map3.json', 3);
-USERS = require('./server/USERS.json').data;
+async function getUserData() {
+    await database.connect();
+    database.query('SELECT * FROM users', function(err, res) {
+        if (err) stop(err);
+        try {
+            USERS = res.rows[0].data.data;
+        } catch (err) {
+            stop(err);
+        }
+    });
+}
+
+// initialize
+console.log('Starting server...');
+getMap('./server/Lobby.json', 0);
+getMap('./server/Map1.json', 1);
+getMap('./server/Map2.json', 2);
+getMap('./server/Map3.json', 3);
+getUserData();
 var SOCKET_LIST = {};
 var port;
 fs.open('./server/PORTS.txt', 'a+', function(err) {
-    if (err) throw err;
+    if (err) stop(err);
     lineReader.open('./server/PORTS.txt', function (err, reader) {
-        if (err) throw err;
+        if (err) stop(err);
         reader.nextLine(function(err, line) {
-            if (err) throw err;
+            if (err) stop(err);
             if (line >=100) {
                 console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
                 process.abort();
@@ -89,7 +105,7 @@ function writeCredentials(username, password) {
         j++;
     }
     USERS[j] = {usrname:username, psword:password};
-    fs.writeFileSync('./server/USERS.json', '{"data":' + JSON.stringify(USERS) + '}');
+    database.query('UPDATE users SET data = \'{"data":' + JSON.stringify(USERS) + '}\' WHERE valid=true', function(err, res) {if (err) stop(err);});
 }
 function deleteCredentials(username) {
     var j = 0;
@@ -99,7 +115,7 @@ function deleteCredentials(username) {
         }
         j++;
     }
-    fs.writeFileSync('./server/USERS.json', '{"data":' + JSON.stringify(USERS) + '}');
+    database.query('UPDATE users SET data = {"data":' + JSON.stringify(USERS) + '}', function(err, res) {if (err) stop(err);});
 }
 
 // client connection
@@ -189,6 +205,10 @@ io.on('connection', function(socket) {
         } else {
             socket.emit('disconnected');
         }
+    });
+    socket.on('changePassword', function(cred) {
+        deleteCredentials(cred.usrname);
+        writeCredentials(cred.usrname, cred.psword);
     });
     // game handlers
     socket.on('joingame', function() {
@@ -304,17 +324,7 @@ prompt.on('line', function(input) {
         console.log('Purple exception detected. Purpling...');
         console.log('---------------------------------------------------');
         io.emit('disconnected');
-        fs.open('./server/PORTS.txt', 'a+', function(err) {
-            lineReader.open('./server/PORTS.txt', function (err, reader) {
-                if (err) throw err;
-                reader.nextLine(function(err, line) {
-                    if (err) throw err;
-                    ports = parseInt(line)-1;
-                    var portsstring = ports.toString();
-                    fs.writeFileSync('./server/PORTS.txt', portsstring);
-                });
-            });
-        });
+        stop(null);
         prompt.close();
         setTimeout(function() {
             while (true) {
@@ -331,9 +341,9 @@ prompt.on('line', function(input) {
             var command = Function('return (' + input + ')')();
             command;
             console.log('Successfully ran command.');
-        } catch(err) {
-            console.error('Error: "' + input + '" is not a valid input.\n> ');
-            console.error(err)
+        } catch (err) {
+            console.error('Error: "' + input + '" is not a valid input.\n');
+            console.error(err);
         }
     }
 });
@@ -341,24 +351,7 @@ function queryStop(firstrun) {
     if (firstrun == true) {
         prompt.question('Are you sure you want to stop the server? y/n\n> ', function(answer) {
             if (answer == 'y') {
-                console.log('Closing server...');
-                endGame();
-                io.emit('disconnected');
-                console.log('Stopping server...');
-                fs.open('./server/PORTS.txt', 'a+', function(err) {
-                    lineReader.open('./server/PORTS.txt', function (err, reader) {
-                        if (err) throw err;
-                        reader.nextLine(function(err, line) {
-                            if (err) throw err;
-                            ports = parseInt(line)-1;
-                            var portsstring = ports.toString();
-                            fs.writeFileSync('./server/PORTS.txt', portsstring);
-                            console.log('Server stopped.');
-                            prompt.close();
-                            process.exit(0);
-                        });
-                    });
-                });
+                stop(null);
             } else if (answer == 'n') {
                 console.log('Server stop cancelled.\n> ');
             } else {
@@ -369,25 +362,7 @@ function queryStop(firstrun) {
     } else {
         prompt.question('Please enter y or n.\n> ', function(answer) {
             if (answer == 'y') {
-                console.log('Closing server...');
-                endGame();
-                io.emit('disconnected');
-                console.log('Stopping server...');
-                fs.open('./server/PORTS.txt', 'a+', function(err) {
-                    if (err) throw err;
-                    lineReader.open('./server/PORTS.txt', function (err, reader) {
-                        if (err) throw err;
-                        reader.nextLine(function(err, line) {
-                            if (err) throw err;
-                            ports = parseInt(line)-1;
-                            var portsstring = ports.toString();
-                            fs.writeFileSync('./server/PORTS.txt', portsstring);
-                            console.log('Server stopped.');
-                            prompt.close();
-                            process.exit();
-                        });
-                    });
-                });
+                stop(null);
             } else if (answer == 'n') {
                 console.log('Server stop cancelled.\n> ');
             } else {
@@ -396,4 +371,33 @@ function queryStop(firstrun) {
             }
         });
     }
+}
+function stop(err) {
+    if (err) {
+        console.error('\nCRITICAL ERROR:');
+        console.error(err);
+        console.error('STOP.\n');
+    }
+    console.log('Closing server...');
+    endGame();
+    io.emit('disconnected');
+    console.log('Saving user data...');
+    database.query('UPDATE users SET data = \'{"data":' + JSON.stringify(USERS) + '}\' WHERE true', function(err, res) {if (err) console.error(err);});
+    console.log('Stopping server...');
+    fs.open('./server/PORTS.txt', 'a+', function(err) {
+        if (err) console.error(err);
+        lineReader.open('./server/PORTS.txt', function (err, reader) {
+            if (err) console.error(err);
+            reader.nextLine(function(err, line) {
+                if (err) console.error(err);
+                ports = parseInt(line)-1;
+                var portsstring = ports.toString();
+                fs.writeFileSync('./server/PORTS.txt', portsstring);
+                console.log('Server stopped.');
+                database.end();
+                prompt.close();
+                process.exit();
+            });
+        });
+    });
 }

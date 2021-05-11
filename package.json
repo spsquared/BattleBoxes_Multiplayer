@@ -1,6 +1,6 @@
 {
   "name": "battleboxes_multiplayer",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Multiplayer BattleBoxes",
   "main": "app.js",
   "scripts": {
@@ -25,7 +25,10 @@
     "line-reader": "^0.4.0",
     "line-replace": "^2.0.1",
     "pathfinding": "^0.4.18",
-    "socket.io": "^4.0.1"
+    "pg": "^8.6.0",
+    "socket.io": "^4.0.1",
+    "sqlite": "^4.0.21",
+    "sqlite3": "^5.0.2"
   },
   "devDependencies": {
     "xmlhttprequest-ssl": "^1.6.2"

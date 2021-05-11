@@ -30,6 +30,7 @@ function signup() {
         window.alert('Your password cannot contain any of these special characters:\n\\  "');
     } else {
         socket.emit('signup', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
+        window.alert('Successfully signed up.')
     }
 }
 function deleteAccount(state) {
@@ -42,6 +43,16 @@ function deleteAccount(state) {
         socket.emit('deleteAccount', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
         window.alert('Account successfully deleted');
         window.location.reload();
+    }
+}
+function changePassword() {
+    var input = window.prompt('Please enter your current password:');
+    if (input == document.getElementById('psword').value) {
+        var input = window.prompt('Please enter your new password');
+        document.getElementById('psword').value = input;
+        socket.emit('changePassword', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
+    } else {
+        window.alert('Incorrect password.');
     }
 }
 socket.on('loginConfirmed', function() {
@@ -100,10 +111,10 @@ function resume() {
     inmenu = false;
 }
 function ingameSettings() {
-
+    document.getElementById('ingameSettingsContainer').style.display = 'block';
 }
 function ingameAchievements() {
-
+    document.getElementById('ingameAchievementsContainer').style.display = 'block';
 }
 function quittoMenu() {
     socket.emit('leavegame');
@@ -123,4 +134,8 @@ function quittoMenu() {
         document.getElementById('ingameMenu').style.display = 'none';
         fadeOut();
     }, 1000);
+}
+function ingameBack() {
+    document.getElementById('ingameSettingsContainer').style.display = 'none';
+    document.getElementById('ingameAchievementsContainer').style.display = 'none';
 }

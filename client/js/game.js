@@ -68,7 +68,7 @@ socket.on('winner', function(id) {
         game.fillRect(x, 0, window.innerWidth, window.innerHeight);
         if (x < 0.1) {
             game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            document.addEventListener('resize', function() {game.fillRect(0, 0, window.innerWidth, window.innerHeight);})
+            document.addEventListener('resize', function() {game.fillRect(0, 0, window.innerWidth, window.innerHeight);});
             clearInterval(slide);
         }
     }, 5);
