@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.6.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.6.3 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.6.2\n');
+console.log('\nThis server is running BattleBoxes Server v-0.6.3\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -12,7 +12,6 @@ const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
 const { Client } = require('pg');
-const validation = require('./server/validation.txt');
 const database = new Client({connectionString: 'postgres://wwiupyglrcpguu:c2c6fb4c268287b595a05026db98bd45cc419f7459ebe3e941447ce84bcde038@ec2-54-87-112-29.compute-1.amazonaws.com:5432/dc145r7tq09fjv', ssl:{rejectUnauthorized:false}});
 require('./server/entity.js');
 require('./server/game.js');
