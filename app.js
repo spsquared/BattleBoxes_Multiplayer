@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.6.3 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.7.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.6.3\n');
+console.log('\nThis server is running BattleBoxes Server v-0.7.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -17,7 +17,6 @@ require('./server/entity.js');
 require('./server/game.js');
 MAPS = [];
 CURRENT_MAP = 0;
-var USERS = [];
 
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
@@ -45,17 +44,6 @@ getMap = function(name, id) {
     }
     MAPS[id] = data2;
 }
-async function getUserData() {
-    await database.connect();
-    database.query('SELECT * FROM users', function(err, res) {
-        if (err) stop(err);
-        try {
-            USERS = res.rows[0].data.data;
-        } catch (err) {
-            stop(err);
-        }
-    });
-}
 
 // initialize
 console.log('Starting server...');
@@ -63,9 +51,18 @@ getMap('./server/Lobby.json', 0);
 getMap('./server/Map1.json', 1);
 getMap('./server/Map2.json', 2);
 getMap('./server/Map3.json', 3);
-getUserData();
 var SOCKET_LIST = {};
 var port;
+try {
+    database.connect();
+} catch (err) {
+    console.error('\nFATAL ERROR:');
+    console.error(err);
+    console.error('STOP.\n');
+    prompt.close();
+    console.log('Server stopped.');
+    process.exit();
+}
 fs.open('./server/PORTS.txt', 'a+', function(err) {
     if (err) stop(err);
     lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -90,31 +87,24 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
 });
 
 // user login data handlers
-function getCredentials(username) {
-    for (var i in USERS) {
-        if (USERS[i].usrname == username) {
-            return {usrname:USERS[i].usrname, psword:USERS[i].psword};
+async function getCredentials(username) {
+    try {
+        var data = await database.query('SELECT username, password FROM users;');
+        for (var i in data.rows) {
+            if (data.rows[i].username == username) {
+                return {usrname:data.rows[i].username, psword:data.rows[i].password};
+            }
         }
+        return false;
+    } catch (err) {
+        stop(err);
     }
-    return false;
 }
-function writeCredentials(username, password) {
-    var j = 0;
-    for (var i in USERS) {
-        j++;
-    }
-    USERS[j] = {usrname:username, psword:password};
-    database.query('UPDATE users SET data = \'{"data":' + JSON.stringify(USERS) + '}\' WHERE valid=true', function(err, res) {if (err) stop(err);});
+async function writeCredentials(username, password, userData) {
+    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [username, password, userData], function(err, res) {if (err) stop(err);});
 }
-function deleteCredentials(username) {
-    var j = 0;
-    for (var i in USERS) {
-        if (USERS[i].usrname == username) {
-            USERS.splice(j, 1);
-        }
-        j++;
-    }
-    database.query('UPDATE users SET data = {"data":' + JSON.stringify(USERS) + '}', function(err, res) {if (err) stop(err);});
+async function deleteCredentials(username) {
+    database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err);});
 }
 
 // client connection
@@ -122,12 +112,11 @@ io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
     socket.emit('init');
     socket.id = Math.random();
-    var player = Player();
+    var player = new Player();
     SOCKET_LIST[socket.id] = socket;
     console.log('Client connection made.');
     // connection handlers
     socket.on('disconnect', function() {
-        console.log('Player "' + player.name + '" has disconnected.');
         for (var i in COLORS[1]) {
             if (COLORS[0][i] == player.color) {
                 COLORS[1][i] = 0;
@@ -136,9 +125,12 @@ io.on('connection', function(socket) {
         if (player.ingame && player.alive) {
             remainingPlayers--;
         }
+        database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, player.trackedData], function(err, res) {if (err) console.log(err);});
         delete SOCKET_LIST[socket.id];
         delete PLAYER_LIST[player.id];
         io.emit('deleteplayer', player.id);
+        console.log('Player "' + player.name + '" has disconnected.');
+        player = null;
     });
     socket.on('timeout', function() {
         console.log('Player "' + player.name + '" timed out.');
@@ -149,32 +141,57 @@ io.on('connection', function(socket) {
         socket.disconnect();
     });
     //login handlers
-    socket.on('login', function(cred) {
+    socket.on('login', async function(cred) {
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        var filecred = getCredentials(cred.usrname);
+        var filecred = await getCredentials(cred.usrname);
         if (filecred == false) {
             socket.emit('loginFailed', 'invalidusrname');
             console.log('Player could not login. Reason:USER_NOT_FOUND');
         } else if (filecred.psword == cred.psword) {
-            player.name = cred.usrname;
-            if (cred.usrname == 'null') {
-                player.color = "#FFFFFF00";
-                player.name = '';
+            var signedin;
+            for (var i in PLAYER_LIST) {
+                if (PLAYER_LIST[i].name == cred.usrname) {
+                    signedin = true;
+                }
             }
-            socket.emit('loginConfirmed');
-            console.log('Player with username "' + player.name + '" logged in.');
+            if (signedin) {
+                socket.emit('loginFailed', 'alreadyloggedin');
+                console.log('Player could not login. Reason:ALREADY_LOGGED_IN');
+            } else {
+                player.name = cred.usrname;
+                if (cred.usrname == 'null') {
+                    player.color = "#FFFFFF00";
+                    player.name = '';
+                }
+                database.query('SELECT username, data FROM users', function(err, res) {
+                    if (err) stop(err);
+                    try {
+                        for (var i in res.rows) {
+                            if (res.rows[i].username == cred.usrname) {
+                                player.trackedData = res.rows[i].data;
+                            }
+                        }
+                    } catch (err) {
+                        stop(err);
+                    }
+                });
+                socket.emit('loginConfirmed', 'login');
+                console.log('Player with username "' + player.name + '" logged in.');
+            }
+
         } else {
             socket.emit('loginFailed', 'incorrect');
             console.log('Player could not login. Reason:INCORRECT_CREDENTIALS');
         }
     });
-    socket.on('signup', function(cred) {
+    socket.on('signup', async function(cred) {
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        if (getCredentials(cred.usrname) != false) {
+        var filecred = await getCredentials(cred.username);
+        if (filecred != false) {
             socket.emit('loginFailed', 'usrexists');
             console.log('Player could not sign up. Reason:USER_EXISTS');
         } else if (cred.usrname.indexOf(' ') == 0 || cred.usrname.indexOf('\\') == 0 || cred.usrname.indexOf('"') == 0 || cred.psword.indexOf('\\') == 0 || cred.psword.indexOf('"') == 0) {
@@ -185,27 +202,30 @@ io.on('connection', function(socket) {
                 player.color = "#FFFFFF00";
                 player.name = '';
             }
-            socket.emit('loginConfirmed');
-            writeCredentials(cred.usrname, cred.psword);
+            socket.emit('loginConfirmed', 'signup');
+            writeCredentials(cred.usrname, cred.psword, player.trackedData);
             console.log('Player "' + cred.usrname + '" signed up.');
+            
         }
     });
-    socket.on('deleteAccount', function(cred) {
+    socket.on('deleteAccount', async function(cred) {
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        var filecred = getCredentials(cred.usrname);
+        var filecred = await getCredentials(cred.usrname);
         if (filecred == false) {
             socket.emit('disconnected');
             console.error('Error: Could not delete account. Reason:USER_NOT_FOUND');
         } else if (filecred.psword == cred.psword) {
             deleteCredentials(cred.usrname);
             console.log('Player with username "' + player.name + '" deleted their account.');
+            socket.emit('disconnected');
         } else {
             socket.emit('disconnected');
+            console.log('something')
         }
     });
-    socket.on('changePassword', function(cred) {
+    socket.on('changePassword', async function(cred) {
         deleteCredentials(cred.usrname);
         writeCredentials(cred.usrname, cred.psword);
     });
@@ -279,7 +299,7 @@ io.on('connection', function(socket) {
         if (click.button == 'left' && round.inProgress && player.alive) {
             if (player.lastclick > ((1000/player.maxCPS)/(1000/60))) {
                 player.lastclick = 0;
-                var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
+                var localbullet = new Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
                 var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
                 io.emit('newbullet', pack);
             }
@@ -315,8 +335,15 @@ setInterval(function() {
     }
 }, 1000/60);
 
+// 5 minute autosave
+setInterval(function() {
+    for (var i in PLAYER_LIST) {
+        database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData], function(err, res) {if (err) stop(err);});
+    }
+}, 300000);
+
 // console interface
-prompt.on('line', function(input) {
+prompt.on('line', async function(input) {
     if (input=='stop') {
         queryStop(true);
     } else if (input=='Purple') {
@@ -354,7 +381,7 @@ function queryStop(firstrun) {
             } else if (answer == 'n') {
                 console.log('Server stop cancelled.\n> ');
             } else {
-                console.warn(answer + ' is not a valid answer.\n> ');
+                console.warn(answer + ' is not a valid answer.');
                 queryStop(false);
             }
         });
@@ -373,7 +400,7 @@ function queryStop(firstrun) {
 }
 function stop(err) {
     if (err) {
-        console.error('\nCRITICAL ERROR:');
+        console.error('\nFATAL ERROR:');
         console.error(err);
         console.error('STOP.\n');
     }
@@ -381,7 +408,9 @@ function stop(err) {
     endGame();
     io.emit('disconnected');
     console.log('Saving user data...');
-    database.query('UPDATE users SET data = \'{"data":' + JSON.stringify(USERS) + '}\' WHERE true', function(err, res) {if (err) console.error(err);});
+    for (var i in PLAYER_LIST) {
+        database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData], function(err, res) {if (err) console.log(err);});
+    }
     console.log('Stopping server...');
     fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) console.error(err);
@@ -392,9 +421,9 @@ function stop(err) {
                 ports = parseInt(line)-1;
                 var portsstring = ports.toString();
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
-                console.log('Server stopped.');
                 database.end();
                 prompt.close();
+                console.log('Server stopped.');
                 process.exit();
             });
         });

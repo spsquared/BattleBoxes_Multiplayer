@@ -7,7 +7,7 @@ remainingPlayers = 0;
 
 // entity
 Entity = function() {
-    var self = {x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:'', color:'#000000'};
+    var self = {id:null, x:0, y:0, xspeed:0, yspeed:0, halfsize:null, colliding:{bottom:false, top:false, left:false, right:false}, id:'', color:'#000000'};
 
     self.update = function() {
         self.updatePos();
@@ -177,7 +177,7 @@ Entity = function() {
 
 // player
 Player = function() {
-    var self = Entity();
+    var self = new Entity();
     self.id = Math.random();
     self.name = null;
     self.halfsize = 16;
@@ -192,6 +192,7 @@ Player = function() {
     self.alive = true;
     self.ready = false;
     self.ingame = false;
+    self.trackedData = new Achievements();
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
@@ -200,7 +201,6 @@ Player = function() {
     }
     self.color = COLORS[0][j];
     COLORS[1][j] = 1;
-    PLAYER_LIST[self.id] = self;
 
     self.update = function() {
         self.updatePos();
@@ -249,12 +249,14 @@ Player = function() {
     }
     self.death = function() {
         if (self.alive) {
+            self.trackedData.deaths++;
             self.alive = false;
             remainingPlayers--;
             io.emit('playerdied', self.id);
             if (remainingPlayers < 2 && round.inProgress) {
                 endRound();
             }
+            Achievements.update();
         }
     }
     self.respawn = function(x, y) {
@@ -265,7 +267,28 @@ Player = function() {
         self.alive = true;
         self.hp = 5;
     };
+    self.checkAchievements = function() {
+        for (var i in self.trackedData.achievements) {
+            var localachievement = self.trackedData.achievements[i];
+            if (localachievement.id == 'Win_' + self.trackedData.wins + '_Games' && localachievement.aqquired == false) {
+                localachievement.aqquired = true;
+                io.emit('achievement_get', {player:self.name, achievement:localachievement.id});
+                console.log('Player "' + self.name + '" got the achievement "' + localachievement.name + '"!');
+            }
+            if (localachievement.id == self.trackedData.kills + '_Kills' && localachievement.aqquired == false) {
+                localachievement.aqquired = true;
+                io.emit('achievement_get', {player:self.name, achievement:localachievement.id});
+                console.log('Player "' + self.name + '" got the achievement "' + localachievement.name + '"!');
+            }
+            if (localachievement.id == self.trackedData.deaths + '_Deaths' && localachievement.aqquired == false) {
+                localachievement.aqquired = true;
+                io.emit('achievement_get', {player:self.name, achievement:localachievement.id});
+                console.log('Player "' + self.name + '" got the achievement "' + localachievement.name + '"!');
+            }
+        }
+    }
 
+    PLAYER_LIST[self.id] = self;
     return self;
 }
 Player.update = function() {
@@ -292,28 +315,40 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     self.halfsize = 4;
     self.parent = parent;
     self.color = color;
-    BULLET_LIST[self.id] = self;
+    self.valid = true;
 
+    self.update = function() {
+        self.updatePos();
+        self.collide();
+        if (self.colliding.top || self.colliding.left || self.colliding.right || self.colliding.bottom || self.colliding.center || self.x < -500 || self.x > ((MAPS[CURRENT_MAP].width*40)+500) || self.y < -500 || self.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
+            self.valid = false;
+            io.emit('deletebullet', self.id);
+            delete BULLET_LIST[i];
+        }
+        for (var i in PLAYER_LIST) {
+            var localplayer = PLAYER_LIST[i];
+            if (localplayer.id != self.parent && localplayer.alive) {
+                if (Math.abs(self.x - localplayer.x) < 16 && Math.abs(self.y - localplayer.y) < 16 && self.valid) {
+                    self.valid = false;
+                    localplayer.hp--;
+                    if (localplayer.hp < 1) {
+                        PLAYER_LIST[self.parent].trackedData.kills++;
+                        Achievements.update();
+                    }
+                    io.emit('deletebullet', self.id);
+                    delete BULLET_LIST[i];
+                }
+            }
+        }
+    }
+    
+    BULLET_LIST[self.id] = self;
     return self;
 }
 Bullet.update = function() {
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
-        if (localbullet.colliding.top || localbullet.colliding.left || localbullet.colliding.right || localbullet.colliding.bottom || localbullet.colliding.center || localbullet.x < -500 || localbullet.x > ((MAPS[CURRENT_MAP].width*40)+500) || localbullet.y < -500 || localbullet.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
-            delete BULLET_LIST[i];
-            io.emit('deletebullet', localbullet.id);
-        }
-        for (var i in PLAYER_LIST) {
-            var localplayer = PLAYER_LIST[i];
-            if (localplayer.id != localbullet.parent && localplayer.alive) {
-                if (Math.abs(localbullet.x - localplayer.x) < 16 && Math.abs(localbullet.y - localplayer.y) < 16) {
-                    delete BULLET_LIST[i];
-                    localplayer.hp--;
-                    io.emit('deletebullet', localbullet.id);
-                }
-            }
-        }
     }
     return;
 }

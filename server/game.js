@@ -22,6 +22,7 @@ endGame = function(id) {
     io.emit('map', CURRENT_MAP);
     if (id != null) {
         io.emit('winner', id);
+        Achievements.update();
     }
     round.inProgress = false;
     gameinProgress = false;
@@ -69,13 +70,15 @@ endRound = function() {
     round.inProgress = false;
     var nextround = true;
     for (var i in PLAYER_LIST) {
-        if (PLAYER_LIST[i].alive) {
-            PLAYER_LIST[i].score++;
-            if (PLAYER_LIST[i].score > 9) {
-                endGame(PLAYER_LIST[i].id);
+        var localplayer = PLAYER_LIST[i];
+        if (localplayer.alive) {
+            localplayer.score++;
+            if (localplayer.score > 9) {
+                localplayer.trackedData.wins++;
+                endGame(localplayer.id);
                 nextround = false;
                 for (var j in PLAYER_LIST) {
-                    PLAYER_LIST[j].score = 0;
+                    localplayer.score = 0;
                 }
             }
         }
@@ -84,5 +87,27 @@ endRound = function() {
         setTimeout(function () {
             startRound();
         }, 1000);
+    }
+}
+
+// achievements
+Achievements = function() {
+    var self = {achievements:null, kills:0, wins:0, deaths:0};
+    self.achievements = require('./Achievements.json').data;
+    return self;
+}
+Achievements.update = function() {
+    for (var i in PLAYER_LIST) {
+        var localplayer = PLAYER_LIST[i];
+        if (localplayer.ingame) {
+            localplayer.checkAchievements();
+        }
+    }
+}
+// debug
+Achievements.log = function() {
+    for (var i in PLAYER_LIST) {
+        var localplayer = PLAYER_LIST[i];
+        console.log(localplayer.trackedData)
     }
 }

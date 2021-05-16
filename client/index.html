@@ -25,9 +25,9 @@
         <div id="menuContainer">
             <div id="loginContainer">
                 <h1 style="font-family: Pixel; font-size: 96px; font-weight: normal;">BattleBoxes Multiplayer</h1>
-                <label for="usrname" id="usrnameLabel">Username: </label>
+                <label for="usrname" class="ui-darkText">Username: </label>
                 <input type="text" id="usrname" name="usrname"><br></br>
-                <label for="psword" id="pswordLabel">Password: </label>
+                <label for="psword" class="ui-darkText">Password: </label>
                 <input type="password" id="psword" name="psword"><br></br>
                 <input type="button" class="ui-smallButton" id="login" value=" LOG IN " onclick="login();">&emsp;
                 <input type="button" class="ui-smallButton" id="signup" value=" SIGN UP " onclick="signup();">
@@ -42,7 +42,7 @@
             </div>
             <div id="settingsContainer">
                 <br>
-                <table id="settingsTable">
+                <table class="ui-darkText">
                     <tr>
                         <td colspan="2">
                             <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();"><br><br>
@@ -65,9 +65,12 @@
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="2">
+                        <td>
                             <br><br>
                             <input type="button" class="ui-smallButton" id="changePassword" value="CHANGE PASSWORD" onclick="changePassword();">
+                        </td>
+                        <td>
+                            <br><br>
                             <button class="ui-smallButton" id="deleteAccount" onclick="deleteAccount(1);">DELETE ACCOUNT</button>
                         </td>
                     </tr>
@@ -76,12 +79,13 @@
             <div id="announcementsContainer">
                 <br>
                 <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();">
+                <br><br>
                 <div id="announcementsPage"></div>
                 <img id="announcements-failedLoadimg" src="/client/img/failedloading.png" style="text-align: center;">
                 <p id="announcements-failedLoad" style="font-family: 'Pixel'; text-align: center;">Oh No! The announcements have failed to load. Enjoy this Snowey for now, then click <a href="">here</a>.</p>
             </div>
             <div id="achievementsContainer">
-                <p style="font-family: Pixel;">Achievements have not been implemented yet</p>
+                <p style="font-family: Pixel;">Graphical achievements display is currently in testing.</p>
                 <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();">
             </div>
             <div id="creditsContainer">
@@ -132,45 +136,42 @@
                 </table>
             </div>
             <div id="ingameMenu">
-                <input type="button" class="ui-largeButton" id="resume" value="RESUME" onclick="resume();"><br><br>
-                <input type="button" class="ui-largeButton" id="ingameSettings" value="SETTINGS" onclick="ingameSettings();"><br><br>
-                <input type="button" class="ui-largeButton" id="ingameAchievements" value="ACHIEVEMENTS" onclick="ingameAchievements();"><br><br>
-                <input type="button" class="ui-largeButton" id="leavegame" value="LEAVE" onclick="quittoMenu();">
+                <div id="ingameMainMenuContainer">
+                    <input type="button" class="ui-largeButton" id="resume" value="RESUME" onclick="resume();"><br><br>
+                    <input type="button" class="ui-largeButton" id="ingameSettings" value="SETTINGS" onclick="openingameSettings();"><br><br>
+                    <input type="button" class="ui-largeButton" id="ingameAchievements" value="ACHIEVEMENTS" onclick="openingameAchievements();"><br><br>
+                    <input type="button" class="ui-largeButton" id="leavegame" value="LEAVE" onclick="quittoMenu();">
+                </div>
+                <div id="ingameSettingsContainer">
+                    <table class="ui-lightText">
+                        <tr>
+                            <td colspan="2">
+                                <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="ingameBack();"><br><br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                Global Volume <span id="ingameGV-label">100%</span><br>
+                                <input type="range" min="0" max="100" value="100" class="ui-largeSlider" id="ingameglobalVolume">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Music Volume <span id="ingameMV-label">50%</span><br>
+                                <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="ingamemusicVolume">
+                            </td>
+                            <td>
+                                Effects Volume <span id="ingameEV-label">50%</span><br>
+                                <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="ingamesfxVolume">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="ingameAchievementsContainer">
+                    <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="ingameBack();"><br><br>
+                </div>
             </div>
-            <div id="ingameSettingsContainer">
-                <table id="settingsTable">
-                    <tr>
-                        <td colspan="2">
-                            <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();"><br><br>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            Global Volume <span id="GV-label">100%</span><br>
-                            <input type="range" min="0" max="100" value="100" class="ui-largeSlider" id="ingameglobalVolume">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Music Volume <span id="MV-label">50%</span><br>
-                            <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="ingamemusicVolume">
-                        </td>
-                        <td>
-                            Effects Volume <span id="EV-label">50%</span><br>
-                            <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="ingamesfxVolume">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <br><br>
-                            <button id="deleteAccount" class = "ui-smallButton" onclick="deleteAccount(1);">DELETE ACCOUNT</button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div id="ingameAchievementsContainer">
-
-            </div>
+            
         </div>
         <div id="disconnectedContainer">
             <br></br><br></br><br></br><br></br><br></br><br></br><br>
@@ -183,7 +184,7 @@
             <p id="serverfull" style="font-family: Pixel; color:white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Server is full...</p>
             <p id="gamelocked" style="font-family: Pixel; color: white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Game is in progress, cannot join...</p>
         </div>
-        <h5 id="versionLabel">v0.6.3</h5>
+        <h5 id="versionLabel">v0.7.0</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

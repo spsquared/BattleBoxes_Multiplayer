@@ -15,7 +15,6 @@ function login() {
     }
 }
 function signup() {
-    console.log(document.getElementById('usrname').value.indexOf(' '))
     if (document.getElementById('usrname').value == '') {
         window.alert('Please provide a Username.');
     } else if (document.getElementById('usrname').value.length > 64) {
@@ -30,7 +29,6 @@ function signup() {
         window.alert('Your password cannot contain any of these special characters:\n\\  "');
     } else {
         socket.emit('signup', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
-        window.alert('Successfully signed up.')
     }
 }
 function deleteAccount(state) {
@@ -40,7 +38,7 @@ function deleteAccount(state) {
             document.getElementById('deleteAccount').onclick = deleteAccount(2);
         });
     } else {
-        socket.emit('deleteAccount', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
+        socket.emit('deleteAccount', {usrname:document.getElementById('usrname').value, psword:document.getElementById('psword').value});
         window.alert('Account successfully deleted');
         window.location.reload();
     }
@@ -55,7 +53,10 @@ function changePassword() {
         window.alert('Incorrect password.');
     }
 }
-socket.on('loginConfirmed', function() {
+socket.on('loginConfirmed', function(state) {
+    if (state == 'signup') {
+        window.alert('Successfully signed up.');
+    }
     document.getElementById('loginContainer').style.display = 'none';
     document.getElementById('mainmenuContainer').style.display = 'inline-block';
 });
@@ -66,6 +67,8 @@ socket.on('loginFailed', function(state) {
         window.alert('Incorrect username or password. Please try again.');
     } else if (state == 'usrexists') {
         window.alert('User with username "' + document.getElementById('usrname').value + '" already exists. Please choose a different username.');
+    } else if (state == 'alreadyloggedin') {
+        window.alert('User with username "' + document.getElementById('usrname').value + '" is already logged in. You cannot login twice.');
     }
 });
 
@@ -110,11 +113,13 @@ function resume() {
     document.getElementById('ingameMenu').style.display = 'none';
     inmenu = false;
 }
-function ingameSettings() {
-    document.getElementById('ingameSettingsContainer').style.display = 'block';
+function openingameSettings() {
+    document.getElementById('ingameMainMenuContainer').style.display = 'none';
+    document.getElementById('ingameSettingsContainer').style.display = 'inline-block';
 }
-function ingameAchievements() {
-    document.getElementById('ingameAchievementsContainer').style.display = 'block';
+function openingameAchievements() {
+    document.getElementById('ingameMainMenuContainer').style.display = 'none';
+    document.getElementById('ingameAchievementsContainer').style.display = 'inline-block';
 }
 function quittoMenu() {
     socket.emit('leavegame');
@@ -131,6 +136,7 @@ function quittoMenu() {
         readyforstart = false;
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';
+        ingameBack();
         document.getElementById('ingameMenu').style.display = 'none';
         fadeOut();
     }, 1000);
@@ -138,4 +144,5 @@ function quittoMenu() {
 function ingameBack() {
     document.getElementById('ingameSettingsContainer').style.display = 'none';
     document.getElementById('ingameAchievementsContainer').style.display = 'none';
+    document.getElementById('ingameMainMenuContainer').style.display = 'inline-block';
 }

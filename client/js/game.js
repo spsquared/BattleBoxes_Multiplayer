@@ -1,130 +1,13 @@
 // Copyright (C) 2021 Radioactive64
 
-$.ajaxSetup({cache: true, async:false});
-PLAYER_LIST = {};
-BULLET_LIST = {};
-MAPS = [];
-CURRENT_MAP = 0;
-player = null;
-camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
 var mouseX;
 var mouseY;
 var shooting = false;
 var ingame;
 var inmenu;
 var canmove = false;
-var consoleAccess = false;
 var connected = 0;
 var readyforstart = false;
-
-// game handlers
-socket.on('game-joined', function() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'block';
-    ingame = true;
-    canmove = true;
-    fadeOut();
-});
-socket.on('gamefull', function() {
-    document.getElementById('serverfull').style.display = 'block';
-});
-socket.on('gamerunning', function() {
-    document.getElementById('gamelocked').style.display = 'block';
-});
-socket.on('initmap', function(maps) {
-    for (var i in maps) {
-        MAPS[i] = new Image(maps[i].width, maps[i].height);
-        if (maps[i].id == 0) {
-            MAPS[i].src = '/client/img/Lobby.png';
-        } else {
-            MAPS[i].src = '/client/img/map' + maps[i].id + '.png';
-        }
-    }
-});
-socket.on('map', function(id) {
-    CURRENT_MAP = id;
-});
-socket.on('gamestart', function(pkg) {
-    if (ingame) {
-        document.getElementById('ready').style.display = 'none';
-        for (var i in pkg) {
-            document.getElementById('player' + i).innerText = pkg[i];
-        }
-        document.getElementById('scoreContainer').style.display = 'inline';
-    }
-});
-socket.on('winner', function(id) {
-    ingame = false;
-    canmove = false;
-    document.getElementById('loadingContainer').style.display = 'none';
-    var v = -10;
-    var x = window.innerWidth;
-    var slide = setInterval(function() {
-        if (x < 200) {
-            v *= 0.96;
-        }
-        x += v;
-        game.fillStyle = PLAYER_LIST[id].color;
-        game.fillRect(x, 0, window.innerWidth, window.innerHeight);
-        if (x < 0.1) {
-            game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            document.addEventListener('resize', function() {game.fillRect(0, 0, window.innerWidth, window.innerHeight);});
-            clearInterval(slide);
-        }
-    }, 5);
-    var fadeAmount = 1;
-    var audiofade = (settings.musicvolume*settings.globalvolume);
-    var fadeInterval = setInterval(function() {
-        fadeAmount -= 0.01;
-        audiofade -= ((settings.musicvolume*settings.globalvolume)/50);
-        if (audiofade < 0) {
-            audiofade = 0;
-        }
-        if (fadeAmount > 0.5) {
-            clearInterval(fadeInterval);
-        }
-        document.getElementById('scoreContainer').style.opacity = fadeAmount;
-        music.volume = audiofade;
-    }, 1);
-    setTimeout(function() {
-        music.src = '/client/sound/Endscreen.mp3';
-        music.play();
-        var fadeInterval = setInterval(function() {
-            fadeAmount -= 0.01;
-            audiofade += ((settings.musicvolume*settings.globalvolume)/50);
-            if (audiofade < 0) {
-                audiofade = 0;
-            }
-            if (fadeAmount > 1) {
-                clearInterval(fadeInterval);
-            }
-            document.getElementById('scoreContainer').style.opacity = fadeAmount;
-            music.volume = audiofade;
-        }, 1);
-    }, 500);
-})
-socket.on('roundstart', function(scores) {
-    if (ingame) {
-        fadeOut();
-        setTimeout(function() {
-            canmove = true;
-        }, 3000);
-        sfx[0].src = '/client/sound/Countdown.mp3';
-        sfx[0].play();
-        for (var i in PLAYER_LIST) {
-            PLAYER_LIST[i].alive = true;
-        }
-        for (var i in scores) {
-            PLAYER_LIST[scores[i].id].score = scores[i].score;
-            document.getElementById('score' + i).innerText = scores[i].score;
-        }
-    }
-});
-socket.on('roundend', function() {
-    if (ingame) {
-        fadeIn();
-    }
-});
 
 // draw game
 socket.on('update', function(pkg) {
@@ -143,6 +26,7 @@ socket.on('update', function(pkg) {
         }
         Bullet.update();
         Player.update(pkg);
+        drawBanners();
         player = PLAYER_LIST[player.id];
         connected = 0;
         fpsCounter++;
@@ -239,6 +123,56 @@ function drawDebug(data, isplayer) {
     game.lineTo(tempx+40, tempy+41);
     game.closePath();
     game.stroke();
+}
+function drawBanners() {
+    for (var i in BANNERS) {
+        BANNERS[i].update();
+    }
+}
+// banner init
+function Banner(topText, bottomText) {
+    j = 0;
+    for (var i in BANNERS) {
+        j++;
+    }
+    var self = {id:Math.random(), v:-5, x:window.innerWidth, y:(j*64), top:topText, bottom:bottomText, todelete:false};
+
+    var slidein = setInterval(function() {
+        self.v += 0.031;
+        self.x += self.v;
+    }, 5);
+    self.update = function() {
+        game.fillStyle = '#222222';
+        game.fillRect(self.x, self.y, 400, 60);
+        game.fillStyle = '#DDDDDD';
+        game.fillRect(self.x+4, self.y+4, 392, 52);
+        game.fillStyle = '#000000';
+        game.textAlign = 'left';
+        game.font = '20px Pixel';
+        game.fillText(self.top, self.x+8, self.y+28, 384);
+        game.font = '16px Pixel';
+        game.fillText(self.bottom, self.x+8, self.y+50, 384);
+        if (self.x < (window.innerWidth-400)) {
+            self.x = (window.innerWidth-400);
+            if (!self.todelete) {
+                clearInterval(slidein);
+                setTimeout(function() {
+                    var slideout = setInterval(function() {
+                        self.v += 0.031;
+                        self.x += self.v;
+                        if (self.x >= window.innerWidth) {
+                            clearInterval(slideout);
+                            delete BANNERS[self.id];
+                        }
+                    }, 5);
+                }, 5000);
+                self.todelete = true;
+            }
+        }
+    }
+
+    BANNERS[self.id] = self;
+    return self;
 }
 
 // input sending
@@ -364,6 +298,123 @@ function ready() {
     }
 }
 
+// game handlers
+socket.on('game-joined', function() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'block';
+    ingame = true;
+    canmove = true;
+    fadeOut();
+});
+socket.on('gamefull', function() {
+    document.getElementById('serverfull').style.display = 'block';
+});
+socket.on('gamerunning', function() {
+    document.getElementById('gamelocked').style.display = 'block';
+});
+socket.on('initmap', function(maps) {
+    for (var i in maps) {
+        MAPS[i] = new Image(maps[i].width, maps[i].height);
+        if (maps[i].id == 0) {
+            MAPS[i].src = '/client/img/Lobby.png';
+        } else {
+            MAPS[i].src = '/client/img/map' + maps[i].id + '.png';
+        }
+    }
+});
+socket.on('map', function(id) {
+    CURRENT_MAP = id;
+});
+socket.on('gamestart', function(pkg) {
+    if (ingame) {
+        document.getElementById('ready').style.display = 'none';
+        for (var i in pkg) {
+            document.getElementById('player' + i).innerText = pkg[i];
+        }
+        document.getElementById('scoreContainer').style.display = 'inline';
+    }
+});
+socket.on('winner', function(id) {
+    ingame = false;
+    canmove = false;
+    document.getElementById('loadingContainer').style.display = 'none';
+    var v = -10;
+    var x = window.innerWidth;
+    var slide = setInterval(function() {
+        if (x < 200) {
+            v *= 0.96;
+        }
+        x += v;
+        game.fillStyle = PLAYER_LIST[id].color;
+        game.fillRect(x, 0, window.innerWidth, window.innerHeight);
+        if (x < 0.1) {
+            game.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            document.addEventListener('resize', function() {game.fillRect(0, 0, window.innerWidth, window.innerHeight);});
+            clearInterval(slide);
+        }
+    }, 5);
+    var fadeAmount = 1;
+    var audiofade = (settings.musicvolume*settings.globalvolume);
+    var fadeInterval = setInterval(function() {
+        fadeAmount -= 0.01;
+        audiofade -= ((settings.musicvolume*settings.globalvolume)/50);
+        if (audiofade < 0) {
+            audiofade = 0;
+        }
+        if (fadeAmount < 0.5) {
+            clearInterval(fadeInterval);
+        }
+        document.getElementById('scoreContainer').style.opacity = fadeAmount;
+        music.volume = audiofade;
+    }, 1);
+    setTimeout(function() {
+        music.src = '/client/sound/Endscreen.mp3';
+        music.play();
+        var fadeInterval = setInterval(function() {
+            fadeAmount -= 0.01;
+            audiofade += ((settings.musicvolume*settings.globalvolume)/50);
+            if (audiofade < 0) {
+                audiofade = 0;
+            }
+            if (fadeAmount < 1) {
+                clearInterval(fadeInterval);
+            }
+            document.getElementById('scoreContainer').style.opacity = fadeAmount;
+            music.volume = audiofade;
+        }, 1);
+    }, 500);
+});
+socket.on('roundstart', function(scores) {
+    if (ingame) {
+        fadeOut();
+        setTimeout(function() {
+            canmove = true;
+        }, 3000);
+        sfx[0].src = '/client/sound/Countdown.mp3';
+        sfx[0].play();
+        for (var i in PLAYER_LIST) {
+            PLAYER_LIST[i].alive = true;
+        }
+        for (var i in scores) {
+            PLAYER_LIST[scores[i].id].score = scores[i].score;
+            document.getElementById('score' + i).innerText = scores[i].score;
+        }
+    }
+});
+socket.on('roundend', function() {
+    if (ingame) {
+        fadeIn();
+    }
+});
+socket.on('achievement_get', function(pkg) {
+    for (var i in ACHIEVEMENTS) {
+        if (ACHIEVEMENTS[i].id == pkg.achievement) {
+            Banner(pkg.player + ' Achievement Get!', ACHIEVEMENTS[i].name);
+            ACHIEVEMENTS[i].aqquired = true;
+        }
+    }
+});
+
 // fps counter
 setInterval(function() {
     fps = fpsCounter;
@@ -381,3 +432,12 @@ setInterval(function() {
         }
     }
 }, 1000/10);
+
+function achievementtest(player, achievement) {
+    for (var i in ACHIEVEMENTS) {
+        if (ACHIEVEMENTS[i].id == achievement) {
+            Banner(player + ' Achievement Get!', ACHIEVEMENTS[i].name);
+            ACHIEVEMENTS[i].aqquired = true;
+        }
+    }
+}

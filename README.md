@@ -8,6 +8,7 @@ I cannot distribute node.js as I do not own any rights to it, but visiting [thei
 Or, you can run the .pkg file included. However, I have no idea how to use it so you'll have to figure it out for yourself.
 
 To stop the server, type "stop" into the server console.
+(Note: If a server crashes, stop all servers and locate PORTS.txt in the "Server" folder and replace whatever number is inside with 0);
 
 ### Joining the Game
 Once the server is started, you can find your computer's name (available in Windows>System>About as "Device name"), or simply search [what's my ip](http://google.com/search?q=whats+my+ip) or click the link. The server console will tell you what port to visit and you can type either the ip address or computer name on the client side **connected to the same network as the host** and then followed by a ":" and then the port number. Example: 111.22.33.444:2000 or hostcomputer:1100
@@ -37,6 +38,7 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.6.1   | <ul><li>Fixed debug rendering</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/15" target="_blank">Fixed collision rubberbanding (Issue #15)</a></li><li>Added a scoreboard</li><li>Fixed random errors in client console</li><li>Replaced black win screen with a more finished colored page</li></ul> |
 | 0.6.2   | <ul><li>Added more settings</li><li>Migrated to PostGreSQL database for login</li><li>Added "change password" option</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/26" target="_blank">Fixed some map blurring (Issue #26)</a></li><li>Fixed some spelling mistakes</li><li>Made server close when an error occurs</li></ul> |
 | 0.6.3   | <ul><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/43" target="_blank">Fixed critical instant-crash on startup (Issue #43)</li></ul> |
+| 0.7.0   | <ul><li>Added achievements system and some achievements</li><li>Added ingame menus</li><li>Improved login database system</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/44" target="_blank">Fixed server crash when changing passwords (Issue #44)</a></li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/29" target="_blank">Fixed bullet damage spam (Issue #29)</a></li><li><a herf="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/42" target="_blank">Centered the ingame menu (and added backshade) (Issue #42)</a></li><li>Prevented double-sign-in</li><li>Removed item focus highlight around buttons</li><li>Tweaks to game code formatting</li></ul> |
 
 ***
 

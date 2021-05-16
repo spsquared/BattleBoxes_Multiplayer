@@ -1,8 +1,15 @@
 // Copyright (C) 2021 Radioactive64
 
-$.getScript('/client/js/game.js');
-$.getScript('/client/js/entity.js');
-$.getScript('/client/js/menu.js');
+$.ajaxSetup({cache: true, async:false});
+$.getScript('./client/js/game.js');
+$.getScript('./client/js/entity.js');
+$.getScript('./client/js/menu.js');
+PLAYER_LIST = {};
+BULLET_LIST = {};
+MAPS = [];
+CURRENT_MAP = 0;
+ACHIEVEMENTS = [];
+BANNERS = [];
 game = document.getElementById('gameCanvas').getContext('2d');
 music = new Audio();
 sfx = [new Audio(), new Audio(), new Audio(), new Audio()];
@@ -10,6 +17,9 @@ settings = {globalvolume:(document.getElementById('globalVolume').value/100), mu
 var currentmusic = 1;
 var fpsCounter = 0;
 var fps = 0;
+player = null;
+camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
+consoleAccess = false;
 
 // handlers
 socket.on('init', function() {
@@ -17,6 +27,8 @@ socket.on('init', function() {
     document.getElementById('menuContainer').style.display = 'block';
     document.getElementById('loginContainer').style.display = 'inline-block';
     document.getElementById('mainmenuContainer').style.display = 'none';
+    document.querySelectorAll("input").forEach(function(item){if (item.type != 'text' && item.type != 'password') {item.addEventListener('focus', function(){this.blur();});}});
+    document.querySelectorAll("button").forEach(function(item){item.addEventListener('focus', function(){this.blur();});});
     document.getElementById('viewport').width = window.innerWidth;
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
@@ -31,6 +43,9 @@ socket.on('init', function() {
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
     document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
+    $.getJSON('./client/assets/AchievementsList.json', function(data) {
+        ACHIEVEMENTS = data.data;
+    });
     document.getElementById('announcementsPage').width = (window.innerWidth-64);
     try {
         document.getElementById('announcementsEmbed').remove();
@@ -69,6 +84,9 @@ function updateSettings() {
     document.getElementById('GV-label').innerHTML = (Math.floor(settings.globalvolume*100) + '%');
     document.getElementById('MV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
     document.getElementById('EV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
+    document.getElementById('ingameGV-label').innerHTML = (Math.floor(settings.globalvolume*100) + '%');
+    document.getElementById('ingameMV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
+    document.getElementById('ingameEV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
 }
 
 // sound
@@ -111,14 +129,32 @@ document.addEventListener('mousedown', function() {
 });
 document.getElementById('globalVolume').oninput = function() {
     settings.globalvolume = (document.getElementById('globalVolume').value/100);
+    document.getElementById('ingameglobalVolume').value = document.getElementById('globalVolume').value;
     updateSettings();
 }
 document.getElementById('musicVolume').oninput = function() {
     settings.musicvolume = (document.getElementById('musicVolume').value/100);
+    document.getElementById('ingamemusicVolume').value = document.getElementById('musicVolume').value;
     updateSettings();
 }
 document.getElementById('sfxVolume').oninput = function() {
     settings.sfxvolume = (document.getElementById('sfxVolume').value/100);
+    document.getElementById('ingamesfxVolume').value = document.getElementById('sfxVolume').value;
+    updateSettings();
+}
+document.getElementById('ingameglobalVolume').oninput = function() {
+    settings.globalvolume = (document.getElementById('ingameglobalVolume').value/100);
+    document.getElementById('globalVolume').value = document.getElementById('ingameglobalVolume').value;
+    updateSettings();
+}
+document.getElementById('ingamemusicVolume').oninput = function() {
+    settings.musicvolume = (document.getElementById('ingamemusicVolume').value/100);
+    document.getElementById('musicVolume').value = document.getElementById('ingamemusicVolume').value;
+    updateSettings();
+}
+document.getElementById('ingamesfxVolume').oninput = function() {
+    settings.sfxvolume = (document.getElementById('ingamesfxVolume').value/100);
+    document.getElementById('sfxVolume').value = document.getElementById('ingamesfxVolume').value;
     updateSettings();
 }
 

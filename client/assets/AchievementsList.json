@@ -1,0 +1,17 @@
+{
+    "data":[
+        {"id":"Win_1_Games", "name":"Winner Winner Chicken Dinner", "description":"Win a game"},
+        {"id":"Win_10_Games", "name":"Master of Gaming", "description":"Win 10 games"},
+        {"id":"Win_100_Games", "name":"The Ultimate Champion", "description":"Win 100 games"},
+        {"id":"Win_1000_Games", "name":"Unparalleled Dominance", "description":"Win 1000 games!"},
+        {"id":"1_Kills", "name":"Pew pew gun!", "description":"Get one kill"},
+        {"id":"10_Kills", "name":"Assassin", "description":"Get ten kills"},
+        {"id":"100_Kills", "name":"Hitman", "description":"Get 100 kills"},
+        {"id":"1000_Kills", "name":"Homocide", "description":"Get 1000 kills"},
+        {"id":"Snipe", "name":"Sniper", "description":"Kill a player from more than 40 blocks away"},
+        {"id":"1_Deaths", "name":"YOU DIED!", "description":"Die"},
+        {"id":"10_Deaths", "name":"Careless but Alive", "description":"Die 10 times"},
+        {"id":"100_Deaths", "name":"Witchcraft", "description":"Die 100 times"},
+        {"id":"1000_Deaths", "name":"Immortal", "description":"Die 1000 times"}
+    ]
+}
