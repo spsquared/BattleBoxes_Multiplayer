@@ -270,7 +270,7 @@ Player = function() {
     self.checkAchievements = function() {
         for (var i in self.trackedData.achievements) {
             var localachievement = self.trackedData.achievements[i];
-            if (localachievement.id == 'Win_' + self.trackedData.wins + '_Games' && localachievement.aqquired == false) {
+            if (localachievement.id == self.trackedData.wins + '_Wins' && localachievement.aqquired == false) {
                 localachievement.aqquired = true;
                 io.emit('achievement_get', {player:self.name, achievement:localachievement.id});
                 console.log('Player "' + self.name + '" got the achievement "' + localachievement.name + '"!');
@@ -323,7 +323,7 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
         if (self.colliding.top || self.colliding.left || self.colliding.right || self.colliding.bottom || self.colliding.center || self.x < -500 || self.x > ((MAPS[CURRENT_MAP].width*40)+500) || self.y < -500 || self.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
             self.valid = false;
             io.emit('deletebullet', self.id);
-            delete BULLET_LIST[i];
+            delete BULLET_LIST[self.id];
         }
         for (var i in PLAYER_LIST) {
             var localplayer = PLAYER_LIST[i];
@@ -336,7 +336,7 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
                         Achievements.update();
                     }
                     io.emit('deletebullet', self.id);
-                    delete BULLET_LIST[i];
+                    delete BULLET_LIST[self.id];
                 }
             }
         }

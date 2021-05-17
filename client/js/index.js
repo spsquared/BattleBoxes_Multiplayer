@@ -8,6 +8,7 @@ PLAYER_LIST = {};
 BULLET_LIST = {};
 MAPS = [];
 CURRENT_MAP = 0;
+TRACKED_DATA = {kills:0, deaths:0, wins:0};
 ACHIEVEMENTS = [];
 BANNERS = [];
 game = document.getElementById('gameCanvas').getContext('2d');
@@ -15,8 +16,12 @@ music = new Audio();
 sfx = [new Audio(), new Audio(), new Audio(), new Audio()];
 settings = {globalvolume:(document.getElementById('globalVolume').value/100), musicvolume:(document.getElementById('musicVolume').value/100), sfxvolume:(document.getElementById('sfxVolume').value/100)};
 var currentmusic = 1;
-var fpsCounter = 0;
-var fps = 0;
+tpsCounter = 0;
+tps = 0;
+ping = 0;
+pingCounter = 0;
+lastDate = 0;
+currentDate = 0;
 player = null;
 camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
 consoleAccess = false;
@@ -63,6 +68,7 @@ socket.on('init', function() {
         sfx[i].volume = settings.sfxvolume;
     }
     music.src = '/client/sound/Menu.mp3';
+    document.getElementById('usrname').focus();
 });
 socket.on('connect_error',function(){
     setTimeout(function(){
@@ -73,6 +79,7 @@ socket.on('disconnected', function() {
     document.getElementById('menuContainer').style.display = 'none';
     document.getElementById('gameContainer').style.display = 'none';
     document.getElementById('disconnectedContainer').style.display = 'inline-block';
+    clearInterval(waiting);
 });
 
 // settings functions
@@ -159,6 +166,13 @@ document.getElementById('ingamesfxVolume').oninput = function() {
 }
 
 function debug() {
+    socket.emit('debug');
+    for (var i in ACHIEVEMENTS) {
+        if (ACHIEVEMENTS[i].id == 'Debug') {
+            Banner('[object Object] Achievement Get!', ACHIEVEMENTS[i].name);
+            ACHIEVEMENTS[i].aqquired = true;
+        }
+    }
     document.getElementById('fxOverlay').style.width = '800px';
     document.getElementById('fxOverlay').style.height = '800px';
     document.getElementById('fxOverlay').src = '/client/img/Debugging.png';

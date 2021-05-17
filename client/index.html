@@ -38,7 +38,7 @@
                 <input type="button" class="ui-largeButton" id="settings" value="SETTINGS" onclick="openSettings();"><br><br>
                 <input type="button" class="ui-largeButton" id="announcements" value="ANNOUNCMENTS" onclick="openAnnouncements();"><br><br>
                 <input type="button" class="ui-largeButton" id="achievements" value="ACHIEVEMENTS" onclick="openAchievements();"><br><br>
-                <input type="button" class="ui-largeButton" id="closegame" value="EXIT" onclick="disconnectclient();">
+                <input type="button" class="ui-largeButton" id="closegame" value="SIGN OUT" onclick="window.location.reload();">
             </div>
             <div id="settingsContainer">
                 <br>
@@ -184,7 +184,7 @@
             <p id="serverfull" style="font-family: Pixel; color:white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Server is full...</p>
             <p id="gamelocked" style="font-family: Pixel; color: white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Game is in progress, cannot join...</p>
         </div>
-        <h5 id="versionLabel">v0.7.0</h5>
+        <h5 id="versionLabel">v0.7.1</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

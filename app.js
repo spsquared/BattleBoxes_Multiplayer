@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.7.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.7.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.7.0\n');
+console.log('\nThis server is running BattleBoxes Server v-0.7.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -177,6 +177,7 @@ io.on('connection', function(socket) {
                         stop(err);
                     }
                 });
+                socket.emit('inittrackedData', player.trackedData);
                 socket.emit('loginConfirmed', 'login');
                 console.log('Player with username "' + player.name + '" logged in.');
             }
@@ -305,6 +306,17 @@ io.on('connection', function(socket) {
             }
         }
     });
+    // debug handlers
+    socket.on('debug', function() {
+        for (var i in player.trackedData.achievements) {
+            var localachievement = player.trackedData.achievements[i];
+            if (localachievement.id == 'Debug' && localachievement.aqquired == false) {
+                localachievement.aqquired = true;
+                console.log('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!');
+            }
+        }
+    });
+    socket.on('ping', function() {socket.emit('ping');});
 });
 // server-side tps
 setInterval(function() {

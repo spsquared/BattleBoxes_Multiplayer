@@ -29,7 +29,6 @@ socket.on('update', function(pkg) {
         drawBanners();
         player = PLAYER_LIST[player.id];
         connected = 0;
-        fpsCounter++;
     }
 });
 function drawMap() {
@@ -67,7 +66,7 @@ function drawDebug(data, isplayer) {
         // draw debug headers
         game.fillStyle = '#FFFFFF88';
         game.fillRect(4, 4, 380, 48);
-        game.fillRect((window.innerWidth - 94), 4, 90, 32)
+        game.fillRect((window.innerWidth - 94), 4, 90, 64)
         game.fillStyle = '#000000';
         game.font = '16px Pixel';
         game.textAlign = 'left';
@@ -78,7 +77,8 @@ function drawDebug(data, isplayer) {
         game.fillText('Angle:' + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
         game.font = '24px Pixel';
         game.textAlign = 'right';
-        game.fillText('TPS:' + fps, (window.innerWidth-8), 32);
+        game.fillText('TPS:' + tps, (window.innerWidth-8), 32);
+        game.fillText('Ping:' + ping + 'ms', (window.innerWidth-8), 64);
     }
     // draw collision debug
     game.beginPath();
@@ -123,7 +123,15 @@ function drawDebug(data, isplayer) {
     game.lineTo(tempx+40, tempy+41);
     game.closePath();
     game.stroke();
+    // tps and ping counter
+    tpsCounter++;
+    lastDate = Date.now();
+    socket.emit('ping');
 }
+socket.on('ping', function() {
+    currentDate = Date.now();
+    pingCounter = Math.floor(currentDate-lastDate);
+});
 function drawBanners() {
     for (var i in BANNERS) {
         BANNERS[i].update();
@@ -155,6 +163,7 @@ function Banner(topText, bottomText) {
         if (self.x < (window.innerWidth-400)) {
             self.x = (window.innerWidth-400);
             if (!self.todelete) {
+                self.todelete = true;
                 clearInterval(slidein);
                 setTimeout(function() {
                     var slideout = setInterval(function() {
@@ -166,7 +175,6 @@ function Banner(topText, bottomText) {
                         }
                     }, 5);
                 }, 5000);
-                self.todelete = true;
             }
         }
     }
@@ -348,9 +356,9 @@ socket.on('winner', function(id) {
         game.fillStyle = PLAYER_LIST[id].color;
         game.fillRect(x, 0, window.innerWidth, window.innerHeight);
         if (x < 0.1) {
+            clearInterval(slide);
             game.fillRect(0, 0, window.innerWidth, window.innerHeight);
             document.addEventListener('resize', function() {game.fillRect(0, 0, window.innerWidth, window.innerHeight);});
-            clearInterval(slide);
         }
     }, 5);
     var fadeAmount = 1;
@@ -406,6 +414,10 @@ socket.on('roundend', function() {
         fadeIn();
     }
 });
+socket.on('inittrackedData', function(pkg) {
+    ACHIEVEMENTS = pkg.achievements;
+    TRACKED_DATA = {kills:pkg.kills, deaths:pkg.deaths, wins:pkg.wins};
+});
 socket.on('achievement_get', function(pkg) {
     for (var i in ACHIEVEMENTS) {
         if (ACHIEVEMENTS[i].id == pkg.achievement) {
@@ -415,14 +427,15 @@ socket.on('achievement_get', function(pkg) {
     }
 });
 
-// fps counter
+// fps & tps counter
 setInterval(function() {
-    fps = fpsCounter;
-    fpsCounter = 0;
+    tps = tpsCounter;
+    tpsCounter = 0;
+    ping = pingCounter;
 }, 1000);
 
 // waiting for server
-setInterval(function() {
+waiting = setInterval(function() {
     if (ingame) {
         connected++;
         if (connected == 10) {
@@ -433,11 +446,6 @@ setInterval(function() {
     }
 }, 1000/10);
 
-function achievementtest(player, achievement) {
-    for (var i in ACHIEVEMENTS) {
-        if (ACHIEVEMENTS[i].id == achievement) {
-            Banner(player + ' Achievement Get!', ACHIEVEMENTS[i].name);
-            ACHIEVEMENTS[i].aqquired = true;
-        }
-    }
+function achievementtest() {
+    Banner(player.name + ' Achievement Get!', 'Achievements tester');
 }

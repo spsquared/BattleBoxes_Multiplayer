@@ -1,9 +1,9 @@
 {
     "data":[
-        {"id":"Win_1_Games", "name":"Winner Winner Chicken Dinner", "description":"Win a game", "aqquired":false},
-        {"id":"Win_10_Games", "name":"Master of Gaming", "description":"Win 10 games", "aqquired":false},
-        {"id":"Win_100_Games", "name":"The Ultimate Champion", "description":"Win 100 games", "aqquired":false},
-        {"id":"Win_1000_Games", "name":"Unparalleled Dominance", "description":"Win 1000 games!", "aqquired":false},
+        {"id":"1_Wins", "name":"Winner Winner Chicken Dinner", "description":"Win a game", "aqquired":false},
+        {"id":"10_Wins", "name":"Master of Gaming", "description":"Win 10 games", "aqquired":false},
+        {"id":"100_Wins", "name":"The Ultimate Champion", "description":"Win 100 games", "aqquired":false},
+        {"id":"1000_Wins", "name":"Unparalleled Dominance", "description":"Win 1000 games!", "aqquired":false},
         {"id":"1_Kills", "name":"Pew pew gun!", "description":"Get one kill", "aqquired":false},
         {"id":"10_Kills", "name":"Assassin", "description":"Get ten kills", "aqquired":false},
         {"id":"100_Kills", "name":"Hitman", "description":"Get 100 kills", "aqquired":false},
@@ -12,6 +12,8 @@
         {"id":"1_Deaths", "name":"YOU DIED!", "description":"Die", "aqquired":false},
         {"id":"10_Deaths", "name":"Careless but Alive", "description":"Die 10 times", "aqquired":false},
         {"id":"100_Deaths", "name":"Witchcraft", "description":"Die 100 times", "aqquired":false},
-        {"id":"1000_Deaths", "name":"Immortal", "description":"Die 1000 times", "aqquired":false}
+        {"id":"1000_Deaths", "name":"Immortal", "description":"Die 1000 times", "aqquired":false},
+        {"id":"10000_Deaths", "name":"How did we get get here?", "description":"Die 1000 times", "aqquired":false},
+        {"id":"Debug", "name":"Debugger", "description":"Debug the game", "aqquired":false}
     ]
 }
