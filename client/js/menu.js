@@ -95,6 +95,8 @@ function openAnnouncements() {
     document.getElementById('announcementsContainer').style.display = 'inline-block';
 }
 function openAchievements() {
+    updateAchievements();
+    navStatistics();
     document.getElementById('mainmenuContainer').style.display = 'none';
     document.getElementById('achievementsContainer').style.display = 'inline-block';
 }
@@ -106,6 +108,24 @@ function back() {
 }
 function disconnectclient() {
     socket.emit('disconnectclient', {id: document.getElementById('usrname').value});
+}
+
+// achievements menu functions
+function navStatistics() {
+    document.getElementById('achievementsACHIEVEMENTS').style.display = 'none';
+    document.getElementById('achievementsSTATISTICS').style.display = 'inline-block';
+    document.getElementById('navStatistics').style.backgroundColor = 'grey';
+    document.getElementById('navStatistics').style.borderBottom = 'grey 4px solid';
+    document.getElementById('navAchievements').style.backgroundColor = '';
+    document.getElementById('navAchievements').style.borderBottom = '';
+}
+function navAchievements() {
+    document.getElementById('achievementsSTATISTICS').style.display = 'none';
+    document.getElementById('achievementsACHIEVEMENTS').style.display = 'inline-block';
+    document.getElementById('navAchievements').style.backgroundColor = 'grey';
+    document.getElementById('navAchievements').style.borderBottom = 'grey 4px solid';
+    document.getElementById('navStatistics').style.backgroundColor = '';
+    document.getElementById('navStatistics').style.borderBottom = '';
 }
 
 // ingame menu functions

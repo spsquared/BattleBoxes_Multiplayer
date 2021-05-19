@@ -108,6 +108,6 @@ Achievements.update = function() {
 Achievements.log = function() {
     for (var i in PLAYER_LIST) {
         var localplayer = PLAYER_LIST[i];
-        console.log(localplayer.trackedData)
+        console.log(localplayer.trackedData);
     }
 }

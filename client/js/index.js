@@ -28,6 +28,7 @@ consoleAccess = false;
 
 // handlers
 socket.on('init', function() {
+    // set up page and canvas
     document.getElementById('disconnectedContainer').style.display = 'none';
     document.getElementById('menuContainer').style.display = 'block';
     document.getElementById('loginContainer').style.display = 'inline-block';
@@ -48,26 +49,39 @@ socket.on('init', function() {
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
     document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
+    // insert achievements
     $.getJSON('./client/assets/AchievementsList.json', function(data) {
         ACHIEVEMENTS = data.data;
+        for (var i in ACHIEVEMENTS) {
+            var localachievement = ACHIEVEMENTS[i];
+            var achievement = document.createElement('div');
+            achievement.id = localachievement.id;
+            achievement.className = 'achievementBlock ui-darkText';
+            achievement.style.backgroundColor = 'lightgrey';
+            if (localachievement.hidden) {
+                achievement.style.display = 'none';
+            }
+            achievement.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
+            document.getElementById('achievementsACHIEVEMENTS').appendChild(achievement);
+        }
     });
+    // insert announcements
     document.getElementById('announcementsPage').width = (window.innerWidth-64);
-    try {
-        document.getElementById('announcementsEmbed').remove();
-    } catch (error) {}
     var announcementsEmbed = document.createElement('div');
     announcementsEmbed.id = 'announcementsEmbed';
     $.get('https://raw.githubusercontent.com/definitely-nobody-is-here/BBmulti_Announcements/master/Announcements.html', function(file) {
         announcementsEmbed.innerHTML = file;
         document.getElementById('announcements-failedLoadimg').style.display = 'none';
         document.getElementById('announcements-failedLoad').style.display = 'none';
+        document.getElementById('announcementsPage').appendChild(announcementsEmbed);
     });
-    document.getElementById('announcementsPage').appendChild(announcementsEmbed);
+    // start music
     music.volume = settings.musicvolume;
     for (var i in sfx) {
         sfx[i].volume = settings.sfxvolume;
     }
     music.src = '/client/sound/Menu.mp3';
+    // place focus on username
     document.getElementById('usrname').focus();
 });
 socket.on('connect_error',function(){
@@ -80,6 +94,9 @@ socket.on('disconnected', function() {
     document.getElementById('gameContainer').style.display = 'none';
     document.getElementById('disconnectedContainer').style.display = 'inline-block';
     clearInterval(waiting);
+});
+socket.on('timeout', function() {
+    disconnectclient();
 });
 
 // settings functions
@@ -94,6 +111,30 @@ function updateSettings() {
     document.getElementById('ingameGV-label').innerHTML = (Math.floor(settings.globalvolume*100) + '%');
     document.getElementById('ingameMV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
     document.getElementById('ingameEV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
+}
+
+// achievements functions
+function updateAchievements() {
+    document.getElementById('aSTATS_kills').innerText = TRACKED_DATA.kills;
+    document.getElementById('aSTATS_deaths').innerText = TRACKED_DATA.deaths;
+    document.getElementById('aSTATS_wins').innerText = TRACKED_DATA.wins;
+    for (var i in ACHIEVEMENTS) {
+        var localachievement = ACHIEVEMENTS[i];
+        var achievement = document.getElementById(localachievement.id);
+        if (localachievement.color == 'rainbow-pulse' && localachievement.aqquired) {
+            achievement.style.animation = 'rainbow-pulse 10s infinite';
+            achievement.style.animationTimingFunction = 'ease-in-out'
+        } else if (localachievement.color == 'pulsing-red' && localachievement.aqquired) {
+            achievement.style.animation = 'red-pulse 2s infinite';
+        } else if (localachievement.aqquired) {
+            achievement.style.backgroundColor = localachievement.color;
+        } else {
+            achievement.style.backgroundColor = 'lightgrey';
+        }
+        if (localachievement.aqquired) {
+            achievement.style.display = 'block';
+        }
+    }
 }
 
 // sound

@@ -79,6 +79,10 @@ function drawDebug(data, isplayer) {
         game.textAlign = 'right';
         game.fillText('TPS:' + tps, (window.innerWidth-8), 32);
         game.fillText('Ping:' + ping + 'ms', (window.innerWidth-8), 64);
+        // tps and ping counter
+        tpsCounter++;
+        lastDate = Date.now();
+        socket.emit('ping');
     }
     // draw collision debug
     game.beginPath();
@@ -123,10 +127,6 @@ function drawDebug(data, isplayer) {
     game.lineTo(tempx+40, tempy+41);
     game.closePath();
     game.stroke();
-    // tps and ping counter
-    tpsCounter++;
-    lastDate = Date.now();
-    socket.emit('ping');
 }
 socket.on('ping', function() {
     currentDate = Date.now();
@@ -415,7 +415,15 @@ socket.on('roundend', function() {
     }
 });
 socket.on('inittrackedData', function(pkg) {
-    ACHIEVEMENTS = pkg.achievements;
+    for (var i in pkg.achievements) {
+        var localachievement = pkg.achievements[i];
+        for (var j in ACHIEVEMENTS) {
+            var superlocalachievement = ACHIEVEMENTS[j];
+            if (superlocalachievement.id == localachievement.id) {
+                superlocalachievement.aqquired = localachievement.aqquired;
+            }
+        }
+    }
     TRACKED_DATA = {kills:pkg.kills, deaths:pkg.deaths, wins:pkg.wins};
 });
 socket.on('achievement_get', function(pkg) {
@@ -438,7 +446,7 @@ setInterval(function() {
 waiting = setInterval(function() {
     if (ingame) {
         connected++;
-        if (connected == 10) {
+        if (connected == 50) {
             fadeIn();
             document.getElementById('loading').style.display = 'inline-block';
             document.getElementById('waiting').style.display = 'inline-block';

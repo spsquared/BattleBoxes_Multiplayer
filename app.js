@@ -87,11 +87,11 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
 });
 
 // user login data handlers
-async function getCredentials(username) {
+async function getCredentials(usrname) {
     try {
         var data = await database.query('SELECT username, password FROM users;');
         for (var i in data.rows) {
-            if (data.rows[i].username == username) {
+            if (data.rows[i].username == usrname) {
                 return {usrname:data.rows[i].username, psword:data.rows[i].password};
             }
         }
@@ -126,10 +126,10 @@ io.on('connection', function(socket) {
             remainingPlayers--;
         }
         database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, player.trackedData], function(err, res) {if (err) console.log(err);});
-        delete SOCKET_LIST[socket.id];
-        delete PLAYER_LIST[player.id];
         io.emit('deleteplayer', player.id);
         console.log('Player "' + player.name + '" has disconnected.');
+        delete SOCKET_LIST[socket.id];
+        delete PLAYER_LIST[player.id];
         player = null;
     });
     socket.on('timeout', function() {
@@ -145,11 +145,11 @@ io.on('connection', function(socket) {
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        var filecred = await getCredentials(cred.usrname);
-        if (filecred == false) {
+        var fetchedcreds = await getCredentials(cred.usrname);
+        if (fetchedcreds == false) {
             socket.emit('loginFailed', 'invalidusrname');
             console.log('Player could not login. Reason:USER_NOT_FOUND');
-        } else if (filecred.psword == cred.psword) {
+        } else if (fetchedcreds.psword == cred.psword) {
             var signedin;
             for (var i in PLAYER_LIST) {
                 if (PLAYER_LIST[i].name == cred.usrname) {
@@ -165,18 +165,27 @@ io.on('connection', function(socket) {
                     player.color = "#FFFFFF00";
                     player.name = '';
                 }
-                database.query('SELECT username, data FROM users', function(err, res) {
-                    if (err) stop(err);
-                    try {
-                        for (var i in res.rows) {
-                            if (res.rows[i].username == cred.usrname) {
-                                player.trackedData = res.rows[i].data;
+                try {
+                    var data = await database.query('SELECT username, data FROM users');
+                    for (var i in data.rows) {
+                        if (data.rows[i].username == cred.usrname) {
+                            player.trackedData.kills = data.rows[i].data.kills;
+                            player.trackedData.deaths = data.rows[i].data.deaths;
+                            player.trackedData.wins = data.rows[i].data.wins;
+                            for (var j in data.rows[i].data.achievements) {
+                                var localachievement = data.rows[i].data.achievements[j];
+                                for (var k in player.trackedData.achievements) {
+                                    var superlocalachievement = player.trackedData.achievements[k];
+                                    if (superlocalachievement.id == localachievement.id) {
+                                        superlocalachievement.aqquired = localachievement.aqquired;
+                                    }
+                                }
                             }
                         }
-                    } catch (err) {
-                        stop(err);
                     }
-                });
+                } catch (err) {
+                    stop(err);
+                }
                 socket.emit('inittrackedData', player.trackedData);
                 socket.emit('loginConfirmed', 'login');
                 console.log('Player with username "' + player.name + '" logged in.');
@@ -191,8 +200,8 @@ io.on('connection', function(socket) {
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        var filecred = await getCredentials(cred.username);
-        if (filecred != false) {
+        var fetchedcreds = await getCredentials(cred.usrname);
+        if (fetchedcreds != false) {
             socket.emit('loginFailed', 'usrexists');
             console.log('Player could not sign up. Reason:USER_EXISTS');
         } else if (cred.usrname.indexOf(' ') == 0 || cred.usrname.indexOf('\\') == 0 || cred.usrname.indexOf('"') == 0 || cred.psword.indexOf('\\') == 0 || cred.psword.indexOf('"') == 0) {
@@ -203,8 +212,8 @@ io.on('connection', function(socket) {
                 player.color = "#FFFFFF00";
                 player.name = '';
             }
+            await writeCredentials(cred.usrname, cred.psword, player.trackedData);
             socket.emit('loginConfirmed', 'signup');
-            writeCredentials(cred.usrname, cred.psword, player.trackedData);
             console.log('Player "' + cred.usrname + '" signed up.');
             
         }
@@ -213,11 +222,11 @@ io.on('connection', function(socket) {
         if (cred.usrname.length > 64) {
             socket.emit('disconnected');
         }
-        var filecred = await getCredentials(cred.usrname);
-        if (filecred == false) {
+        var fetchedcreds = await getCredentials(cred.usrname);
+        if (fetchedcreds == false) {
             socket.emit('disconnected');
             console.error('Error: Could not delete account. Reason:USER_NOT_FOUND');
-        } else if (filecred.psword == cred.psword) {
+        } else if (fetchedcreds.psword == cred.psword) {
             deleteCredentials(cred.usrname);
             console.log('Player with username "' + player.name + '" deleted their account.');
             socket.emit('disconnected');

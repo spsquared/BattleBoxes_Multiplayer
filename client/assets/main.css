@@ -62,6 +62,24 @@
 .ui-largeSlider::-webkit-slider-thumb:hover {
     background-color:rgb(0, 140, 0);
 }
+.ui-navButton {
+    display: inline-flex;
+    padding: 10px 10px;
+    padding-bottom: 6px;
+    font-family: 'Pixel';
+    font-size: 18px;
+    color: black;
+    background-color: lightgrey;
+    border-bottom: lightgrey 4px solid;
+    cursor: pointer;
+    transition: all .1s ease-in-out;
+    user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+}
+.ui-navButton:hover {
+    border-bottom: black 4px solid;
+}
 
 /* scroll bar */
 ::-webkit-scrollbar {
@@ -177,7 +195,6 @@
 /* settings container */
 #settingsContainer {
     display: none;
-    text-align: center;
 }
 /* volume sliders */
 #globalVolume {
@@ -211,9 +228,8 @@
 #announcementsContainer {
     display: none;
     width: 80%;
-    text-align: center;
-    -webkit-user-select: text;
     user-select: text;
+    -webkit-user-select: text;
 }
 /* announcements page */
 #announcementsPage {
@@ -223,7 +239,100 @@
 /* achievements container */
 #achievementsContainer {
     display: none;
-    text-align: center;
+    width: 80%;
+}
+/* achievements statistics */
+#achievementsSTATISTICS {
+    display: inline-block;
+    text-align: left;
+    width: 100%;
+    background-color: lightgrey;
+    border-top: grey 16px solid;
+}
+/* statistics table */
+#aSTATStable {
+    text-align: left;
+    margin: 8px;
+}
+.aSTATStable {
+    padding-left: 0px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+/* achievements achievements */
+#achievementsACHIEVEMENTS {
+    display: none;
+    position: relative;
+    text-align: left;
+    width: 100%;
+    background-color: lightgrey;
+    border-top: grey 16px solid;
+    overflow-y: scroll;
+    max-height: 75vh;
+}
+/* achievements block */
+.achievementBlock {
+    text-indent: 8px;
+    font-size: 20px;
+    margin: 0px 0px;
+    width: 100%;
+    height: 100px;
+}
+.achievementBlock-head {
+    background-color: black;
+    color: white;
+    font-size: 32px;
+    margin: 0px 0px;
+    width: 100%;
+}
+/* color pulsing */
+@keyframes red-pulse {
+    0% {
+        background-color: rgb(255, 100, 100);
+    }
+    50% {
+        background-color: rgb(205, 0, 0);
+    }
+    100% {
+        background-color: rgb(255, 100, 100);
+    }
+}
+@keyframes rainbow-pulse {
+    0% {
+        background-color: red;
+    }
+    10% {
+        background-color: orange;
+    }
+    20% {
+        background-color: yellow;
+    }
+    30% {
+        background-color: lime;
+    }
+    40% {
+        background-color: green;
+    }
+    50% {
+        background-color: teal;
+    }
+    60% {
+        background-color: blue;
+    }
+    70% {
+        background-color: navy;
+    }
+    80% {
+        background-color: indigo;
+    }
+    90% {
+        background-color: purple;
+    }
+    100% {
+        background-color: red;
+    }
 }
 
 /* ingameMenu container */
@@ -270,6 +379,15 @@
     position: relative;
     top: 10%;
 }
+
+/* ingameSettings container */
+#ingameAchievementsContainer {
+    display: none;
+    text-align: left;
+    position: relative;
+    top: 10%;
+}
+
 /* volume sliders */
 #ingameglobalVolume {
     width: 512px;
@@ -285,7 +403,7 @@
 #versionLabel {
     position: fixed;
     top: 0px;
-    padding: 8px;
+    padding: 8px 8px;
     padding-top: 0px;
     user-select: none;
     font-family: 'Pixel';
