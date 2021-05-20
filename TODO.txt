@@ -1,8 +1,4 @@
-add announcements button (opens a window with announcements)
-Add accounts
-Add settings
-add ingame menu
-Add achievements
-Add player account saves
+more settings
 Add random loot boxes that give you shields or more/faster damage/homing bullets
 get some sort of AI computer thing that doesn't suck
+singleplayer challenge mode?

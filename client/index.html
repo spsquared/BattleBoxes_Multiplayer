@@ -12,9 +12,6 @@
         <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
         <script>socket = io();</script>
         <script src="/client/js/index.js" defer></script>
-        <script src="/client/js/menu.js" defer></script>
-        <script src="/client/js/game.js" defer></script>
-        <script src="/client/js/entity.js" defer></script>
         <link rel="stylesheet" href="/client/assets/main.css">
         <link rel="stylesheet" href="/client/assets/game.css">
     </head>
@@ -28,12 +25,12 @@
         <div id="menuContainer">
             <div id="loginContainer">
                 <h1 style="font-family: Pixel; font-size: 96px; font-weight: normal;">BattleBoxes Multiplayer</h1>
-                <label for="usrname" id="usrnameLabel">Username: </label>
+                <label for="usrname" class="ui-darkText">Username: </label>
                 <input type="text" id="usrname" name="usrname"><br></br>
-                <label for="psword" id="pswordLabel">Password: </label>
+                <label for="psword" class="ui-darkText">Password: </label>
                 <input type="password" id="psword" name="psword"><br></br>
-                <input type="button" id="login" value=" LOG IN " onclick="login();">&emsp;
-                <input type="button" id="signup" value=" SIGN UP " onclick="signup();">
+                <input type="button" class="ui-smallButton" id="login" value=" LOG IN " onclick="login();">&emsp;
+                <input type="button" class="ui-smallButton" id="signup" value=" SIGN UP " onclick="signup();">
             </div>
             <div id="mainmenuContainer">
                 <br><br>
@@ -41,13 +38,16 @@
                 <input type="button" class="ui-largeButton" id="settings" value="SETTINGS" onclick="openSettings();"><br><br>
                 <input type="button" class="ui-largeButton" id="announcements" value="ANNOUNCMENTS" onclick="openAnnouncements();"><br><br>
                 <input type="button" class="ui-largeButton" id="achievements" value="ACHIEVEMENTS" onclick="openAchievements();"><br><br>
-                <input type="button" class="ui-largeButton" id="closegame" value="EXIT" onclick="disconnectclient();">
+                <input type="button" class="ui-largeButton" id="closegame" value="SIGN OUT" onclick="window.location.reload();">
             </div>
             <div id="settingsContainer">
-                <!-- Back button is at top-left corner of the screen -->
-                <input type="button" id="back" value="BACK" onclick="back();">
-                <br><br>
-                <table id="settingsTable">
+                <br>
+                <table class="ui-darkText">
+                    <tr>
+                        <td colspan="2">
+                            <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();"><br><br>
+                        </td>
+                    </tr>
                     <tr>
                         <td colspan="2">
                             Global Volume <span id="GV-label">100%</span><br>
@@ -64,22 +64,60 @@
                             <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="sfxVolume">
                         </td>
                     </tr>
+                    <tr>
+                        <td>
+                            <br><br>
+                            <input type="button" class="ui-smallButton" id="changePassword" value="CHANGE PASSWORD" onclick="changePassword();">
+                        </td>
+                        <td>
+                            <br><br>
+                            <button class="ui-smallButton" id="deleteAccount" onclick="deleteAccount(1);">DELETE ACCOUNT</button>
+                        </td>
+                    </tr>
                 </table>
             </div>
             <div id="announcementsContainer">
-                <!-- Back button is at top-left corner of the screen -->
-                <input type="button" id="back" value="BACK" onclick="back();">
+                <br>
+                <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();">
+                <br><br>
                 <div id="announcementsPage"></div>
                 <img id="announcements-failedLoadimg" src="/client/img/failedloading.png" style="text-align: center;">
                 <p id="announcements-failedLoad" style="font-family: 'Pixel'; text-align: center;">Oh No! The announcements have failed to load. Enjoy this Snowey for now, then click <a href="">here</a>.</p>
             </div>
             <div id="achievementsContainer">
+<<<<<<< HEAD
                 <p style="font-family: Pixel;">Achievements have not been implemented yet</p>
                 <!-- Back button is at top-left corner of the screen -->
                 <input type="button" id="back" value="BACK" onclick="back();">
                 <div id="announcementsPage"></div>
                 <h3 align="center"><a href="/dev">Us Devs Dont get paid enough.</a></h5>
                 <p id="announcements-failedLoad" style="font-family: 'Pixel'; text-align: center;">If you are seeing this, the announcements have failed to load. Click <a href=window.location>here</a>.</p>
+=======
+                <br>
+                <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();">
+                <br><br>
+                <nav class="ui-darkText" style = "text-align: left; width: 100%;">
+                    <div class="ui-navButton" id="navStatistics" onclick="navStatistics();">STATISTICS</div>
+                    <div class="ui-navButton" id="navAchievements" onclick="navAchievements();">ACHIEVEMENTS</div>
+                </nav>
+                <div id="achievementsSTATISTICS">
+                    <table class="ui-darkText" id="aSTATStable">
+                        <tr>
+                            <td class="aSTATStable">Kills:&nbsp;</td>
+                            <td class="aSTATStable" id="aSTATS_kills">If you are seeing this, something went wrong.</td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">Deaths:&nbsp;</td>
+                            <td class="aSTATStable" id="aSTATS_deaths">If you are seeing this, something went wrong.</td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">Wins:&nbsp;</td>
+                            <td class="aSTATStable" id="aSTATS_wins">If you are seeing this, something went wrong.</td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="achievementsACHIEVEMENTS" class="ui-darkText"></div>
+>>>>>>> master
             </div>
             <div id="creditsContainer">
                 music is from YouTube audio library
@@ -88,12 +126,83 @@
         <div id="gameContainer">
             <canvas id="gameCanvas"></canvas>
             <input type="image" src="/client/img/Ready.png" alt="ready" id="ready" onclick="ready();">
-            <div id=ingameMenu>
-                <input type="button" class="ui-largeButton" id="resume" value="RESUME" onclick="resume();"><br><br>
-                <input type="button" class="ui-largeButton" id="ingameSettings" value="SETTINGS" onclick="ingamesettings();"><br><br>
-                <input type="button" class="ui-largeButton" id="ingameAchievements" value="ACHIEVEMENTS" onclick="ingameachievements();"><br><br>
-                <input type="button" class="ui-largeButton" id="leavegame" value="LEAVE" onclick="quittoMenu();">
+            <div id="scoreContainer">
+                <table class="scoreTable" id="scoreTable">
+                    <tr>
+                        <td class="scoreTable" id="score0">--</td>
+                        <td class="scoreTable" id="score1">--</td>
+                        <td class="scoreTable" id="score2">--</td>
+                        <td class="scoreTable" id="score3">--</td>
+                        <td class="scoreTable" id="score4">--</td>
+                        <td class="scoreTable" id="score5">--</td>
+                        <td class="scoreTable" id="score6">--</td>
+                        <td class="scoreTable" id="score7">--</td>
+                        <td class="scoreTable" id="score8">--</td>
+                        <td class="scoreTable" id="score9">--</td>
+                        <td class="scoreTable" id="score10">--</td>
+                        <td class="scoreTable" id="score11">--</td>
+                        <td class="scoreTable" id="score12">--</td>
+                        <td class="scoreTable" id="score13">--</td>
+                        <td class="scoreTable" id="score14">--</td>
+                        <td class="scoreTable" id="score15">--</td>
+                    </tr>
+                    <tr>
+                        <td class="scoreTable" id="player0">--</td>
+                        <td class="scoreTable" id="player1">--</td>
+                        <td class="scoreTable" id="player2">--</td>
+                        <td class="scoreTable" id="player3">--</td>
+                        <td class="scoreTable" id="player4">--</td>
+                        <td class="scoreTable" id="player5">--</td>
+                        <td class="scoreTable" id="player6">--</td>
+                        <td class="scoreTable" id="player7">--</td>
+                        <td class="scoreTable" id="player8">--</td>
+                        <td class="scoreTable" id="player9">--</td>
+                        <td class="scoreTable" id="player10">--</td>
+                        <td class="scoreTable" id="player11">--</td>
+                        <td class="scoreTable" id="player12">--</td>
+                        <td class="scoreTable" id="player13">--</td>
+                        <td class="scoreTable" id="player14">--</td>
+                        <td class="scoreTable" id="player15">--</td>
+                    </tr>
+                </table>
             </div>
+            <div id="ingameMenu">
+                <div id="ingameMainMenuContainer">
+                    <input type="button" class="ui-largeButton" id="resume" value="RESUME" onclick="resume();"><br><br>
+                    <input type="button" class="ui-largeButton" id="ingameSettings" value="SETTINGS" onclick="openingameSettings();"><br><br>
+                    <input type="button" class="ui-largeButton" id="ingameAchievements" value="ACHIEVEMENTS" onclick="openingameAchievements();"><br><br>
+                    <input type="button" class="ui-largeButton" id="leavegame" value="LEAVE" onclick="quittoMenu();">
+                </div>
+                <div id="ingameSettingsContainer">
+                    <table class="ui-lightText">
+                        <tr>
+                            <td colspan="2">
+                                <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="ingameBack();"><br><br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                Global Volume <span id="ingameGV-label">100%</span><br>
+                                <input type="range" min="0" max="100" value="100" class="ui-largeSlider" id="ingameglobalVolume">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Music Volume <span id="ingameMV-label">50%</span><br>
+                                <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="ingamemusicVolume">
+                            </td>
+                            <td>
+                                Effects Volume <span id="ingameEV-label">50%</span><br>
+                                <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="ingamesfxVolume">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="ingameAchievementsContainer">
+                    <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="ingameBack();"><br><br>
+                </div>
+            </div>
+            
         </div>
         <div id="disconnectedContainer">
             <br></br><br></br><br></br><br></br><br></br><br></br><br>
@@ -106,7 +215,7 @@
             <p id="serverfull" style="font-family: Pixel; color:white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Server is full...</p>
             <p id="gamelocked" style="font-family: Pixel; color: white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Game is in progress, cannot join...</p>
         </div>
-        <h5 id="versionLabel">v0.5.3</h5>
+        <h5 id="versionLabel">v0.7.2</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

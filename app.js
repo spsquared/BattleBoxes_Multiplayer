@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.warn('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.5.3 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.7.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.5.3\n');
+console.log('\nThis server is running BattleBoxes Server v-0.7.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -11,7 +11,12 @@ const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
+<<<<<<< HEAD
 const { createDecipher } = require('crypto');
+=======
+const { Client } = require('pg');
+const database = new Client({connectionString: 'postgres://wwiupyglrcpguu:c2c6fb4c268287b595a05026db98bd45cc419f7459ebe3e941447ce84bcde038@ec2-54-87-112-29.compute-1.amazonaws.com:5432/dc145r7tq09fjv', ssl:{rejectUnauthorized:false}});
+>>>>>>> master
 require('./server/entity.js');
 require('./server/game.js');
     //   dbo.createCollection("users", function(err, res) {if (err) throw err;});
@@ -22,10 +27,9 @@ CURRENT_MAP = 0;
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
 
-// initialize
-console.log('Starting server...');
-function getMap(name, id) {
-    var data1 = require('./server/' + name);
+// init functions
+getMap = function(name, id) {
+    var data1 = require('./' + name);
     var data2 = [];
     data2[0] = [];
     data2.width = data1.width;
@@ -46,18 +50,31 @@ function getMap(name, id) {
     }
     MAPS[id] = data2;
 }
-getMap('Lobby.json', 0);
-getMap('Map1.json', 1);
-getMap('Map2.json', 2);
-getMap('Map3.json', 3);
+
+// initialize
+console.log('Starting server...');
+getMap('./server/Lobby.json', 0);
+getMap('./server/Map1.json', 1);
+getMap('./server/Map2.json', 2);
+getMap('./server/Map3.json', 3);
 var SOCKET_LIST = {};
 var port;
+try {
+    database.connect();
+} catch (err) {
+    console.error('\nFATAL ERROR:');
+    console.error(err);
+    console.error('STOP.\n');
+    prompt.close();
+    console.log('Server stopped.');
+    process.exit();
+}
 fs.open('./server/PORTS.txt', 'a+', function(err) {
-    if (err) throw err;
+    if (err) stop(err);
     lineReader.open('./server/PORTS.txt', function (err, reader) {
-        if (err) throw err;
+        if (err) stop(err);
         reader.nextLine(function(err, line) {
-            if (err) throw err;
+            if (err) stop(err);
             if (line >=100) {
                 console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
                 process.abort();
@@ -75,19 +92,38 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
     });
 });
 
+// user login data handlers
+async function getCredentials(usrname) {
+    try {
+        var data = await database.query('SELECT username, password FROM users;');
+        for (var i in data.rows) {
+            if (data.rows[i].username == usrname) {
+                return {usrname:data.rows[i].username, psword:data.rows[i].password};
+            }
+        }
+        return false;
+    } catch (err) {
+        stop(err);
+    }
+}
+async function writeCredentials(username, password, userData) {
+    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [username, password, userData], function(err, res) {if (err) stop(err);});
+}
+async function deleteCredentials(username) {
+    database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err);});
+}
+
 // client connection
 io = require('socket.io') (server, {});
 app.get('/dev', function(req, res) {res.send('<h1 align="center">Oh wait we don\'t get paid</h1><h1 align="center">Second Devs</h1><br/><h3 align="center"><a href="https://github.com/The-God-coder">The-God-Coder (Github)</a></h3><br/><br/><br/><br/><h3 align="center"><a href="https://github.com/maitian352">maitian352 (Github)</a></h3><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/> <p align="center">This Code was Injected by The-God-Coder... DONT TELL RADIOACTIVE</p>')})
 io.on('connection', function(socket) {
     socket.emit('init');
     socket.id = Math.random();
-    var player = Player();
+    var player = new Player();
     SOCKET_LIST[socket.id] = socket;
     console.log('Client connection made.');
-
     // connection handlers
     socket.on('disconnect', function() {
-        console.log('Player ' + player.name + ' has disconnected. Player id is ' + socket.id + '.');
         for (var i in COLORS[1]) {
             if (COLORS[0][i] == player.color) {
                 COLORS[1][i] = 0;
@@ -96,12 +132,15 @@ io.on('connection', function(socket) {
         if (player.ingame && player.alive) {
             remainingPlayers--;
         }
+        database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, player.trackedData], function(err, res) {if (err) console.log(err);});
+        io.emit('deleteplayer', player.id);
+        console.log('Player "' + player.name + '" has disconnected.');
         delete SOCKET_LIST[socket.id];
         delete PLAYER_LIST[player.id];
-        io.emit('deleteplayer', player.id);
+        player = null;
     });
     socket.on('timeout', function() {
-        console.log('Player ' + player.name + ' timed out.');
+        console.log('Player "' + player.name + '" timed out.');
         socket.disconnect();
     });
     socket.on('disconnectclient', function() {
@@ -109,6 +148,7 @@ io.on('connection', function(socket) {
         socket.disconnect();
     });
     //login handlers
+<<<<<<< HEAD
     socket.on('login', function(cred) {
         
         player.name = cred.usrname;
@@ -155,6 +195,106 @@ io.on('connection', function(socket) {
         }
     });
     
+=======
+    socket.on('login', async function(cred) {
+        if (cred.usrname.length > 64) {
+            socket.emit('disconnected');
+        }
+        var fetchedcreds = await getCredentials(cred.usrname);
+        if (fetchedcreds == false) {
+            socket.emit('loginFailed', 'invalidusrname');
+            console.log('Player could not login. Reason:USER_NOT_FOUND');
+        } else if (fetchedcreds.psword == cred.psword) {
+            var signedin;
+            for (var i in PLAYER_LIST) {
+                if (PLAYER_LIST[i].name == cred.usrname) {
+                    signedin = true;
+                }
+            }
+            if (signedin) {
+                socket.emit('loginFailed', 'alreadyloggedin');
+                console.log('Player could not login. Reason:ALREADY_LOGGED_IN');
+            } else {
+                player.name = cred.usrname;
+                if (cred.usrname == 'null') {
+                    player.color = "#FFFFFF00";
+                    player.name = '';
+                }
+                try {
+                    var data = await database.query('SELECT username, data FROM users');
+                    for (var i in data.rows) {
+                        if (data.rows[i].username == cred.usrname) {
+                            player.trackedData.kills = data.rows[i].data.kills;
+                            player.trackedData.deaths = data.rows[i].data.deaths;
+                            player.trackedData.wins = data.rows[i].data.wins;
+                            for (var j in data.rows[i].data.achievements) {
+                                var localachievement = data.rows[i].data.achievements[j];
+                                for (var k in player.trackedData.achievements) {
+                                    var superlocalachievement = player.trackedData.achievements[k];
+                                    if (superlocalachievement.id == localachievement.id) {
+                                        superlocalachievement.aqquired = localachievement.aqquired;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    stop(err);
+                }
+                socket.emit('inittrackedData', player.trackedData);
+                socket.emit('loginConfirmed', 'login');
+                console.log('Player with username "' + player.name + '" logged in.');
+            }
+
+        } else {
+            socket.emit('loginFailed', 'incorrect');
+            console.log('Player could not login. Reason:INCORRECT_CREDENTIALS');
+        }
+    });
+    socket.on('signup', async function(cred) {
+        if (cred.usrname.length > 64) {
+            socket.emit('disconnected');
+        }
+        var fetchedcreds = await getCredentials(cred.usrname);
+        if (fetchedcreds != false) {
+            socket.emit('loginFailed', 'usrexists');
+            console.log('Player could not sign up. Reason:USER_EXISTS');
+        } else if (cred.usrname.indexOf(' ') == 0 || cred.usrname.indexOf('\\') == 0 || cred.usrname.indexOf('"') == 0 || cred.psword.indexOf('\\') == 0 || cred.psword.indexOf('"') == 0) {
+            socket.emit('disconnected');
+        } else {
+            player.name = cred.usrname;
+            if (cred.usrname == 'null') {
+                player.color = "#FFFFFF00";
+                player.name = '';
+            }
+            await writeCredentials(cred.usrname, cred.psword, player.trackedData);
+            socket.emit('loginConfirmed', 'signup');
+            console.log('Player "' + cred.usrname + '" signed up.');
+            
+        }
+    });
+    socket.on('deleteAccount', async function(cred) {
+        if (cred.usrname.length > 64) {
+            socket.emit('disconnected');
+        }
+        var fetchedcreds = await getCredentials(cred.usrname);
+        if (fetchedcreds == false) {
+            socket.emit('disconnected');
+            console.error('Error: Could not delete account. Reason:USER_NOT_FOUND');
+        } else if (fetchedcreds.psword == cred.psword) {
+            deleteCredentials(cred.usrname);
+            console.log('Player with username "' + player.name + '" deleted their account.');
+            socket.emit('disconnected');
+        } else {
+            socket.emit('disconnected');
+            console.log('something')
+        }
+    });
+    socket.on('changePassword', async function(cred) {
+        deleteCredentials(cred.usrname);
+        writeCredentials(cred.usrname, cred.psword);
+    });
+>>>>>>> master
     // game handlers
     var users;
     var userstring;
@@ -170,7 +310,7 @@ io.on('connection', function(socket) {
 
     });
     socket.on('joingame', function() {
-        console.log('Player ' + player.name + ' attempted to join game.');
+        console.log('Player "' + player.name + '" attempted to join game.');
         var j = 0;
         for (var i in PLAYER_LIST) {
             if (PLAYER_LIST[i].ingame) {
@@ -179,7 +319,7 @@ io.on('connection', function(socket) {
         }
         if (j > 15) {
             socket.emit('gamefull');
-            console.log(player.name + 'was not able to join; Reason: Game_Full');
+            console.log('"' + player.name + '" was not able to join; Reason: Game_Full');
             //socket.emit('game-joined');
         } else if (round.inProgress == false) {
             player.ingame = true;
@@ -208,10 +348,10 @@ io.on('connection', function(socket) {
             io.emit('newplayer', pack);
             
             socket.emit('game-joined');
-            console.log(player.name + ' joined the game.');
+            console.log('"' + player.name + '" joined the game.');
         } else {
             socket.emit('gamerunning');
-            console.log(player.name + 'was not able to join; Reason: Game_Started');
+            console.log('"' + player.name + '" was not able to join; Reason: Game_Started');
         }
     });
     socket.on('leavegame', function() {
@@ -223,7 +363,7 @@ io.on('connection', function(socket) {
         player.ready = false;
         setTimeout(function() {
             io.emit('deleteplayer', player.id);
-            console.log(player.name + ' left the game.');
+            console.log('"' + player.name + '" left the game.');
         }, 1000);
     });
     socket.on('keyPress', function(key) {
@@ -238,15 +378,26 @@ io.on('connection', function(socket) {
         if (click.button == 'left' && round.inProgress && player.alive) {
             if (player.lastclick > ((1000/player.maxCPS)/(1000/60))) {
                 player.lastclick = 0;
-                var localbullet = Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
+                var localbullet = new Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
                 var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
                 io.emit('newbullet', pack);
             }
         }
     });
+    // debug handlers
     socket.on('debug', function() {
-        player.debug = !player.debug;
+        for (var i in player.trackedData.achievements) {
+            var localachievement = player.trackedData.achievements[i];
+            if (localachievement.id == 'Debug' && localachievement.aqquired == false) {
+                localachievement.aqquired = true;
+                console.log('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!');
+            }
+        }
     });
+<<<<<<< HEAD
+=======
+    socket.on('ping', function() {socket.emit('ping');});
+>>>>>>> master
 });
     
 
@@ -273,31 +424,28 @@ setInterval(function() {
             PLAYER_LIST[i].ready = false;
         }
     }
-    if (j < 2 && gameinProgress) {
+    if (j < 1 && gameinProgress) {
         endRound();
         endGame(null);
     }
 }, 1000/60);
 
+// 5 minute autosave
+setInterval(function() {
+    for (var i in PLAYER_LIST) {
+        database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData], function(err, res) {if (err) stop(err);});
+    }
+}, 300000);
+
 // console interface
-prompt.on('line', function(input) {
+prompt.on('line', async function(input) {
     if (input=='stop') {
         queryStop(true);
     } else if (input=='Purple') {
         console.log('Purple exception detected. Purpling...');
         console.log('---------------------------------------------------');
         io.emit('disconnected');
-        fs.open('./server/PORTS.txt', 'a+', function(err) {
-            lineReader.open('./server/PORTS.txt', function (err, reader) {
-                if (err) throw err;
-                reader.nextLine(function(err, line) {
-                    if (err) throw err;
-                    ports = parseInt(line)-1;
-                    var portsstring = ports.toString();
-                    fs.writeFileSync('./server/PORTS.txt', portsstring);
-                });
-            });
-        });
+        stop(null);
         prompt.close();
         setTimeout(function() {
             while (true) {
@@ -314,9 +462,9 @@ prompt.on('line', function(input) {
             var command = Function('return (' + input + ')')();
             command;
             console.log('Successfully ran command.');
-        } catch(err) {
-            console.error('Error: "' + input + '" is not a valid input.\n> ');
-            console.error(err)
+        } catch (err) {
+            console.error('Error: "' + input + '" is not a valid input.\n');
+            console.error(err);
         }
     }
 });
@@ -324,53 +472,18 @@ function queryStop(firstrun) {
     if (firstrun == true) {
         prompt.question('Are you sure you want to stop the server? y/n\n> ', function(answer) {
             if (answer == 'y') {
-                console.log('Closing server...');
-                endGame();
-                io.emit('disconnected');
-                console.log('Stopping server...');
-                fs.open('./server/PORTS.txt', 'a+', function(err) {
-                    lineReader.open('./server/PORTS.txt', function (err, reader) {
-                        if (err) throw err;
-                        reader.nextLine(function(err, line) {
-                            if (err) throw err;
-                            ports = parseInt(line)-1;
-                            var portsstring = ports.toString();
-                            fs.writeFileSync('./server/PORTS.txt', portsstring);
-                            console.log('Server stopped.');
-                            prompt.close();
-                            process.exit(0);
-                        });
-                    });
-                });
+                stop(null);
             } else if (answer == 'n') {
                 console.log('Server stop cancelled.\n> ');
             } else {
-                console.warn(answer + ' is not a valid answer.\n> ');
+                console.warn(answer + ' is not a valid answer.');
                 queryStop(false);
             }
         });
     } else {
         prompt.question('Please enter y or n.\n> ', function(answer) {
             if (answer == 'y') {
-                console.log('Closing server...');
-                endGame();
-                io.emit('disconnected');
-                console.log('Stopping server...');
-                fs.open('./server/PORTS.txt', 'a+', function(err) {
-                    if (err) throw err;
-                    lineReader.open('./server/PORTS.txt', function (err, reader) {
-                        if (err) throw err;
-                        reader.nextLine(function(err, line) {
-                            if (err) throw err;
-                            ports = parseInt(line)-1;
-                            var portsstring = ports.toString();
-                            fs.writeFileSync('./server/PORTS.txt', portsstring);
-                            console.log('Server stopped.');
-                            prompt.close();
-                            process.exit();
-                        });
-                    });
-                });
+                stop(null);
             } else if (answer == 'n') {
                 console.log('Server stop cancelled.\n> ');
             } else {
@@ -380,3 +493,37 @@ function queryStop(firstrun) {
         });
     }
 }
+<<<<<<< HEAD
+=======
+function stop(err) {
+    if (err) {
+        console.error('\nFATAL ERROR:');
+        console.error(err);
+        console.error('STOP.\n');
+    }
+    console.log('Closing server...');
+    endGame();
+    io.emit('disconnected');
+    console.log('Saving user data...');
+    for (var i in PLAYER_LIST) {
+        database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData], function(err, res) {if (err) console.log(err);});
+    }
+    console.log('Stopping server...');
+    fs.open('./server/PORTS.txt', 'a+', function(err) {
+        if (err) console.error(err);
+        lineReader.open('./server/PORTS.txt', function (err, reader) {
+            if (err) console.error(err);
+            reader.nextLine(function(err, line) {
+                if (err) console.error(err);
+                ports = parseInt(line)-1;
+                var portsstring = ports.toString();
+                fs.writeFileSync('./server/PORTS.txt', portsstring);
+                database.end();
+                prompt.close();
+                console.log('Server stopped.');
+                process.exit();
+            });
+        });
+    });
+}
+>>>>>>> master

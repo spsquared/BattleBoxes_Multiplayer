@@ -1,14 +1,23 @@
 # Security Policy
-No official rules nor official servers will be made for this game, except that you MAY NOT plagiarize my code. Read LISENCE for more information. If you would like to contribute to this game, visit the [Github](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) where you can send a pull request with an application request stating your reason to create a pull request in the "comments" section along with it. If you would like to submit a community map then submit it via [this form](https://docs.google.com/forms/d/e/1FAIpQLSfrTWNBDoC5KjXk1TJwQa4oJEZdpiSp0fxqmbCReMZqhdLkqQ/viewform?usp=sf_link).
+No official rules nor official servers will be made for this game, except that you MAY NOT plagiarize my code. Read LICENSE for more information. If you would like to contribute to this game, visit the [Github](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) where you can send a pull request with an application request stating your reason to create a pull request in the "comments" section along with it. If you would like to submit a community map then submit it via [this form](https://docs.google.com/forms/d/e/1FAIpQLSfrTWNBDoC5KjXk1TJwQa4oJEZdpiSp0fxqmbCReMZqhdLkqQ/viewform?usp=sf_link).
 
 ### Supported Versions
+Supported versions are stable and up-to-date versions which will work with the database structure and give the best playing experience.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.5.3   | :white_check_mark: |
-| 0.5.2   | :white_check_mark: |
-| 0.5.1   | :white_check_mark: |
-| 0.5.0   | :white_check_mark: |
+| 0.7.2   | :white_check_mark: |
+| 0.7.1   | :white_check_mark: |
+| 0.7.0   | :x:                |
+| 0.6.3   | :x:                |
+| 0.6.2   | :x:                |
+| 0.6.1   | :x:                |
+| 0.6.0   | :x:                |
+| 0.5.4   | :x:                |
+| 0.5.3   | :x:                |
+| 0.5.2   | :x:                |
+| 0.5.1   | :x:                |
+| 0.5.0   | :x:                |
 | 0.4.2   | :x:                |
 | 0.4.1   | :x:                |
 | 0.4.0   | :x:                |

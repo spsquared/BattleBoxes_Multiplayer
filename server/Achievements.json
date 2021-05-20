@@ -1,0 +1,19 @@
+{
+    "data":[
+        {"id":"1_Wins", "name":"Winner Winner Chicken Dinner", "aqquired":false},
+        {"id":"10_Wins", "name":"Master of Gaming", "aqquired":false},
+        {"id":"100_Wins", "name":"The Ultimate Champion", "aqquired":false},
+        {"id":"1000_Wins", "name":"Unparalleled Dominance", "aqquired":false},
+        {"id":"1_Kills", "name":"Pew pew gun!", "aqquired":false},
+        {"id":"10_Kills", "name":"Assassin", "aqquired":false},
+        {"id":"100_Kills", "name":"Hitman", "aqquired":false},
+        {"id":"1000_Kills", "name":"Homocide", "aqquired":false},
+        {"id":"Snipe", "name":"Sniper", "aqquired":false},
+        {"id":"1_Deaths", "name":"YOU DIED!", "aqquired":false},
+        {"id":"10_Deaths", "name":"Careless but Alive", "aqquired":false},
+        {"id":"100_Deaths", "name":"Witchcraft", "aqquired":false},
+        {"id":"1000_Deaths", "name":"Immortal", "aqquired":false},
+        {"id":"1000000_Deaths", "name":"How did we get get here?", "aqquired":false},
+        {"id":"Debug", "name":"Debugger", "aqquired":false}
+    ]
+}
