@@ -33,22 +33,21 @@ function signup() {
 }
 function deleteAccount(state) {
     if (state == 1) {
-        document.getElementById('deleteAccount').innerHTML = ' Are you sure? ';
+        document.getElementById('deleteAccount').innerHTML = ' ARE YOU SURE? ';
         document.getElementById('deleteAccount').addEventListener('mouseup', function() {
             document.getElementById('deleteAccount').onclick = deleteAccount(2);
         });
     } else {
-        socket.emit('deleteAccount', {usrname:document.getElementById('usrname').value, psword:document.getElementById('psword').value});
-        window.alert('Account successfully deleted');
-        window.location.reload();
+        answer = window.prompt('Type in your password to confirm:');
+        socket.emit('deleteAccount', {usrname:document.getElementById('usrname').value, psword:answer});
     }
 }
 function changePassword() {
-    var input = window.prompt('Please enter your current password:');
-    if (input == document.getElementById('psword').value) {
-        var input = window.prompt('Please enter your new password');
-        document.getElementById('psword').value = input;
-        socket.emit('changePassword', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
+    var input1 = window.prompt('Please enter your current password:');
+    if (input1 == document.getElementById('psword').value) {
+        var input2 = window.prompt('Please enter your new password');
+        document.getElementById('psword').value = input2;
+        socket.emit('changePassword', {usrname: document.getElementById('usrname').value, psword:input1, newpsword:input2});
     } else {
         window.alert('Incorrect password.');
     }
@@ -56,6 +55,10 @@ function changePassword() {
 socket.on('loginConfirmed', function(state) {
     if (state == 'signup') {
         window.alert('Successfully signed up.');
+    }
+    if (state == 'deleted') {
+        window.alert('Your account has been successfully deleted');
+        window.location.reload();
     }
     document.getElementById('loginContainer').style.display = 'none';
     document.getElementById('mainmenuContainer').style.display = 'inline-block';
@@ -65,6 +68,7 @@ socket.on('loginFailed', function(state) {
         window.alert('No user with username "' + document.getElementById('usrname').value + '" found. Please check your spelling or sign up.');
     } else if (state == 'incorrect') {
         window.alert('Incorrect username or password. Please try again.');
+        document.getElementById('deleteAccount').innerHTML = ' DELETE ACCOUNT ';
     } else if (state == 'usrexists') {
         window.alert('User with username "' + document.getElementById('usrname').value + '" already exists. Please choose a different username.');
     } else if (state == 'alreadyloggedin') {
@@ -76,6 +80,7 @@ socket.on('loginFailed', function(state) {
 function play() {
     sfx[0].src = ('/client/sound/Play.mp3');
     sfx[0].play();
+    document.getElementById('canceljoingame').style.display = 'none';
     fadeIn();
     setTimeout(function() {
         socket.emit('joingame');
@@ -109,6 +114,16 @@ function back() {
 function disconnectclient() {
     socket.emit('disconnectclient', {id: document.getElementById('usrname').value});
 }
+function canceljoin() {
+    document.getElementById('menuContainer').style.display = 'block';
+    document.getElementById('gameContainer').style.display = 'none';
+    document.getElementById('canceljoingame').style.display = 'none';
+    document.getElementById('serverfull').style.display = 'none';
+    document.getElementById('gamelocked').style.display = 'none';
+    music.src = ('/client/sound/Menu.mp3');
+    music.play();
+    fadeOut();
+}
 
 // achievements menu functions
 function navStatistics() {
@@ -138,6 +153,7 @@ function openingameSettings() {
     document.getElementById('ingameSettingsContainer').style.display = 'inline-block';
 }
 function openingameAchievements() {
+    updateAchievements();
     document.getElementById('ingameMainMenuContainer').style.display = 'none';
     document.getElementById('ingameAchievementsContainer').style.display = 'inline-block';
 }
@@ -156,6 +172,7 @@ function quittoMenu() {
         readyforstart = false;
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';
+        document.getElementById('scoreContainer').style.display = 'none';
         ingameBack();
         document.getElementById('ingameMenu').style.display = 'none';
         fadeOut();

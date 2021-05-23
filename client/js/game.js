@@ -8,6 +8,7 @@ var inmenu;
 var canmove = false;
 var connected = 0;
 var readyforstart = false;
+var countdowntext = {text:'', color:'', size:''};
 
 // draw game
 socket.on('update', function(pkg) {
@@ -27,6 +28,10 @@ socket.on('update', function(pkg) {
         Bullet.update();
         Player.update(pkg);
         drawBanners();
+        game.textAlign = 'center';
+        game.fillStyle = countdowntext.color;
+        game.font = countdowntext.size + 'px Pixel';
+        game.fillText(countdowntext.text, (window.innerWidth/2), ((window.innerHeight/2)+(countdowntext.size/2)-(window.innerHeight/10)));
         player = PLAYER_LIST[player.id];
         connected = 0;
     }
@@ -308,7 +313,7 @@ function ready() {
 
 // game handlers
 socket.on('game-joined', function() {
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('canceljoingame').style.display = 'none';
     document.getElementById('gameCanvas').style.display = 'block';
     ingame = true;
     canmove = true;
@@ -316,9 +321,11 @@ socket.on('game-joined', function() {
 });
 socket.on('gamefull', function() {
     document.getElementById('serverfull').style.display = 'block';
+    document.getElementById('canceljoingame').style.display = 'inline-block';
 });
 socket.on('gamerunning', function() {
     document.getElementById('gamelocked').style.display = 'block';
+    document.getElementById('canceljoingame').style.display = 'inline-block';
 });
 socket.on('initmap', function(maps) {
     for (var i in maps) {
@@ -329,6 +336,12 @@ socket.on('initmap', function(maps) {
             MAPS[i].src = '/client/img/map' + maps[i].id + '.png';
         }
     }
+    try {
+        var maploader = new OffscreenCanvas(1, 1).getContext('2d');
+        for (var i in MAPS) {
+            maploader.drawImage(MAPS[i], 0, 0);
+        }
+    } catch (err) {}
 });
 socket.on('map', function(id) {
     CURRENT_MAP = id;
@@ -346,8 +359,11 @@ socket.on('winner', function(id) {
     ingame = false;
     canmove = false;
     document.getElementById('loadingContainer').style.display = 'none';
+    document.getElementById('scoreContainer').style.display = 'none';
     var v = -10;
     var x = window.innerWidth;
+    var winOverlay = new Image();
+    winOverlay.src = './client/img/WinOverlay.png';
     var slide = setInterval(function() {
         if (x < 200) {
             v *= 0.96;
@@ -355,10 +371,23 @@ socket.on('winner', function(id) {
         x += v;
         game.fillStyle = PLAYER_LIST[id].color;
         game.fillRect(x, 0, window.innerWidth, window.innerHeight);
+        if (window.innerHeight < 1080) {
+            game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), (1920*(window.innerHeight*1080)), window.innerHeight);
+        } else {
+            game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), window.innerWidth, (1080*(window.innerWidth/1920)));
+        }
         if (x < 0.1) {
             clearInterval(slide);
             game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            document.addEventListener('resize', function() {game.fillRect(0, 0, window.innerWidth, window.innerHeight);});
+            game.drawImage(winOverlay, 0, (window.innerHeight-winOverlay.height), window.innerWidth, (1080*(window.innerWidth/1920)));
+            document.addEventListener('resize', function() {
+                game.fillRect(0, 0, window.innerWidth, window.innerHeight);
+                if (window.innerHeight < 1080) {
+                    game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), (1920*(window.innerHeight*1080)), window.innerHeight);
+                } else {
+                    game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), window.innerWidth, (1080*(window.innerWidth/1920)));
+                }
+            });
         }
     }, 5);
     var fadeAmount = 1;
@@ -398,8 +427,6 @@ socket.on('roundstart', function(scores) {
         setTimeout(function() {
             canmove = true;
         }, 3000);
-        sfx[0].src = '/client/sound/Countdown.mp3';
-        sfx[0].play();
         for (var i in PLAYER_LIST) {
             PLAYER_LIST[i].alive = true;
         }
@@ -407,6 +434,66 @@ socket.on('roundstart', function(scores) {
             PLAYER_LIST[scores[i].id].score = scores[i].score;
             document.getElementById('score' + i).innerText = scores[i].score;
         }
+        sfx[0].src = '/client/sound/Countdown.mp3';
+        sfx[0].play();
+        var size = 24;
+        var opacity = 1;
+        countdowntext.text = '3';
+        var count3 = setInterval(function() {
+            opacity -= 0.005;
+            size += 1;
+            countdowntext.color = 'rgba(255, 0, 0, ' + opacity + ')';
+            countdowntext.size = size;
+            if (opacity < 0.005) {
+                //countdowntext.text = '';
+                clearInterval(count3);
+            }
+        }, 1);
+        setTimeout(function() {
+            var size = 24;
+            var opacity = 1;
+            countdowntext.text = '2';
+            var count2 = setInterval(function() {
+                opacity -= 0.005;
+                size += 1;
+                countdowntext.color = 'rgba(255, 0, 0, ' + opacity + ')';
+                countdowntext.size = size;
+                if (opacity < 0.005) {
+                    countdowntext.text = '';
+                    clearInterval(count2);
+                }
+            }, 1);
+        }, 1000);
+        setTimeout(function() {
+            var size = 24;
+            var opacity = 1;
+            countdowntext.text = '1';
+            var count1 = setInterval(function() {
+                opacity -= 0.005;
+                size += 1;
+                countdowntext.color = 'rgba(255, 255, 0, ' + opacity + ')';
+                countdowntext.size = size;
+                if (opacity < 0.005) {
+                    countdowntext.text = '';
+                    clearInterval(count1);
+                }
+            }, 1);
+        }, 2000);
+        setTimeout(function() {
+            var size = 24;
+            var opacity = 1;
+            countdowntext.text = 'GO';
+            var countgo = setInterval(function() {
+                opacity -= 0.005;
+                size += 1;
+                countdowntext.color = 'rgba(0, 150, 0, ' + opacity + ')';
+                countdowntext.size = size;
+                if (opacity < 0.005) {
+                    countdowntext.text = '';
+                    clearInterval(countgo);
+                }
+            }, 1);
+        }, 3000);
     }
 });
 socket.on('roundend', function() {

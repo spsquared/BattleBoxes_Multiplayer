@@ -46,6 +46,36 @@
     -webkit-user-drag: none;
     user-select: none;
 }
+/* loading screen text */
+#waiting {
+    display: none;
+    position: relative;
+    top: 340px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+#serverfull {
+    display: none;
+    position: relative;
+    top: 340px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+#gamelocked {
+    display: none;
+    position: relative;
+    top: 340px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+/* loading screen cancel join button */
+#canceljoingame {
+    position: relative;
+    top: 50%;
+    padding: 10px 10px;
+    font-size: 32px;
+    background-color: red;
+}
 
 /* game canvas */
 #gameCanvas {
@@ -56,12 +86,15 @@
     -webkit-user-drag: none;
     user-select: none;
     cursor: crosshair;
+    image-rendering: optimizeSpeed;
+    image-rendering: optimizeContrast;
+    image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
     image-rendering: -moz-crisp-edges;
     image-rendering: -o-crisp-edges;
-    image-rendering: -webkit-optimize-contrast;
-    -ms-interpolation-mode: nearest-neighbor;
+    image-rendering: -webkit-crisp-edges;
     /* image-rendering: pixelated; */
+    -ms-interpolation-mode: nearest-neighbor;
 }
 
 /* score container */

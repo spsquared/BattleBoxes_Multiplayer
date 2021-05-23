@@ -25,46 +25,41 @@ currentDate = 0;
 player = null;
 camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
 consoleAccess = false;
+var firstload = true;
+var fullscreen = false;
 
 // handlers
 socket.on('init', function() {
+    if (!firstload) {
+        socket.emit('disconnected');
+        window.location.reload();
+    }
+    firstload = false;
     // set up page and canvas
-    document.getElementById('disconnectedContainer').style.display = 'none';
-    document.getElementById('menuContainer').style.display = 'block';
-    document.getElementById('loginContainer').style.display = 'inline-block';
-    document.getElementById('mainmenuContainer').style.display = 'none';
+    try {
+        new OffscreenCanvas(1, 1);
+    } catch (err) {
+        window.alert('This game may run slower on your browser. Please switch to a supported browser.\nChrome 69+\nEdge 79+\nOpera 56+');
+        console.log('This game may run slower on your browser. Please switch to a supported browser.\nChrome 69+\nEdge 79+\nOpera 56+');
+    }
     document.querySelectorAll("input").forEach(function(item){if (item.type != 'text' && item.type != 'password') {item.addEventListener('focus', function(){this.blur();});}});
     document.querySelectorAll("button").forEach(function(item){item.addEventListener('focus', function(){this.blur();});});
     document.getElementById('viewport').width = window.innerWidth;
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
-    document.getElementById('gameCanvas').height = window.innerHeight - 1;
+    document.getElementById('gameCanvas').height = window.innerHeight;
     document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
     document.getElementById('scoreContainer').addEventListener('contextmenu', e => e.preventDefault());
     game.lineWidth = 4;
-    game.webkitImageSmoothingEnabled = false;
     game.imageSmoothingEnabled = false;
+    game.webkitImageSmoothingEnabled = false;
+    game.mozImageSmoothingEnabled = false;
     game.filter = 'url(#remove-alpha)';
+    game.globalAlpha = 1;
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
     document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
-    // insert achievements
-    $.getJSON('./client/assets/AchievementsList.json', function(data) {
-        ACHIEVEMENTS = data.data;
-        for (var i in ACHIEVEMENTS) {
-            var localachievement = ACHIEVEMENTS[i];
-            var achievement = document.createElement('div');
-            achievement.id = localachievement.id;
-            achievement.className = 'achievementBlock ui-darkText';
-            achievement.style.backgroundColor = 'lightgrey';
-            if (localachievement.hidden) {
-                achievement.style.display = 'none';
-            }
-            achievement.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
-            document.getElementById('achievementsACHIEVEMENTS').appendChild(achievement);
-        }
-    });
     // insert announcements
     document.getElementById('announcementsPage').width = (window.innerWidth-64);
     var announcementsEmbed = document.createElement('div');
@@ -75,6 +70,36 @@ socket.on('init', function() {
         document.getElementById('announcements-failedLoad').style.display = 'none';
         document.getElementById('announcementsPage').appendChild(announcementsEmbed);
     });
+    // insert achievements
+    $.getJSON('./client/assets/AchievementsList.json', function(data) {
+        ACHIEVEMENTS = data.data;
+        for (var i in ACHIEVEMENTS) {
+            var localachievement = ACHIEVEMENTS[i];
+            var achievement = document.createElement('div');
+            achievement.id = localachievement.id;
+            achievement.className = 'achievementBlock';
+            achievement.style.backgroundColor = 'lightgrey';
+            if (localachievement.hidden) {
+                achievement.style.display = 'none';
+            }
+            achievement.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
+            var achievement2 = document.createElement('div');
+            achievement2.id = localachievement.id;
+            achievement2.className = 'achievementBlock';
+            achievement2.style.backgroundColor = 'lightgrey';
+            if (localachievement.hidden) {
+                achievement2.style.display = 'none';
+            }
+            achievement2.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
+            document.getElementById('achievementsACHIEVEMENTS').appendChild(achievement);
+            document.getElementById('ingameAchievementsACHIEVEMENTS').appendChild(achievement2);
+        }
+    });
+    // show page
+    document.getElementById('loginContainer').style.display = 'inline-block';
+    document.getElementById('mainmenuContainer').style.display = 'none';
+    document.getElementById('disconnectedContainer').style.display = 'none';
+    document.getElementById('menuContainer').style.display = 'block';
     // start music
     music.volume = settings.musicvolume;
     for (var i in sfx) {
@@ -118,6 +143,9 @@ function updateAchievements() {
     document.getElementById('aSTATS_kills').innerText = TRACKED_DATA.kills;
     document.getElementById('aSTATS_deaths').innerText = TRACKED_DATA.deaths;
     document.getElementById('aSTATS_wins').innerText = TRACKED_DATA.wins;
+    document.getElementById('ingameaSTATS_kills').innerText = TRACKED_DATA.kills;
+    document.getElementById('ingameaSTATS_deaths').innerText = TRACKED_DATA.deaths;
+    document.getElementById('ingameaSTATS_wins').innerText = TRACKED_DATA.wins;
     for (var i in ACHIEVEMENTS) {
         var localachievement = ACHIEVEMENTS[i];
         var achievement = document.getElementById(localachievement.id);
@@ -158,12 +186,13 @@ window.onresize = function() {
     document.getElementById('viewport').width = window.innerWidth;
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('gameCanvas').width = window.innerWidth;
-    document.getElementById('gameCanvas').height = window.innerHeight - 1;
+    document.getElementById('gameCanvas').height = window.innerHeight;
     game.lineWidth = 4;
     game.imageSmoothingEnabled = false;
     game.webkitImageSmoothingEnabled = false;
     game.mozImageSmoothingEnabled = false;
     game.filter = 'url(#remove-alpha)';
+    game.globalAlpha = 1;
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
@@ -171,6 +200,21 @@ window.onresize = function() {
     camera.width = window.innerWidth/2;
     camera.height = window.innerHeight/2;
 }
+// fullscreen
+function toggleFullscreen() {
+    if (fullscreen) {
+        if (document.exitFullscreen()) {document.exitFullscreen();}
+        if (document.webkitExitFullscreen()) {document.webkitExitFullscreen();}
+        document.getElementById('fullscreen').style.backgroundColor = 'greenyellow';
+        fullscreen = false;
+    } else {
+        if (document.body.requestFullscreen()) {document.body.requestFullscreen();}
+        if (document.body.webkitRequestFullscreen()) {document.body.webkitRequestFullscreen();}
+        document.getElementById('fullscreen').style.backgroundColor = 'lime';
+        fullscreen = true;
+    }
+}
+
 // init
 document.addEventListener('mousedown', function() {
     music.play();
@@ -206,6 +250,7 @@ document.getElementById('ingamesfxVolume').oninput = function() {
     updateSettings();
 }
 
+// debug
 function debug() {
     socket.emit('debug');
     for (var i in ACHIEVEMENTS) {

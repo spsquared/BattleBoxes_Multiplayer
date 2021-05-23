@@ -8,6 +8,53 @@
     font-weight: normal;
     font-style: normal;
 }
+
+/* stop image smoothing */
+body {
+    image-rendering: optimizeSpeed;
+    image-rendering: optimizeContrast;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    /* image-rendering: pixelated; */
+    -ms-interpolation-mode: nearest-neighbor;
+}
+img {
+    image-rendering: optimizeSpeed;
+    image-rendering: optimizeContrast;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    /* image-rendering: pixelated; */
+    -ms-interpolation-mode: nearest-neighbor;
+}
+input {
+    image-rendering: optimizeSpeed;
+    image-rendering: optimizeContrast;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    /* image-rendering: pixelated; */
+    -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* fullscreen */
+body:fullscreen {
+    background-color: white;
+}
+body:-webkit-full-screen {
+    background-color: white;
+}
+body:-moz-full-screen {
+    background-color: white;
+}
+
 /* ui */
 .ui-darkText {
     font-family: 'Pixel';
@@ -192,6 +239,14 @@
     background-color: red;
 }
 
+/* fullscreen button */
+#fullscreen {
+    width: 90%;
+    border-width: 3px;
+    background-color: greenyellow;
+    font-size: 20px;
+    transition: all 0.5s ease-in-out;
+}
 /* settings container */
 #settingsContainer {
     display: none;
@@ -365,6 +420,15 @@
 #ingameAchievements {
     background-color: orange;
 }
+/* ingame achievements */
+#ingameAchievementsACHIEVEMENTS {
+    position: relative;
+    text-align: left;
+    width: 50vw;
+    overflow-y: scroll;
+    max-height: 60vh;
+}
+
 /* leavegame button */
 #leavegame {
     padding: 8px 8px;

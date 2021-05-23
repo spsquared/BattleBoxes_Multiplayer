@@ -179,7 +179,7 @@ Entity = function() {
 Player = function() {
     var self = new Entity();
     self.id = Math.random();
-    self.name = null;
+    self.name = '';
     self.halfsize = 16;
     self.Wpressed = false;
     self.Apressed = false;
@@ -192,7 +192,7 @@ Player = function() {
     self.alive = true;
     self.ready = false;
     self.ingame = false;
-    self.trackedData = new Achievements();
+    //self.trackedData = new Achievements();
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
@@ -253,10 +253,10 @@ Player = function() {
             self.alive = false;
             remainingPlayers--;
             io.emit('playerdied', self.id);
+            Achievements.update();
             if (remainingPlayers < 2 && round.inProgress) {
                 endRound();
             }
-            Achievements.update();
         }
     }
     self.respawn = function(x, y) {

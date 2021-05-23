@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.7.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or https://www.gnu.org/licenses/.\n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.8.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.7.1\n');
+console.log('\nThis server is running BattleBoxes Server v-0.8.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -113,6 +113,7 @@ io.on('connection', function(socket) {
     socket.emit('init');
     socket.id = Math.random();
     var player = new Player();
+    player.trackedData = new Achievements();
     SOCKET_LIST[socket.id] = socket;
     console.log('Client connection made.');
     // connection handlers
@@ -125,7 +126,9 @@ io.on('connection', function(socket) {
         if (player.ingame && player.alive) {
             remainingPlayers--;
         }
-        database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, player.trackedData], function(err, res) {if (err) console.log(err);});
+        if (player.name != null) {
+            database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, player.trackedData], function(err, res) {if (err) console.log(err);});
+        }
         io.emit('deleteplayer', player.id);
         console.log('Player "' + player.name + '" has disconnected.');
         delete SOCKET_LIST[socket.id];
@@ -163,24 +166,52 @@ io.on('connection', function(socket) {
                 player.name = cred.usrname;
                 if (cred.usrname == 'null') {
                     player.color = "#FFFFFF00";
-                    player.name = '';
                 }
                 try {
+                    // fetch tracked data
                     var data = await database.query('SELECT username, data FROM users');
                     for (var i in data.rows) {
                         if (data.rows[i].username == cred.usrname) {
-                            player.trackedData.kills = data.rows[i].data.kills;
-                            player.trackedData.deaths = data.rows[i].data.deaths;
-                            player.trackedData.wins = data.rows[i].data.wins;
-                            for (var j in data.rows[i].data.achievements) {
-                                var localachievement = data.rows[i].data.achievements[j];
+                            var localtrackedData = data.rows[i].data;
+                            try {
+                                var checkfornull = localtrackedData.achievements;
+                                if (checkfornull == null) {
+                                    checkfornull = new Achievements().achievements;
+                                }
+                                var checkfornull = localtrackedData.kills;
+                                if (checkfornull == null) {
+                                    checkfornull = 0;
+                                }
+                                var checkfornull = localtrackedData.deaths;
+                                if (checkfornull == null) {
+                                    checkfornull = 0;
+                                }
+                                var checkfornull = localtrackedData.wins;
+                                if (checkfornull == null) {
+                                    checkfornull = 0;
+                                }
+                            } catch (err) {
+                                console.error('ERROR: Player trackedData was "' + data.rows[i].data + '" during fetch.');
+                                try {
+                                    await database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, new Achievements()]);
+                                    localtrackedData = new Achievements();
+                                } catch (err) {
+                                    stop(err);
+                                }
+                            }
+                            player.trackedData.kills = localtrackedData.kills;
+                            player.trackedData.deaths = localtrackedData.deaths;
+                            player.trackedData.wins = localtrackedData.wins;
+                            for (var j in localtrackedData.achievements) {
+                                var localfetchedachievement = localtrackedData.achievements[j];
                                 for (var k in player.trackedData.achievements) {
-                                    var superlocalachievement = player.trackedData.achievements[k];
-                                    if (superlocalachievement.id == localachievement.id) {
-                                        superlocalachievement.aqquired = localachievement.aqquired;
+                                    var localplayerachievement = player.trackedData.achievements[k];
+                                    if (localplayerachievement.id == localfetchedachievement.id) {
+                                        localplayerachievement.aqquired = localfetchedachievement.aqquired;
                                     }
                                 }
                             }
+                            // player.trackedData.achievements = localtrackedData.achievements;
                         }
                     }
                 } catch (err) {
@@ -210,34 +241,46 @@ io.on('connection', function(socket) {
             player.name = cred.usrname;
             if (cred.usrname == 'null') {
                 player.color = "#FFFFFF00";
-                player.name = '';
+                for (var i in player.trackedData.achievements) {
+                    var localachievement = player.trackedData.achievements[i];
+                    if (localachievement.id == 'null_EasterEgg') {
+                        localachievement.aqquired = true;
+                        console.log('null got the achievement "' + localachievement.name + '"!');
+                        io.emit('achievement_get', {player:player.name, achievement:localachievement.id});
+                    }
+                }
             }
             await writeCredentials(cred.usrname, cred.psword, player.trackedData);
             socket.emit('loginConfirmed', 'signup');
-            console.log('Player "' + cred.usrname + '" signed up.');
-            
+            console.log('Player "' + player.name + '" signed up.');
         }
     });
     socket.on('deleteAccount', async function(cred) {
-        if (cred.usrname.length > 64) {
-            socket.emit('disconnected');
-        }
-        var fetchedcreds = await getCredentials(cred.usrname);
-        if (fetchedcreds == false) {
-            socket.emit('disconnected');
-            console.error('Error: Could not delete account. Reason:USER_NOT_FOUND');
-        } else if (fetchedcreds.psword == cred.psword) {
-            deleteCredentials(cred.usrname);
-            console.log('Player with username "' + player.name + '" deleted their account.');
-            socket.emit('disconnected');
-        } else {
-            socket.emit('disconnected');
-            console.log('something')
+        if (cred.psword != null) {
+            if (cred.usrname.length > 64) {
+                socket.emit('disconnected');
+            }
+            var fetchedcreds = await getCredentials(cred.usrname);
+            if (fetchedcreds == false) {
+                socket.emit('disconnected');
+                console.error('Error: Could not delete account. Reason:USER_NOT_FOUND');
+            } else if (fetchedcreds.psword == cred.psword) {
+                deleteCredentials(cred.usrname);
+                socket.emit('loginConfirmed', 'deleted');
+                socket.emit('disconnected');
+                console.log('Player with username "' + player.name + '" deleted their account.');
+            } else {
+                socket.emit('loginFailed', 'incorrect');
+                console.log('Player "' + player.name + '" could not delete account. Reason:INCORRECT_CREDENTIALS');
+            }
         }
     });
     socket.on('changePassword', async function(cred) {
-        deleteCredentials(cred.usrname);
-        writeCredentials(cred.usrname, cred.psword);
+        var fetchedcreds = await getCredentials(cred.usrname);
+        if (cred.psword == fetchedcreds.psword) {
+            deleteCredentials(cred.usrname);
+            writeCredentials(cred.usrname, cred.newpsword);
+        }
     });
     // game handlers
     socket.on('joingame', function() {
@@ -250,8 +293,7 @@ io.on('connection', function(socket) {
         }
         if (j > 15) {
             socket.emit('gamefull');
-            console.log('"' + player.name + '" was not able to join; Reason: Game_Full');
-            //socket.emit('game-joined');
+            console.log('"' + player.name + '" was not able to join; Reason:Game_Full');
         } else if (round.inProgress == false) {
             player.ingame = true;
             player.respawn(MAPS[0].spawns[0].x, MAPS[0].spawns[0].y);
@@ -322,6 +364,7 @@ io.on('connection', function(socket) {
             if (localachievement.id == 'Debug' && localachievement.aqquired == false) {
                 localachievement.aqquired = true;
                 console.log('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!');
+                io.emit('achievement_get', {player:player.name, achievement:localachievement.id});
             }
         }
     });
@@ -389,8 +432,8 @@ prompt.on('line', async function(input) {
             command;
             console.log('Successfully ran command.');
         } catch (err) {
-            console.error('Error: "' + input + '" is not a valid input.\n');
-            console.error(err);
+            console.error('Error: "' + input + '" is not a valid input.');
+            console.error(err + '\n');
         }
     }
 });

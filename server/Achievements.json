@@ -14,6 +14,7 @@
         {"id":"100_Deaths", "name":"Witchcraft", "aqquired":false},
         {"id":"1000_Deaths", "name":"Immortal", "aqquired":false},
         {"id":"1000000_Deaths", "name":"How did we get get here?", "aqquired":false},
-        {"id":"Debug", "name":"Debugger", "aqquired":false}
+        {"id":"Debug", "name":"Debugger", "aqquired":false},
+        {"id":"invalid", "name":"Hacker", "aqquired":false}
     ]
 }

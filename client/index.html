@@ -15,7 +15,7 @@
         <link rel="stylesheet" href="/client/assets/main.css">
         <link rel="stylesheet" href="/client/assets/game.css">
     </head>
-    <body>
+    <body id="body">
         <noscript>
             <br><br><br><br><br><br><br><br><br><br>
             <div id="jsdisabled">
@@ -46,6 +46,11 @@
                     <tr>
                         <td colspan="2">
                             <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="back();"><br><br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input type="button" class="ui-smallButton" id="fullscreen" value="FULLSCREEN" onclick="toggleFullscreen();"><br><br>
                         </td>
                     </tr>
                     <tr>
@@ -173,6 +178,11 @@
                         </tr>
                         <tr>
                             <td colspan="2">
+                                <input type="button" class="ui-smallButton" id="fullscreen" value="FULLSCREEN" onclick="toggleFullscreen();"><br><br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
                                 Global Volume <span id="ingameGV-label">100%</span><br>
                                 <input type="range" min="0" max="100" value="100" class="ui-largeSlider" id="ingameglobalVolume">
                             </td>
@@ -191,9 +201,19 @@
                 </div>
                 <div id="ingameAchievementsContainer">
                     <input type="button" class="ui-largeButton" id="back" value="BACK" onclick="ingameBack();"><br><br>
+                    <table class="ui-lightText" id="ingameaSTATStable">
+                        <tr>
+                            <td class="aSTATStable">Kills:&nbsp;</td>
+                            <td class="aSTATStable" id="ingameaSTATS_kills">If you are seeing this, something went wrong.</td>
+                            <td class="aSTATStable">&emsp;Deaths:&nbsp;</td>
+                            <td class="aSTATStable" id="ingameaSTATS_deaths">If you are seeing this, something went wrong.</td>
+                            <td class="aSTATStable">&emsp;Wins:&nbsp;</td>
+                            <td class="aSTATStable" id="ingameaSTATS_wins">If you are seeing this, something went wrong.</td>
+                        </tr>
+                    </table>
+                    <div id="ingameAchievementsACHIEVEMENTS" class="ui-darkText"></div>
                 </div>
             </div>
-            
         </div>
         <div id="disconnectedContainer">
             <br></br><br></br><br></br><br></br><br></br><br></br><br>
@@ -202,11 +222,12 @@
         <div id="loadingContainer">
             <div id="fade"></div>
             <img src="client/img/loading.gif" alt="Loading..." id="loading">
-            <p id="waiting" style="font-family: Pixel; color:white; display: none; position: absolute; top: 340px; user-select: none; -webkit-user-select: none;">Waiting for server...</p>
-            <p id="serverfull" style="font-family: Pixel; color:white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Server is full...</p>
-            <p id="gamelocked" style="font-family: Pixel; color: white; display: none; position: absolute; top:340px; user-select: none; -webkit-user-select: none;">Game is in progress, cannot join...</p>
+            <p class="ui-lightText" id="waiting">Waiting for server...</p>
+            <p class="ui-lightText" id="serverfull">Server is full...</p>
+            <p class="ui-lightText" id="gamelocked">Game is in progress, cannot join...</p>
+            <input type="button" class="ui-largeButton" id="canceljoingame" value="BACK" onclick="canceljoin();"><br><br>
         </div>
-        <h5 id="versionLabel">v0.7.2</h5>
+        <h5 id="versionLabel">v0.8.0</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

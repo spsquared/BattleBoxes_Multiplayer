@@ -34,6 +34,9 @@ Player = function(id, name, color) {
     self.draw = function() {
         if (self.alive) {
             game.fillStyle = '#000000';
+            if (self.name == 'null') {
+                game.fillStyle = '#FFFFFF00';
+            }
             game.textAlign = 'center';
             game.font = '11px Pixel';
             game.fillText(self.name, self.relx, self.rely-32);
