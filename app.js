@@ -80,7 +80,7 @@ fs.open('./server/PORTS.txt', 'a+', function(err) {
             var i;
             port = 1000
             for (i = 1; i < ports; i++) {port += 100;}
-            p = process.env.PORT || 1000
+            p = process.env.PORT || port
             server.listen(p);
             console.log('Server started, listening to port ' + p + '.');
         });
