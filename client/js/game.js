@@ -347,7 +347,7 @@ socket.on('initmap', function(maps) {
         if (maps[i].id == 0) {
             MAPS[i].src = '/client/img/Lobby.png';
         } else {
-            MAPS[i].src = '/client/img/map' + maps[i].id + '.png';
+            MAPS[i].src = '/client/img/Map' + maps[i].id + '.png';
         }
     }
     try {
