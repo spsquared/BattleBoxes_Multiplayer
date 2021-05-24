@@ -9,6 +9,7 @@ var canmove = false;
 var connected = 0;
 var readyforstart = false;
 var countdowntext = {text:'', color:'', size:''};
+var loaded = false;
 
 // draw game
 socket.on('update', function(pkg) {
@@ -37,7 +38,7 @@ socket.on('update', function(pkg) {
     }
 });
 function drawMap() {
-    game.drawImage(MAPS[CURRENT_MAP], -camera.x, -camera.y);
+    game.drawImage(MAPS[CURRENT_MAP], -camera.x, -camera.y, MAPS[CURRENT_MAP].width, MAPS[CURRENT_MAP].height);
 }
 function updateCamera() {
     // collisions to move camera
@@ -71,7 +72,7 @@ function drawDebug(data, isplayer) {
         // draw debug headers
         game.fillStyle = '#FFFFFF88';
         game.fillRect(4, 4, 380, 48);
-        game.fillRect((window.innerWidth - 94), 4, 90, 64)
+        game.fillRect((window.innerWidth - 128), 4, 124, 64)
         game.fillStyle = '#000000';
         game.font = '16px Pixel';
         game.textAlign = 'left';
@@ -194,6 +195,9 @@ document.onkeydown = function(event) {
         if (event.key == 'w' || event.key == 'W' || event.key == 'ArrowUp') {
             socket.emit('keyPress', {key:'W', state:true});
         }
+        if (event.key == 's' || event.key == 'S' || event.key == 'ArrowDown') {
+            socket.emit('keyPress', {key:'S', state:true});
+        }
         if (event.key == 'a' || event.key == 'A' || event.key == 'ArrowLeft') {
             socket.emit('keyPress', {key:'A', state:true});
         }
@@ -207,6 +211,9 @@ document.onkeyup = function(event) {
         if (event.key == 'w' || event.key == 'W' || event.key == 'ArrowUp') {
             socket.emit('keyPress', {key:'W', state:false});
         }
+        if (event.key == 's' || event.key == 'S' || event.key == 'ArrowDown') {
+            socket.emit('keyPress', {key:'S', state:false});
+        }
         if (event.key == 'a' || event.key == 'A' || event.key == 'ArrowLeft') {
             socket.emit('keyPress', {key:'A', state:false});
         }
@@ -216,6 +223,7 @@ document.onkeyup = function(event) {
         if (event.key == 'Escape') {
             if (inmenu) {
                 document.getElementById('ingameMenu').style.display = 'none';
+                ingameBack();
                 inmenu = false;
             } else {
                 document.getElementById('ingameMenu').style.display = 'inline-block';
@@ -313,11 +321,17 @@ function ready() {
 
 // game handlers
 socket.on('game-joined', function() {
-    document.getElementById('canceljoingame').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'block';
-    ingame = true;
-    canmove = true;
-    fadeOut();
+    var waitforload = setInterval(function() {
+        if (loaded) {
+            document.getElementById('canceljoingame').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            ingame = true;
+            canmove = true;
+            document.getElementById('gameContainer').style.backgroundColor = 'black';
+            fadeOut();
+            clearInterval(waitforload);
+        }
+    }, 100);
 });
 socket.on('gamefull', function() {
     document.getElementById('serverfull').style.display = 'block';
@@ -337,10 +351,12 @@ socket.on('initmap', function(maps) {
         }
     }
     try {
-        var maploader = new OffscreenCanvas(1, 1).getContext('2d');
+        var maploader = new OffscreenCanvas(192, 108).getContext('2d');
         for (var i in MAPS) {
             maploader.drawImage(MAPS[i], 0, 0);
+            game.drawImage(MAPS[i], 0, 0);
         }
+        loaded = true;
     } catch (err) {}
 });
 socket.on('map', function(id) {
@@ -353,17 +369,30 @@ socket.on('gamestart', function(pkg) {
             document.getElementById('player' + i).innerText = pkg[i];
         }
         document.getElementById('scoreContainer').style.display = 'inline';
+        document.getElementById('gameContainer').style.backgroundColor = '';
     }
 });
 socket.on('winner', function(id) {
     ingame = false;
     canmove = false;
     document.getElementById('loadingContainer').style.display = 'none';
-    document.getElementById('scoreContainer').style.display = 'none';
     var v = -10;
     var x = window.innerWidth;
     var winOverlay = new Image();
+    var winOverlay2 = new Image();
     winOverlay.src = './client/img/WinOverlay.png';
+    winOverlay2.src = './client/img/WinOverlay2.png';
+    if (window.innerWidth/window.innerHeight > 16/9) {
+        winOverlay.width = (1920*(window.innerHeight/1080));
+        winOverlay2.width = (1920*(window.innerHeight/1080));
+        winOverlay.height = window.innerHeight;
+        winOverlay2.height = window.innerHeight;
+    } else {
+        winOverlay.width = window.innerWidth;
+        winOverlay2.width = window.innerWidth;
+        winOverlay.height = (1080*(window.innerWidth/1920));
+        winOverlay2.height = (1080*(window.innerWidth/1920));
+    }
     var slide = setInterval(function() {
         if (x < 200) {
             v *= 0.96;
@@ -371,22 +400,40 @@ socket.on('winner', function(id) {
         x += v;
         game.fillStyle = PLAYER_LIST[id].color;
         game.fillRect(x, 0, window.innerWidth, window.innerHeight);
-        if (window.innerHeight < 1080) {
-            game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), (1920*(window.innerHeight*1080)), window.innerHeight);
-        } else {
-            game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), window.innerWidth, (1080*(window.innerWidth/1920)));
-        }
+        game.drawImage(winOverlay, x+(window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
+        game.drawImage(winOverlay2, x, 0, winOverlay.width, winOverlay.height);
+        game.fillStyle = '#000000';
+        game.save();
+        game.translate(x+(550*(window.innerWidth/1536)), 400*(window.innerHeight/864));
+        game.rotate(-15.5*(Math.PI/180));
+        game.font = (window.innerHeight/12) + 'px Pixel';
+        game.fillText(PLAYER_LIST[id].name, 0, 0);
+        game.restore();
         if (x < 0.1) {
             clearInterval(slide);
+            game.fillStyle = PLAYER_LIST[id].color;
             game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            game.drawImage(winOverlay, 0, (window.innerHeight-winOverlay.height), window.innerWidth, (1080*(window.innerWidth/1920)));
-            document.addEventListener('resize', function() {
+            game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
+            game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
+            game.fillStyle = '#000000';
+            game.save();
+            game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
+            game.rotate(-15.5*(Math.PI/180));
+            game.font = (window.innerHeight/12) + 'px Pixel';
+            game.fillText(PLAYER_LIST[id].name, 0, 0);
+            game.restore();
+            window.addEventListener('resize', function() {
+                game.fillStyle = PLAYER_LIST[id].color;
                 game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-                if (window.innerHeight < 1080) {
-                    game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), (1920*(window.innerHeight*1080)), window.innerHeight);
-                } else {
-                    game.drawImage(winOverlay, x, (window.innerHeight-winOverlay.height), window.innerWidth, (1080*(window.innerWidth/1920)));
-                }
+                game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
+                game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
+                game.fillStyle = '#000000';
+                game.save();
+                game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
+                game.rotate(-15.5*(Math.PI/180));
+                game.font = (window.innerHeight/12) + 'px Pixel';
+                game.fillText(PLAYER_LIST[id].name, 0, 0);
+                game.restore();
             });
         }
     }, 5);
@@ -413,13 +460,45 @@ socket.on('winner', function(id) {
             if (audiofade < 0) {
                 audiofade = 0;
             }
-            if (fadeAmount < 1) {
+            if (fadeAmount < 0) {
+                document.getElementById('scoreContainer').style.display = 'none';
                 clearInterval(fadeInterval);
             }
             document.getElementById('scoreContainer').style.opacity = fadeAmount;
             music.volume = audiofade;
         }, 1);
     }, 500);
+    setTimeout(function() {
+        document.getElementById('playAgain').style.display = 'inline-block';
+        var fadeAmount = 0;
+        var fadeInterval = setInterval(function() {
+            fadeAmount += 0.01;
+            audiofade += ((settings.musicvolume*settings.globalvolume)/50);
+            if (audiofade < 0) {
+                audiofade = 0;
+            }
+            if (fadeAmount > 1) {
+                clearInterval(fadeInterval);
+            }
+            document.getElementById('playAgain').style.opacity = fadeAmount;
+            music.volume = audiofade;
+        }, 1);
+    }, 3000);
+});
+socket.on('gamecut', function() {
+    document.getElementById('menuContainer').style.display = 'block';
+    document.getElementById('gameContainer').style.display = 'none';
+    music.src = ('/client/sound/Menu.mp3');
+    music.play();
+    ingame = false;
+    inmenu = false;
+    readyforstart = false;
+    document.getElementById('ready').style.opacity = 1;
+    document.getElementById('ready').style.display = 'inline-block';
+    document.getElementById('scoreContainer').style.display = 'none';
+    ingameBack();
+    document.getElementById('ingameMenu').style.display = 'none';
+    fadeOut();
 });
 socket.on('roundstart', function(scores) {
     if (ingame) {
@@ -499,6 +578,9 @@ socket.on('roundstart', function(scores) {
 socket.on('roundend', function() {
     if (ingame) {
         fadeIn();
+        for (var i in BULLET_LIST) {
+            delete BULLET_LIST[i];
+        }
     }
 });
 socket.on('inittrackedData', function(pkg) {
@@ -520,6 +602,18 @@ socket.on('achievement_get', function(pkg) {
             ACHIEVEMENTS[i].aqquired = true;
         }
     }
+    updateAchievements();
+});
+socket.on('achievementrevoked', function(pkg) {
+    for (var i in ACHIEVEMENTS) {
+        if (ACHIEVEMENTS[i].id == pkg.achievement) {
+            ACHIEVEMENTS[i].aqquired = false;
+        }
+    }
+    updateAchievements();
+});
+socket.on('yeet', function() {
+    Banner('YEET!', 'You just got yeeted!');
 });
 
 // fps & tps counter

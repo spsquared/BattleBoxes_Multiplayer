@@ -12,6 +12,7 @@ startGame = function() {
         var localplayer = PLAYER_LIST[i];
         if (localplayer.ingame) {
             localplayer.score = 0;
+            localplayer.invincible = false;
             pack.push(localplayer.name);
         }
     }
@@ -22,7 +23,9 @@ startGame = function() {
     }, 1000);
 }
 endGame = function(id) {
-    if (id != null) {
+    if (id == null) {
+        io.emit('gamecut');
+    } else {
         io.emit('winner', id);
         Achievements.update();
     }
@@ -103,7 +106,21 @@ endRound = function() {
 
 // achievements
 Achievements = function() {
-    var self = {achievements:achievementsTemplate, kills:0, deaths:0, wins:0};
+    var self = {
+        achievements:achievementsTemplate,
+        grant: function(player, achievement) {
+            achievement.aqquired = true;
+            io.emit('achievement_get', {player:player, achievement:achievement.id});
+            console.log('Player "' + player + '" got the achievement "' + achievement.name + '"!');
+        },
+        revoke: function(player, achievement) {
+            achievement.aqquired = false;
+            io.emit('achievementrevoked', {player:player, achievement:achievement.id});
+        },
+        kills: 0,
+        deaths: 0,
+        wins: 0
+    };
     // temporary hard-coding while linking is fixed
     self.achievements = [
         {id:"1_Wins", name:"Winner Winner Chicken Dinner", aqquired:false},
@@ -120,8 +137,9 @@ Achievements = function() {
         {id:"100_Deaths", name:"Witchcraft", aqquired:false},
         {id:"1000_Deaths", name:"Immortal", aqquired:false},
         {id:"1000000_Deaths", name:"How did we get get here?", aqquired:false},
-        {id:"Debug", name:"Debugger", aqquired:false},
-        {id:"invalid", name:"Hacker", aqquired:false}
+        {id:"all_achievements", name:"Overachiever", aqquired:false},
+        {id:"debug_easteregg", name:"Debugger", aqquired:false},
+        {id:"null_easteregg", name:"Hacker", aqquired:false}
     ]
     return self;
 }

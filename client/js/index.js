@@ -76,20 +76,20 @@ socket.on('init', function() {
         for (var i in ACHIEVEMENTS) {
             var localachievement = ACHIEVEMENTS[i];
             var achievement = document.createElement('div');
+            var achievement2 = document.createElement('div');
             achievement.id = localachievement.id;
+            achievement2.id = 'ig' + localachievement.id;
             achievement.className = 'achievementBlock';
+            achievement2.className = 'achievementBlock';
             achievement.style.backgroundColor = 'lightgrey';
+            achievement2.style.backgroundColor = 'lightgrey';
             if (localachievement.hidden) {
                 achievement.style.display = 'none';
             }
-            achievement.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
-            var achievement2 = document.createElement('div');
-            achievement2.id = localachievement.id;
-            achievement2.className = 'achievementBlock';
-            achievement2.style.backgroundColor = 'lightgrey';
             if (localachievement.hidden) {
                 achievement2.style.display = 'none';
             }
+            achievement.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
             achievement2.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
             document.getElementById('achievementsACHIEVEMENTS').appendChild(achievement);
             document.getElementById('ingameAchievementsACHIEVEMENTS').appendChild(achievement2);
@@ -149,18 +149,25 @@ function updateAchievements() {
     for (var i in ACHIEVEMENTS) {
         var localachievement = ACHIEVEMENTS[i];
         var achievement = document.getElementById(localachievement.id);
+        var achievement2 = document.getElementById('ig'+localachievement.id);
         if (localachievement.color == 'rainbow-pulse' && localachievement.aqquired) {
             achievement.style.animation = 'rainbow-pulse 10s infinite';
+            achievement2.style.animation = 'rainbow-pulse 10s infinite';
             achievement.style.animationTimingFunction = 'ease-in-out'
+            achievement2.style.animationTimingFunction = 'ease-in-out'
         } else if (localachievement.color == 'pulsing-red' && localachievement.aqquired) {
             achievement.style.animation = 'red-pulse 2s infinite';
+            achievement2.style.animation = 'red-pulse 2s infinite';
         } else if (localachievement.aqquired) {
             achievement.style.backgroundColor = localachievement.color;
+            achievement2.style.backgroundColor = localachievement.color;
         } else {
             achievement.style.backgroundColor = 'lightgrey';
+            achievement2.style.backgroundColor = 'lightgrey';
         }
         if (localachievement.aqquired) {
             achievement.style.display = 'block';
+            achievement2.style.display = 'block';
         }
     }
 }
@@ -203,13 +210,15 @@ window.onresize = function() {
 // fullscreen
 function toggleFullscreen() {
     if (fullscreen) {
-        if (document.exitFullscreen()) {document.exitFullscreen();}
-        if (document.webkitExitFullscreen()) {document.webkitExitFullscreen();}
+        window.alert('Press "F11" to enter fullscreen mode');
+        // if (document.exitFullscreen()) {document.exitFullscreen();}
+        // if (document.webkitExitFullscreen()) {document.webkitExitFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'greenyellow';
         fullscreen = false;
     } else {
-        if (document.body.requestFullscreen()) {document.body.requestFullscreen();}
-        if (document.body.webkitRequestFullscreen()) {document.body.webkitRequestFullscreen();}
+        window.alert('Press "F11" to enter fullscreen mode');
+        // if (document.body.requestFullscreen()) {document.body.requestFullscreen();}
+        // if (document.body.webkitRequestFullscreen()) {document.body.webkitRequestFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'lime';
         fullscreen = true;
     }

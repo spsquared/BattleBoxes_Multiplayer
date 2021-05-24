@@ -122,6 +122,7 @@
         <div id="gameContainer">
             <canvas id="gameCanvas"></canvas>
             <input type="image" src="/client/img/Ready.png" alt="ready" id="ready" onclick="ready();">
+            <input type="button" class="ui-largeButton" id="playAgain" value="MAIN MENU" onclick="quittoMenu();">
             <div id="scoreContainer">
                 <table class="scoreTable" id="scoreTable">
                     <tr>
@@ -227,7 +228,7 @@
             <p class="ui-lightText" id="gamelocked">Game is in progress, cannot join...</p>
             <input type="button" class="ui-largeButton" id="canceljoingame" value="BACK" onclick="canceljoin();"><br><br>
         </div>
-        <h5 id="versionLabel">v0.8.0</h5>
+        <h5 id="versionLabel">v0.8.1</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

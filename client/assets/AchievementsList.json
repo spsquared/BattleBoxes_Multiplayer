@@ -14,7 +14,8 @@
         {"id":"100_Deaths", "name":"Witchcraft", "description":"Die 100 times", "color":"red", "aqquired":false, "hidden":false},
         {"id":"1000_Deaths", "name":"Immortal", "description":"Die 1000 times", "color":"crimson", "aqquired":false, "hidden":false},
         {"id":"1000000_Deaths", "name":"How did we get get here?", "description":"Die 1000000 times", "color":"pulsing-red", "aqquired":false, "hidden":true},
-        {"id":"Debug", "name":"Debugger", "description":"Debug the game", "color":"rainbow-pulse", "aqquired":false, "hidden":true},
+        {"id":"all_achievements", "name":"Overachiever", "description":"Get all non-easteregg achievements", "color":"rainbow-pulse", "aqquired":false, "hidden":false},
+        {"id":"debug_easteregg", "name":"Debugger", "description":"Debug the game", "color":"rainbow-pulse", "aqquired":false, "hidden":true},
         {"id":"null_EasterEgg", "name":"Hacker", "description":"\"Break\" the game", "color":"rainbow-pulse", "aqquired":false, "hidden":true}
     ]
 }

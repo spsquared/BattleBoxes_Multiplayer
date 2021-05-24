@@ -4,9 +4,9 @@
 function login() {
     if (document.getElementById('usrname').value == '') {
         window.alert('Please provide a Username.');
-    } else if (document.getElementById('usrname').value.length > 64) {
-        window.alert('Your username must be 64 or less characters.')
-    } else if (document.getElementById('usrname').value == '64 or less characters') {
+    } else if (document.getElementById('usrname').value.length > 20) {
+        window.alert('Your username must be 20 or less characters.')
+    } else if (document.getElementById('usrname').value == '20 or less characters') {
         socket.emit('disconnectclient');
     } else if (document.getElementById('usrname').value.indexOf(' ') > 0) {
         window.alert('Your username cannot contain whitespaces');
@@ -17,16 +17,12 @@ function login() {
 function signup() {
     if (document.getElementById('usrname').value == '') {
         window.alert('Please provide a Username.');
-    } else if (document.getElementById('usrname').value.length > 64) {
-        window.alert('Your username must be 64 or less characters.')
-    } else if (document.getElementById('usrname').value == '64 or less characters') {
+    } else if (document.getElementById('usrname').value.length > 20) {
+        window.alert('Your username must be 20 or less characters.')
+    } else if (document.getElementById('usrname').value == '20 or less characters') {
         socket.emit('disconnectclient');
-    } else if (document.getElementById('usrname').value.indexOf(' ') == 0) {
+    } else if (document.getElementById('usrname').value.indexOf(' ') > 0) {
         window.alert('Your username cannot contain whitespaces');
-    } else if (document.getElementById('usrname').value.indexOf('\\') == 0 || document.getElementById('usrname').value.indexOf('"') == 0) {
-        window.alert('Your username cannot contain any of these special characters:\n\\  "');
-    } else if (document.getElementById('psword').value.indexOf('\\') == 0 || document.getElementById('psword').value.indexOf('"') == 0) {
-        window.alert('Your password cannot contain any of these special characters:\n\\  "');
     } else {
         socket.emit('signup', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
     }
@@ -60,8 +56,12 @@ socket.on('loginConfirmed', function(state) {
         window.alert('Your account has been successfully deleted');
         window.location.reload();
     }
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('mainmenuContainer').style.display = 'inline-block';
+    fadeIn();
+    setTimeout(function() {
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('mainmenuContainer').style.display = 'inline-block';
+        fadeOut();
+    }, 500);
 });
 socket.on('loginFailed', function(state) {
     if (state == 'invalidusrname') {
@@ -172,6 +172,8 @@ function quittoMenu() {
         readyforstart = false;
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';
+        document.getElementById('playAgain').style.opacity = '0';
+        document.getElementById('playAgain').style.display = 'none';
         document.getElementById('scoreContainer').style.display = 'none';
         ingameBack();
         document.getElementById('ingameMenu').style.display = 'none';
