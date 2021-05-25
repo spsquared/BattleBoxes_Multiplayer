@@ -26,9 +26,9 @@
             <div id="loginContainer">
                 <h1 style="font-family: Pixel; font-size: 96px; font-weight: normal;">BattleBoxes Multiplayer</h1>
                 <label for="usrname" class="ui-darkText">Username: </label>
-                <input type="text" id="usrname" name="usrname"><br></br>
+                <input type="text" id="usrname" name="usrname" maxlength="20"><br></br>
                 <label for="psword" class="ui-darkText">Password: </label>
-                <input type="password" id="psword" name="psword"><br></br>
+                <input type="password" id="psword" name="psword" maxlength="64"><br></br>
                 <input type="button" class="ui-smallButton" id="login" value=" LOG IN " onclick="login();">&emsp;
                 <input type="button" class="ui-smallButton" id="signup" value=" SIGN UP " onclick="signup();">
             </div>
@@ -228,9 +228,9 @@
             <p class="ui-lightText" id="gamelocked">Game is in progress, cannot join...</p>
             <input type="button" class="ui-largeButton" id="canceljoingame" value="BACK" onclick="canceljoin();"><br><br>
         </div>
-        <h5 id="versionLabel">v0.8.1</h5>
+        <h5 id="versionLabel">v0.8.2</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
-        <p id="githublink" onclick="window.open('https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
+        <p id="githublink" onclick="window.open('https:www.github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">
     </body>
 </html>

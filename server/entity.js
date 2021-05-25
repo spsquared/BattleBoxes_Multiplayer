@@ -11,6 +11,8 @@ Entity = function() {
         id: null,
         x: 0,
         y: 0,
+        lastx: 0,
+        lasty: 0,
         xspeed: 0,
         yspeed: 0,
         halfsize: null,
@@ -50,7 +52,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    if (self.Wpressed && self.Apressed && !self.colliding.top) {
+                    if (self.lastx-self.x > self.y-self.lasty) {
                         self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;
@@ -69,7 +71,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    if (self.Wpressed && self.Dpressed && !self.colliding.top) {
+                    if (self.x-self.lastx > self.y-self.lasty) {
                         self.x += (tempx*40) - (self.x+self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;
@@ -126,7 +128,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
-                    if (self.Wpressed && self.Apressed && !self.colliding.top) {
+                    if (self.lastx-self.x > self.lasty-self.y) {
                         self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;
@@ -145,7 +147,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && (((tempy*40)+40) > self.y-self.halfsize)) {
-                    if (self.Wpressed && self.Dpressed && !self.colliding.top) {
+                    if (self.x-self.lastx > self.lasty-self.y) {
                         self.x += (tempx*40) - (self.x+self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;  
@@ -175,6 +177,8 @@ Entity = function() {
                 self.colliding.center = true;
             }
         }
+        self.lastx = self.x;
+        self.lasty = self.y;
     }
     self.updatePos = function() {
         self.x += self.xspeed;

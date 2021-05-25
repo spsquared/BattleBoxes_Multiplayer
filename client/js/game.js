@@ -71,8 +71,8 @@ function drawDebug(data, isplayer) {
     if (isplayer) {
         // draw debug headers
         game.fillStyle = '#FFFFFF88';
-        game.fillRect(4, 4, 380, 48);
-        game.fillRect((window.innerWidth - 128), 4, 124, 64)
+        game.fillRect(4, 4, 380, 52);
+        game.fillRect((window.innerWidth - 128), 4, 124, 70)
         game.fillStyle = '#000000';
         game.font = '16px Pixel';
         game.textAlign = 'left';
@@ -144,12 +144,12 @@ function drawBanners() {
     }
 }
 // banner init
-function Banner(topText, bottomText) {
+function Banner(topText, bottomText, color) {
     j = 0;
     for (var i in BANNERS) {
         j++;
     }
-    var self = {id:Math.random(), v:-5, x:window.innerWidth, y:(j*64), top:topText, bottom:bottomText, todelete:false};
+    var self = {id:Math.random(), v:-5, x:window.innerWidth, y:(j*64), top:topText, bottom:bottomText, color:color, todelete:false};
 
     var slidein = setInterval(function() {
         self.v += 0.031;
@@ -158,7 +158,8 @@ function Banner(topText, bottomText) {
     self.update = function() {
         game.fillStyle = '#222222';
         game.fillRect(self.x, self.y, 400, 60);
-        game.fillStyle = '#DDDDDD';
+        game.fillStyle = '#FFFFFF';
+        game.fillStyle = self.color;
         game.fillRect(self.x+4, self.y+4, 392, 52);
         game.fillStyle = '#000000';
         game.textAlign = 'left';
@@ -347,7 +348,7 @@ socket.on('initmap', function(maps) {
         if (maps[i].id == 0) {
             MAPS[i].src = '/client/img/Lobby.png';
         } else {
-            MAPS[i].src = '/client/img/map' + maps[i].id + '.png';
+            MAPS[i].src = '/client/img/Map' + maps[i].id + '.png';
         }
     }
     try {
@@ -598,7 +599,7 @@ socket.on('inittrackedData', function(pkg) {
 socket.on('achievement_get', function(pkg) {
     for (var i in ACHIEVEMENTS) {
         if (ACHIEVEMENTS[i].id == pkg.achievement) {
-            Banner(pkg.player + ' Achievement Get!', ACHIEVEMENTS[i].name);
+            Banner(pkg.player + ' Achievement Get!', ACHIEVEMENTS[i].name, ACHIEVEMENTS[i].color);
             ACHIEVEMENTS[i].aqquired = true;
         }
     }

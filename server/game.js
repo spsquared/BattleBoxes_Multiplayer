@@ -39,7 +39,7 @@ endGame = function(id) {
 // round functions
 startRound = function() {
     if (gameinProgress) {
-        switch (Math.floor(Math.random()*3)) {
+        switch (Math.floor(Math.random()*5)) {
             case 0:
                 CURRENT_MAP = 1;
                 break;
@@ -48,6 +48,12 @@ startRound = function() {
                 break;
             case 2:
                 CURRENT_MAP = 3;
+                break;
+            case 3:
+                CURRENT_MAP = 4;
+                break;
+            case 4:
+                CURRENT_MAP = 5;
                 break;
             default:
                 break;
@@ -138,8 +144,8 @@ Achievements = function() {
         {id:"1000_Deaths", name:"Immortal", aqquired:false},
         {id:"1000000_Deaths", name:"How did we get get here?", aqquired:false},
         {id:"all_achievements", name:"Overachiever", aqquired:false},
-        {id:"debug_easteregg", name:"Debugger", aqquired:false},
-        {id:"null_easteregg", name:"Hacker", aqquired:false}
+        {id:"debug_EasterEgg", name:"Debugger", aqquired:false},
+        {id:"null_EasterEgg", name:"Hacker", aqquired:false}
     ]
     return self;
 }

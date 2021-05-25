@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.8.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.8.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.8.1\n');
+console.log('\nThis server is running BattleBoxes Server v-0.8.2\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -25,6 +25,7 @@ app.use('/client',express.static(__dirname + '/client'));
 getMap = function(name, id) {
     var data1 = require('./' + name);
     var data2 = [];
+    data2.name = data1.name;
     data2[0] = [];
     data2.width = data1.width;
     data2.height = data1.height;
@@ -51,6 +52,8 @@ getMap('./server/Lobby.json', 0);
 getMap('./server/Map1.json', 1);
 getMap('./server/Map2.json', 2);
 getMap('./server/Map3.json', 3);
+getMap('./server/Map4.json', 4);
+getMap('./server/Map5.json', 5);
 SOCKET_LIST = [];
 var port;
 try {
@@ -61,30 +64,38 @@ try {
     console.error('STOP.\n');
     prompt.close();
     console.log('Server stopped.');
-    process.exit();
+    process.abort();
 }
-fs.open('./server/PORTS.txt', 'a+', function(err) {
-    if (err) stop(err);
-    lineReader.open('./server/PORTS.txt', function (err, reader) {
+if (process.env.PORT) {
+    port = process.env.PORT;
+    server.listen(port);
+    console.log('Server started, listening to port ' + port + '.');
+} else {
+    fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) stop(err);
-        reader.nextLine(function(err, line) {
+        lineReader.open('./server/PORTS.txt', function (err, reader) {
             if (err) stop(err);
-            if (line >=100) {
-                console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
-                process.abort();
-            }
-            ports = parseInt(line)+1;
-            console.log('There are ' + ports + ' servers running on this host.');
-            var portsstring = ports.toString();
-            fs.writeFileSync('./server/PORTS.txt', portsstring);
-            var i;
-            port = 1000
-            for (i = 1; i < ports; i++) {port += 100;}
-            server.listen(port);
-            console.log('Server started, listening to port ' + port + '.');
+            reader.nextLine(function(err, line) {
+                if (err) stop(err);
+                if (line >=100) {
+                    console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
+                    database.end();
+                    prompt.close();
+                    process.abort();
+                }
+                ports = parseInt(line)+1;
+                console.log('There are ' + ports + ' servers running on this host.');
+                var portsstring = ports.toString();
+                fs.writeFileSync('./server/PORTS.txt', portsstring);
+                var i;
+                port = 1000
+                for (i = 1; i < ports; i++) {port += 100;}
+                server.listen(port);
+                console.log('Server started, listening to port ' + port + '.');
+            });
         });
     });
-});
+}
 
 // user login data handlers
 async function getCredentials(usrname) {
@@ -368,7 +379,7 @@ io.on('connection', function(socket) {
     socket.on('debug', function() {
         for (var i in player.trackedData.achievements) {
             var localachievement = player.trackedData.achievements[i];
-            if (localachievement.id == 'debug_easteregg' && localachievement.aqquired == false) {
+            if (localachievement.id == 'debug_EasterEgg' && localachievement.aqquired == false) {
                 localachievement.aqquired = true;
                 console.log('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!');
                 io.emit('achievement_get', {player:player.name, achievement:localachievement.id});
@@ -439,7 +450,6 @@ prompt.on('line', async function(input) {
         try {
             var command = Function('return (' + input + ')')();
             command;
-            console.log('Successfully ran command.');
         } catch (err) {
             console.error('Error: "' + input + '" is not a valid input.');
             console.error(err + '\n');
@@ -517,22 +527,36 @@ debug = function() {
                 database.query('UPDATE users SET data=$2 WHERE username=$1;', [username, new Achievements()], function(err, res) {if (err) stop(err); console.log('Reset "' + username + '".');});
             },
             grant: async function(username, id) {
-                var localtrackedData = self.findUser(username).trackedData;
-                for (var i in localtrackedData.achievements) {
-                    if (localtrackedData.achievements[i].id == id) {
-                        localtrackedData.grant(username, localtrackedData.achievements[i]);
+                if (self.findUser(username)) {
+                    var localtrackedData = self.findUser(username).trackedData;
+                    for (var i in localtrackedData.achievements) {
+                        if (localtrackedData.achievements[i].id == id) {
+                            localtrackedData.grant(username, localtrackedData.achievements[i]);
+                        }
+                        if (id == 'all') {
+                            localtrackedData.grant(username, localtrackedData.achievements[i]);
+                        }
                     }
+                    console.log('Granted "' + id + '" to "' + username + '".');
+                } else {
+                    console.error('ERROR:Could not find user "' + username + '".');
                 }
-                console.log('Granted "' + id + '" to "' + username + '".');
             },
             revoke: async function(username, id) {
-                var localtrackedData = self.findUser(username).trackedData;
-                for (var i in localtrackedData.achievements) {
-                    if (localtrackedData.achievements[i].id == id) {
-                        localtrackedData.revoke(username, localtrackedData.achievements[i]);
+                if (self.findUser(username)) {
+                    var localtrackedData = self.findUser(username).trackedData;
+                    for (var i in localtrackedData.achievements) {
+                        if (localtrackedData.achievements[i].id == id) {
+                            localtrackedData.revoke(username, localtrackedData.achievements[i]);
+                        }
+                        if (id == 'all') {
+                            localtrackedData.revoke(username, localtrackedData.achievements[i]);
+                        }
                     }
+                    console.log('Revoked "' + id + '" from "' + username + '".');
+                } else {
+                    console.error('ERROR:Could not find user "' + username + '".');
                 }
-                console.log('Revoked "' + id + '" from "' + username + '".');
             }
         },
         game: {
@@ -554,18 +578,30 @@ debug = function() {
                 console.log('Kicked all players.');
             },
             kill: async function(username) {
-                self.findUser(username).death();
-                console.log('Killed "' + username + '".');
+                if (self.findUser(username)) {
+                    self.findUser(username).death();
+                    console.log('Killed "' + username + '".');
+                } else {
+                    console.error('ERROR:Could not find user "' + username + '".');
+                }
             },
             noclip: async function(username) {
-                var localplayer = self.findUser(username);
-                localplayer.noclip = !localplayer.noclip;
-                console.log('Set noclip of "' + username + '" to ' + localplayer.noclip + '.');
+                if (self.findUser(username)) {
+                    var localplayer = self.findUser(username);
+                    localplayer.noclip = !localplayer.noclip;
+                    console.log('Set noclip of "' + username + '" to ' + localplayer.noclip + '.');
+                } else {
+                    console.error('ERROR:Could not find user "' + username + '".');
+                }
             },
             godmode: async function(username) {
-                var localplayer = self.findUser(username)
-                localplayer.invincible = !localplayer.invincible;
-                console.log('Set godmode of "' + username + '" to ' + localplayer.invincible + '.');
+                if (self.findUser(username)) {
+                    var localplayer = self.findUser(username);
+                    localplayer.invincible = !localplayer.invincible;
+                    console.log('Set godmode of "' + username + '" to ' + localplayer.invincible + '.');
+                } else {
+                    console.error('ERROR:Could not find user "' + username + '".');
+                }
             },
             yeet: async function() {
                 for (var i in PLAYER_LIST) {
@@ -581,7 +617,7 @@ debug = function() {
                     return PLAYER_LIST[i];
                 }
             }
-            return null;
+            return false;
         }
     }
     return self;
