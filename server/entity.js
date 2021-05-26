@@ -52,7 +52,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    if (self.lastx-self.x > self.y-self.lasty) {
+                    if (self.lastx-self.x > self.y-self.lasty && self.yspeed > 0) {
                         self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;
@@ -71,7 +71,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
-                    if (self.x-self.lastx > self.y-self.lasty) {
+                    if (self.x-self.lastx > self.y-self.lasty && self.yspeed > 0) {
                         self.x += (tempx*40) - (self.x+self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;
@@ -128,7 +128,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
-                    if (self.lastx-self.x > self.lasty-self.y) {
+                    if (self.lastx-self.x > self.lasty-self.y && self.yspeed < 0) {
                         self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;
@@ -147,7 +147,7 @@ Entity = function() {
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
                 if (((tempx*40)+1) < (self.x+self.halfsize) && (((tempy*40)+40) > self.y-self.halfsize)) {
-                    if (self.x-self.lastx > self.lasty-self.y) {
+                    if (self.x-self.lastx > self.lasty-self.y && self.yspeed < 0) {
                         self.x += (tempx*40) - (self.x+self.halfsize);
                         self.xspeed = 0;
                         self.yspeed *=0.75;  

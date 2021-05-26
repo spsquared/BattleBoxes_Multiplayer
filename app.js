@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-0.8.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.0.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-0.8.2\n');
+console.log('\nThis server is running BattleBoxes Server v-1.0.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -11,8 +11,14 @@ const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
+const Cryptr = require('cryptr');
+var crypter = new Cryptr('74a3669d-f373-4b26-9ee1-e6d26aa71c0d');
+const bcrypt = require('bcrypt');
+const salt = 5;
 const { Client } = require('pg');
-const database = new Client({connectionString: 'postgres://wwiupyglrcpguu:c2c6fb4c268287b595a05026db98bd45cc419f7459ebe3e941447ce84bcde038@ec2-54-87-112-29.compute-1.amazonaws.com:5432/dc145r7tq09fjv', ssl:{rejectUnauthorized:false}});
+const database = new Client({connectionString: crypter.decrypt('4dd0a6ee3fedd098427c1ee988bf8bcbc7cb401b422829d0d33545b567424da8aa791317d1edf3ea3b9edf0838a10bdee8845e75da2f29c4f84d13e202e7e29f41167457f4bd0c99c058ffec43c25bd1acbc4dd4e63ccc75350c6886fc6f5bbdcb13f403462f08b465ccd384dfb7963bf46005c5461bb9ab0cf99f71773ee63b3a2d28ac359674cfab687e5b16029fee1ceaacaa022fd6a45e349bb417b7e3bbfe029415fd230e06bad2d04a80a9896f83073a87756f5265a2f5159377c40dedd67e7409ef2d249efde5a55e85fab545659db325f5f26ca16226ad41d442d84d31e04abef22c6af117a8dc041d283cd1b77ac0f0bbb833'), ssl:{rejectUnauthorized:false}});
+crypter = null;
+
 require('./server/entity.js');
 require('./server/game.js');
 MAPS = [];
@@ -102,7 +108,7 @@ async function getCredentials(usrname) {
     try {
         var data = await database.query('SELECT username, password FROM users;');
         for (var i in data.rows) {
-            if (data.rows[i].username == usrname) {
+            if (bcrypt.compareSync(usrname, data.rows[i].username)) {
                 return {usrname:data.rows[i].username, psword:data.rows[i].password};
             }
         }
@@ -112,7 +118,13 @@ async function getCredentials(usrname) {
     }
 }
 async function writeCredentials(username, password, userData) {
-    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [username, password, userData], function(err, res) {if (err) stop(err);});
+    try {
+        var encryptedusername = bcrypt.hashSync(username, salt);
+        var encryptedpassword = bcrypt.hashSync(password, salt);
+    } catch (err) {
+        stop(err);
+    }
+    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [encryptedusername, encryptedpassword, userData], function(err, res) {if (err) stop(err);});
 }
 async function deleteCredentials(username) {
     database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err);});
@@ -165,7 +177,7 @@ io.on('connection', function(socket) {
             if (fetchedcreds == false) {
                 socket.emit('loginFailed', 'invalidusrname');
                 console.log('Player could not login. Reason:USER_NOT_FOUND');
-            } else if (fetchedcreds.psword == cred.psword) {
+            } else if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
                 var signedin;
                 for (var i in PLAYER_LIST) {
                     if (PLAYER_LIST[i].name == cred.usrname) {
@@ -281,7 +293,7 @@ io.on('connection', function(socket) {
             if (fetchedcreds == false) {
                 socket.emit('disconnected');
                 console.error('Error: Could not delete account. Reason:USER_NOT_FOUND');
-            } else if (fetchedcreds.psword == cred.psword) {
+            } else if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
                 deleteCredentials(cred.usrname);
                 socket.emit('loginConfirmed', 'deleted');
                 socket.emit('disconnected');
@@ -294,7 +306,7 @@ io.on('connection', function(socket) {
     });
     socket.on('changePassword', async function(cred) {
         var fetchedcreds = await getCredentials(cred.usrname);
-        if (cred.psword == fetchedcreds.psword) {
+        if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
             updateCredentials(cred.usrname, cred.newpsword);
         }
     });
@@ -481,10 +493,10 @@ function queryStop(firstrun) {
         });
     }
 }
-function stop(err) {
-    if (err) {
+function stop(stoperr) {
+    if (stoperr) {
         console.error('\nFATAL ERROR:');
-        console.error(err);
+        console.error(stoperr);
         console.error('STOP.\n');
     }
     console.log('Closing server...');
@@ -507,7 +519,15 @@ function stop(err) {
                 database.end();
                 prompt.close();
                 console.log('Server stopped.');
-                process.exit();
+                if (stoperr) {
+                    console.log('Press ENTER to exit.');
+                    const stopprompt = readline.createInterface({input: process.stdin, output: process.stdout});
+                    stopprompt.on('line', function(input) {
+                        process.exit();
+                    });
+                } else {
+                    process.exit();
+                }
             });
         });
     });
@@ -518,13 +538,16 @@ debug = function() {
     self = {
         users: {
             log: async function() {
-                database.query('SELECT username FROM users', function(err, res) {if (err) stop(err); console.log(res.rows);});
+                stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
+                // database.query('SELECT username FROM users', function(err, res) {if (err) stop(err); console.log(res.rows);});
             },
             remove: async function(username) {
-                database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err); console.log('Removed "' + username + '".');});
+                stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
+                // database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err); console.log('Removed "' + username + '".');});
             },
             reset: async function(username) {
-                database.query('UPDATE users SET data=$2 WHERE username=$1;', [username, new Achievements()], function(err, res) {if (err) stop(err); console.log('Reset "' + username + '".');});
+                stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
+                // database.query('UPDATE users SET data=$2 WHERE username=$1;', [username, new Achievements()], function(err, res) {if (err) stop(err); console.log('Reset "' + username + '".');});
             },
             grant: async function(username, id) {
                 if (self.findUser(username)) {

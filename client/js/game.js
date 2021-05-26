@@ -10,6 +10,7 @@ var connected = 0;
 var readyforstart = false;
 var countdowntext = {text:'', color:'', size:''};
 var loaded = false;
+var waiting = false;
 
 // draw game
 socket.on('update', function(pkg) {
@@ -614,7 +615,7 @@ socket.on('achievementrevoked', function(pkg) {
     updateAchievements();
 });
 socket.on('yeet', function() {
-    Banner('YEET!', 'You just got yeeted!');
+    Banner('YEET!', 'You just got yeeted!', 'white');
 });
 
 // fps & tps counter
@@ -627,12 +628,15 @@ setInterval(function() {
 // waiting for server
 waiting = setInterval(function() {
     if (ingame) {
-        connected++;
-        if (connected == 50) {
+        if (connected == 50 && !waiting) {
+            waiting = true;
             fadeIn();
-            document.getElementById('loading').style.display = 'inline-block';
             document.getElementById('waiting').style.display = 'inline-block';
+        } else if (waiting && connected == 0) {
+            document.getElementById('waiting').style.display = 'none';
+            fadeOut();
         }
+        connected++;
     }
 }, 1000/10);
 

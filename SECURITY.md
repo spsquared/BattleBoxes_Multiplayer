@@ -6,7 +6,8 @@ Supported versions are stable and up-to-date versions which will work with the d
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.8.2   | :white_check_mark: |
+| 0.1.0   | :white_check_mark: |
+| 0.8.2   | :x:                |
 | 0.8.1   | :x:                |
 | 0.8.0   | :x:                |
 | 0.7.2   | :x:                |
@@ -36,5 +37,5 @@ Supported versions are stable and up-to-date versions which will work with the d
 ### Reporting a Vulnerability
 
 If there are any security concerns, place it in the "Issues" tab found (here)[https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues]
-It will most likely take a few days to fix as I have no time. Or, if you have found a way to fix it, send a pull request.
+It will most likely take a few days to fix. Or, if you have found a way to fix it, send a pull request.
 It may be declined.

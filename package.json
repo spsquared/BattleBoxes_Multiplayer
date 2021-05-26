@@ -1,6 +1,6 @@
 {
   "name": "battleboxes_multiplayer",
-  "version": "0.8.2",
+  "version": "1.0.0",
   "description": "Multiplayer BattleBoxes",
   "main": "app.js",
   "scripts": {
@@ -18,11 +18,14 @@
   "homepage": "https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer#readme",
   "dependencies": {
     "array-flatten": "^1.1.1",
+    "bcrypt": "^5.0.1",
+    "cryptr": "^6.0.2",
     "express": "^4.17.1",
     "jquery": "^3.6.0",
     "jsonfile": "^6.0.1",
     "line-reader": "^0.4.0",
     "line-replace": "^2.0.1",
+    "npm": "^7.14.0",
     "pathfinding": "^0.4.18",
     "pg": "^8.6.0",
     "socket.io": "^4.0.1"

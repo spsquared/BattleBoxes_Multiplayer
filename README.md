@@ -3,15 +3,30 @@ BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!
 
 ***
 
+## How to Play
+
 ### Installation
-I cannot distribute node.js as I do not own any rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system).Then simply double-click on Start.bat or Start.sh and the server is running!
-Or, you can run the .pkg file included. However, I have no idea how to use it so you'll have to figure it out for yourself.
+I cannot distribute node.js as I do not own any rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system). Then simply double-click on Start.bat or Start.sh and the server is running!
 
 To stop the server, type "stop" into the server console.
-(Note: If a server crashes, stop all servers and locate PORTS.txt in the "Server" folder and replace whatever number is inside with 0);
 
 ### Joining the Game
 Once the server is started, you can find your computer's name (available in Windows>System>About as "Device name"), or simply search [what's my ip](http://google.com/search?q=whats+my+ip) or click the link. The server console will tell you what port to visit and you can type either the ip address or computer name on the client side **connected to the same network as the host** and then followed by a ":" and then the port number. Example: 111.22.33.444:2000 or hostcomputer:1100
+
+***
+
+## Troubleshooting
+#### My Server Crashed
+In the case that your server crashes, stop all other instances of the game and locate PORTS.txt in "/server/PORTS.txt", and set it to zero. Then go to the [GitHub repository](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) and [submit a bug report](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/new?assignees=&labels=bug&template=bug-report.md&title=BUG+-+%5BSummary+here%5D) with a screenshot of the console if applicable.
+#### I can't Connect to the Server (ERROR_Connection_Refused)
+If you can't connect to the server, verify that:
+ - The server is running
+ - You have entered the correct port number
+ - You have entered the correct computer name or IP adress
+ - You are connected to the same WiFi network as the server
+If you have verified all four of the above, try restarting the server. If your server is running on a dedicated server (like Heroku) check that your link is correct.
+#### The Server is Slow
+There is nothing we can do about this. It could be your connection speed or a slow server unable to run the game at full speed. Press "backslash" ("\\") ingame and in the top-right corner it should list TPS and Ping. If your Ping is high then that is likely the source of your lag. If you TPS is low then the server is lagging. Check that there is nothing eating your computer's resources by opening Task Manager (Windows) by pressing Ctrl+Shift+Esc.
 
 ***
 
@@ -44,6 +59,7 @@ Once the server is started, you can find your computer's name (available in Wind
 | 0.8.0   | <ul><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/47" target="_blank">Fixed MAJOR security vulnerability allowing people to change other people's passwords (Issue #47)</a></li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/50">Temporarily fixed huge bug linking all players achievements with hardcoding, when a better solution is found it will be replaced and the issue closed (Issue #50)</a></li><li>Added countdown text</li><li>Added win screen</li><li>Added "fullscreen" option (broken)</li><li>Added "back" option when cannot join game</li><li>Added another confirmation dialogue for deleting accounts.</li><li>Other aesthetic improvements</li><li>Fixed offset in score box</li><li>Centered loading screen text</li></ul> |
 | 0.8.1  | <ul><li>Compressed map images for better loading with lower bandwidth</li><li>Added another achievement</li><li>Added transition between login and menu</li><li>Fixed lobby deaths</li><li>Fixed game soft-locking when one player is in game and they die</li><li>Fixed ingame achievements menu</li><li>Fixed win screen glitching</li><li>Improved win screen with winner's name</li><li>Fixed signup with illegal characters</li><li>Lowered maximum username character limit to 20</li><li>Added debug console</li></ul> |
 | 0.8.2  | <ul><li>Added more maps</li><li>Randomized spawn points</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/52" target="_blank">Improved corner collisions (Issue #52)</a></li><li>Added support for Heroku deploy</li><li>Fixed typo disabling map loading when not run on localhost:</li><li>Styled achievement banners</li><li>Cleaned up code</li></ul> |
+| 1.0.0  | RELEASE 1.0.0 - The game is now no longer incomplete and is ready to play with the full experience.<ul><li>Encrypted passwords and database login</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/53" target="_blank">Fixed players getting stuck on corners (Issue #53)</a></li><li>Fixed spawning outside of map</li></ul> |
 
 ***
 
