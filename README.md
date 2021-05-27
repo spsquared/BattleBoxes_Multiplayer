@@ -60,6 +60,7 @@ There is nothing we can do about this. It could be your connection speed or a sl
 | 0.8.1  | <ul><li>Compressed map images for better loading with lower bandwidth</li><li>Added another achievement</li><li>Added transition between login and menu</li><li>Fixed lobby deaths</li><li>Fixed game soft-locking when one player is in game and they die</li><li>Fixed ingame achievements menu</li><li>Fixed win screen glitching</li><li>Improved win screen with winner's name</li><li>Fixed signup with illegal characters</li><li>Lowered maximum username character limit to 20</li><li>Added debug console</li></ul> |
 | 0.8.2  | <ul><li>Added more maps</li><li>Randomized spawn points</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/52" target="_blank">Improved corner collisions (Issue #52)</a></li><li>Added support for Heroku deploy</li><li>Fixed typo disabling map loading when not run on localhost:</li><li>Styled achievement banners</li><li>Cleaned up code</li></ul> |
 | 1.0.0  | RELEASE 1.0.0 - The game is now no longer incomplete and is ready to play with the full experience.<ul><li>Encrypted passwords and database login</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/53" target="_blank">Fixed players getting stuck on corners (Issue #53)</a></li><li>Fixed spawning outside of map</li></ul> |
+| 1.0.1  | <ul><li>Fixed achievements not saving</li><li>Fixed no fading between rounds</li></ul> |
 
 ***
 

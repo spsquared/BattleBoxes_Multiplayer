@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.0.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.0.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.0.0\n');
+console.log('\nThis server is running BattleBoxes Server v-1.0.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -12,12 +12,13 @@ const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
 const Cryptr = require('cryptr');
-var crypter = new Cryptr('74a3669d-f373-4b26-9ee1-e6d26aa71c0d');
+const cryptr = new Cryptr('74a3669d-f373-4b26-9ee1-e6d26aa71c0d');
 const bcrypt = require('bcrypt');
 const salt = 5;
 const { Client } = require('pg');
-const database = new Client({connectionString: crypter.decrypt('4dd0a6ee3fedd098427c1ee988bf8bcbc7cb401b422829d0d33545b567424da8aa791317d1edf3ea3b9edf0838a10bdee8845e75da2f29c4f84d13e202e7e29f41167457f4bd0c99c058ffec43c25bd1acbc4dd4e63ccc75350c6886fc6f5bbdcb13f403462f08b465ccd384dfb7963bf46005c5461bb9ab0cf99f71773ee63b3a2d28ac359674cfab687e5b16029fee1ceaacaa022fd6a45e349bb417b7e3bbfe029415fd230e06bad2d04a80a9896f83073a87756f5265a2f5159377c40dedd67e7409ef2d249efde5a55e85fab545659db325f5f26ca16226ad41d442d84d31e04abef22c6af117a8dc041d283cd1b77ac0f0bbb833'), ssl:{rejectUnauthorized:false}});
-crypter = null;
+const database = new Client({connectionString: cryptr.decrypt('4dd0a6ee3fedd098427c1ee988bf8bcbc7cb401b422829d0d33545b567424da8aa791317d1edf3ea3b9edf0838a10bdee8845e75da2f29c4f84d13e202e7e29f41167457f4bd0c99c058ffec43c25bd1acbc4dd4e63ccc75350c6886fc6f5bbdcb13f403462f08b465ccd384dfb7963bf46005c5461bb9ab0cf99f71773ee63b3a2d28ac359674cfab687e5b16029fee1ceaacaa022fd6a45e349bb417b7e3bbfe029415fd230e06bad2d04a80a9896f83073a87756f5265a2f5159377c40dedd67e7409ef2d249efde5a55e85fab545659db325f5f26ca16226ad41d442d84d31e04abef22c6af117a8dc041d283cd1b77ac0f0bbb833'), ssl:{rejectUnauthorized:false}});
+const Pathfind = require('pathfinding');
+const { data } = require('jquery');
 
 require('./server/entity.js');
 require('./server/game.js');
@@ -43,6 +44,7 @@ getMap = function(name, id) {
             data2[j] = [];
         }
     }
+    data2.pfgrid = new Pathfind.Grid(data2);
     data2.spawns = [];
     for (var i in data1.spawns) {
         data2.spawns[i] = {x:null, y:null};
@@ -108,7 +110,7 @@ async function getCredentials(usrname) {
     try {
         var data = await database.query('SELECT username, password FROM users;');
         for (var i in data.rows) {
-            if (bcrypt.compareSync(usrname, data.rows[i].username)) {
+            if (data.rows[i].username == usrname) {
                 return {usrname:data.rows[i].username, psword:data.rows[i].password};
             }
         }
@@ -119,12 +121,11 @@ async function getCredentials(usrname) {
 }
 async function writeCredentials(username, password, userData) {
     try {
-        var encryptedusername = bcrypt.hashSync(username, salt);
         var encryptedpassword = bcrypt.hashSync(password, salt);
     } catch (err) {
         stop(err);
     }
-    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [encryptedusername, encryptedpassword, userData], function(err, res) {if (err) stop(err);});
+    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [username, encryptedpassword, userData], function(err, res) {if (err) stop(err);});
 }
 async function deleteCredentials(username) {
     database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err);});
@@ -306,7 +307,7 @@ io.on('connection', function(socket) {
     });
     socket.on('changePassword', async function(cred) {
         var fetchedcreds = await getCredentials(cred.usrname);
-        if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
+        if (bcrypt.compareSync(cred.psword, fetchedcreds.psword) && player.name == cred.usrname) {
             updateCredentials(cred.usrname, cred.newpsword);
         }
     });

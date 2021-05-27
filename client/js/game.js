@@ -10,7 +10,7 @@ var connected = 0;
 var readyforstart = false;
 var countdowntext = {text:'', color:'', size:''};
 var loaded = false;
-var waiting = false;
+var waitingforserver = false;
 
 // draw game
 socket.on('update', function(pkg) {
@@ -629,10 +629,11 @@ setInterval(function() {
 waiting = setInterval(function() {
     if (ingame) {
         if (connected == 50 && !waiting) {
-            waiting = true;
+            waitingforserver = true;
             fadeIn();
             document.getElementById('waiting').style.display = 'inline-block';
-        } else if (waiting && connected == 0) {
+        } else if (waitingforserver && connected == 0) {
+            waitingforserver = false;
             document.getElementById('waiting').style.display = 'none';
             fadeOut();
         }
