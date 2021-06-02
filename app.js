@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.0.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.1.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.0.1\n');
+console.log('\nThis server is running BattleBoxes Server v-1.1.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -18,7 +18,6 @@ const salt = 5;
 const { Client } = require('pg');
 const database = new Client({connectionString: cryptr.decrypt('4dd0a6ee3fedd098427c1ee988bf8bcbc7cb401b422829d0d33545b567424da8aa791317d1edf3ea3b9edf0838a10bdee8845e75da2f29c4f84d13e202e7e29f41167457f4bd0c99c058ffec43c25bd1acbc4dd4e63ccc75350c6886fc6f5bbdcb13f403462f08b465ccd384dfb7963bf46005c5461bb9ab0cf99f71773ee63b3a2d28ac359674cfab687e5b16029fee1ceaacaa022fd6a45e349bb417b7e3bbfe029415fd230e06bad2d04a80a9896f83073a87756f5265a2f5159377c40dedd67e7409ef2d249efde5a55e85fab545659db325f5f26ca16226ad41d442d84d31e04abef22c6af117a8dc041d283cd1b77ac0f0bbb833'), ssl:{rejectUnauthorized:false}});
 const Pathfind = require('pathfinding');
-const { data } = require('jquery');
 
 require('./server/entity.js');
 require('./server/game.js');
@@ -48,8 +47,8 @@ getMap = function(name, id) {
     data2.spawns = [];
     for (var i in data1.spawns) {
         data2.spawns[i] = {x:null, y:null};
-        data2.spawns[i].x = data1.spawns[i].x;
-        data2.spawns[i].y = data1.spawns[i].y;
+        data2.spawns[i].x = (data1.spawns[i].x*40)+20;
+        data2.spawns[i].y = (data1.spawns[i].y*40)+20;
     }
     MAPS[id] = data2;
 }
@@ -133,6 +132,10 @@ async function deleteCredentials(username) {
 async function updateCredentials(username, password) {
     database.query('UPDATE users SET password=$2 WHERE username=$1;', [username, password], function(err, res) {if (err) stop(err);});
 }
+
+// Enable TEST_BOT by removing the double slashes (//)
+// TEST_BOT = new Bot(true);
+// TEST_BOT.respawn(60, 60);
 
 // client connection
 io = require('socket.io') (server, {});
@@ -335,6 +338,10 @@ io.on('connection', function(socket) {
                 var localplayer = PLAYER_LIST[i];
                 players.push({id:localplayer.id, name:localplayer.name, color:localplayer.color});
             }
+            for (var i in BOT_LIST) {
+                var localbot = BOT_LIST[i];
+                players.push({id:localbot.id, name:localbot.name, color:localbot.color});
+            }
             for (var i in BULLET_LIST) {
                 var localbullet = BULLET_LIST[i];
                 bullets.push({id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color});
@@ -382,9 +389,7 @@ io.on('connection', function(socket) {
         if (click.button == 'left' && round.inProgress && player.alive) {
             if (player.lastclick > ((1000/player.maxCPS)/(1000/60))) {
                 player.lastclick = 0;
-                var localbullet = new Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
-                var pack = {id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color};
-                io.emit('newbullet', pack);
+                new Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
             }
         }
     });
@@ -406,7 +411,8 @@ setInterval(function() {
     // advance game tick
     Bullet.update();
     var pack = Player.update();
-    io.emit('update', pack);
+    var pack2 = Bot.update();
+    io.emit('update', pack.concat(pack2));
     // round handling
     var j = 0;
     var k = 0;
@@ -590,11 +596,15 @@ debug = function() {
                 }
             },
             kick: async function(username) {
-                for (var i in SOCKET_LIST) {
-                    if (SOCKET_LIST[i].name == username) {
-                        SOCKET_LIST[i].emit('disconnected');
-                        console.log('Kicked "' + username + '".');
+                if (self.findUser(username)) {
+                    for (var i in SOCKET_LIST) {
+                        if (SOCKET_LIST[i].name == username) {
+                            SOCKET_LIST[i].emit('disconnected');
+                            console.log('Kicked "' + username + '".');
+                        }
                     }
+                } else {
+                    console.error('ERROR:Could not find user "' + username + '".');
                 }
             },
             kickall: async function() {
@@ -605,6 +615,28 @@ debug = function() {
                 if (self.findUser(username)) {
                     self.findUser(username).death();
                     console.log('Killed "' + username + '".');
+                } else {
+                    console.error('ERROR:Could not find user "' + username + '".');
+                }
+            },
+            tp: async function(username, xORname2, y) {
+                if (self.findUser(username)) {
+                    if (self.findUser(xORname2)) {
+                        var localplayer = self.findUser(username);
+                        var localplayer2 = self.findUser(xORname2);
+                        localplayer.x = localplayer2.x;
+                        localplayer.y = localplayer2.y;
+                        console.log('Teleported "' + username + '" to "' + xORname2 + '".');
+                    } else {
+                        if (isNaN(xORname2*10)) {
+                            console.error('ERROR:Could not find user "' + xORname2 + '".');
+                        } else {
+                            var localplayer = self.findUser(username);
+                            localplayer.x = xORname2;
+                            localplayer.y = y;
+                            console.log('Teleported "' + username + '" to (' + xORname2 + ',' + y + ').');
+                        }
+                    }
                 } else {
                     console.error('ERROR:Could not find user "' + username + '".');
                 }

@@ -4,20 +4,28 @@ $.ajaxSetup({cache: true, async:false});
 $.getScript('./client/js/game.js');
 $.getScript('./client/js/entity.js');
 $.getScript('./client/js/menu.js');
-PLAYER_LIST = {};
-BULLET_LIST = {};
-MAPS = [];
-CURRENT_MAP = 0;
-TRACKED_DATA = {kills:0, deaths:0, wins:0};
-ACHIEVEMENTS = [];
-BANNERS = [];
+if (window.devicePixelRatio) {
+    var dpr = window.devicePixelRatio;
+} else {
+    var dpr = 1;
+}
 game = document.getElementById('gameCanvas').getContext('2d');
+gameCanvas = document.getElementById('gameCanvas');
 music = new Audio();
 sfx = [new Audio(), new Audio(), new Audio(), new Audio()];
-settings = {globalvolume:(document.getElementById('globalVolume').value/100), musicvolume:(document.getElementById('musicVolume').value/100), sfxvolume:(document.getElementById('sfxVolume').value/100)};
+settings = {
+    globalvolume: (document.getElementById('globalVolume').value/100),
+    musicvolume: (document.getElementById('musicVolume').value/100),
+    sfxvolume: (document.getElementById('sfxVolume').value/100),
+    fullscreen: false,
+    fps: document.getElementById('fpsSelect').value,
+    renderQuality: (document.getElementById('renderQuality').value/100)
+};
 var currentmusic = 1;
 tpsCounter = 0;
 tps = 0;
+fpsCounter = 0;
+fps = 0;
 ping = 0;
 pingCounter = 0;
 lastDate = 0;
@@ -26,7 +34,6 @@ player = null;
 camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
 consoleAccess = false;
 var firstload = true;
-var fullscreen = false;
 
 // handlers
 socket.on('init', function() {
@@ -46,16 +53,17 @@ socket.on('init', function() {
     document.querySelectorAll("button").forEach(function(item){item.addEventListener('focus', function(){this.blur();});});
     document.getElementById('viewport').width = window.innerWidth;
     document.getElementById('viewport').height = window.innerHeight;
-    document.getElementById('gameCanvas').width = window.innerWidth;
-    document.getElementById('gameCanvas').height = window.innerHeight;
-    document.getElementById('gameCanvas').addEventListener('contextmenu', e => e.preventDefault());
+    gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
+    gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
+    game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
+    gameCanvas.addEventListener('contextmenu', e => e.preventDefault());
     document.getElementById('scoreContainer').addEventListener('contextmenu', e => e.preventDefault());
     game.lineWidth = 4;
     game.imageSmoothingEnabled = false;
     game.webkitImageSmoothingEnabled = false;
     game.mozImageSmoothingEnabled = false;
-    game.filter = 'url(#remove-alpha)';
     game.globalAlpha = 1;
+    resetFPS();
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
@@ -133,9 +141,15 @@ function updateSettings() {
     document.getElementById('GV-label').innerHTML = (Math.floor(settings.globalvolume*100) + '%');
     document.getElementById('MV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
     document.getElementById('EV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
+    document.getElementById('RQ-label').innerHTML = (Math.floor(settings.renderQuality*100) + '%');
     document.getElementById('ingameGV-label').innerHTML = (Math.floor(settings.globalvolume*100) + '%');
     document.getElementById('ingameMV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
     document.getElementById('ingameEV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
+    document.getElementById('ingameRQ-label').innerHTML = (Math.floor(settings.renderQuality*100) + '%');
+    // gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
+    // gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
+    // game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
+    resetFPS();
 }
 
 // achievements functions
@@ -192,8 +206,9 @@ window.onresize = function() {
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('viewport').width = window.innerWidth;
     document.getElementById('viewport').height = window.innerHeight;
-    document.getElementById('gameCanvas').width = window.innerWidth;
-    document.getElementById('gameCanvas').height = window.innerHeight;
+    gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
+    gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
+    game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
     game.lineWidth = 4;
     game.imageSmoothingEnabled = false;
     game.webkitImageSmoothingEnabled = false;
@@ -209,18 +224,18 @@ window.onresize = function() {
 }
 // fullscreen
 function toggleFullscreen() {
-    if (fullscreen) {
+    if (settings.fullscreen) {
         window.alert('Press "F11" to enter fullscreen mode');
         // if (document.exitFullscreen()) {document.exitFullscreen();}
         // if (document.webkitExitFullscreen()) {document.webkitExitFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'greenyellow';
-        fullscreen = false;
+        settings.fullscreen = false;
     } else {
         window.alert('Press "F11" to enter fullscreen mode');
         // if (document.body.requestFullscreen()) {document.body.requestFullscreen();}
         // if (document.body.webkitRequestFullscreen()) {document.body.webkitRequestFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'lime';
-        fullscreen = true;
+        settings.fullscreen = true;
     }
 }
 
@@ -243,6 +258,17 @@ document.getElementById('sfxVolume').oninput = function() {
     document.getElementById('ingamesfxVolume').value = document.getElementById('sfxVolume').value;
     updateSettings();
 }
+document.getElementById('fpsSelect').oninput = function() {
+    settings.fps = document.getElementById('fpsSelect').value;
+    document.getElementById('ingamefpsSelect').value = document.getElementById('fpsSelect').value;
+    updateSettings();
+}
+document.getElementById('renderQuality').oninput = function() {
+    // settings.renderQuality = (document.getElementById('renderQuality').value/100);
+    // document.getElementById('ingamerenderQuality').value = document.getElementById('renderQuality').value;
+    document.getElementById('renderQuality').value = 150;
+    // updateSettings();
+}
 document.getElementById('ingameglobalVolume').oninput = function() {
     settings.globalvolume = (document.getElementById('ingameglobalVolume').value/100);
     document.getElementById('globalVolume').value = document.getElementById('ingameglobalVolume').value;
@@ -257,6 +283,17 @@ document.getElementById('ingamesfxVolume').oninput = function() {
     settings.sfxvolume = (document.getElementById('ingamesfxVolume').value/100);
     document.getElementById('sfxVolume').value = document.getElementById('ingamesfxVolume').value;
     updateSettings();
+}
+document.getElementById('ingamefpsSelect').oninput = function() {
+    settings.fps = document.getElementById('ingamefpsSelect').value;
+    document.getElementById('fpsSelect').value = document.getElementById('ingamefpsSelect').value;
+    updateSettings();
+}
+document.getElementById('ingamerenderQuality').oninput = function() {
+    // settings.renderQuality = (document.getElementById('ingamerenderQuality').value/100);
+    // document.getElementById('renderQuality').value = document.getElementById('ingamerenderQuality').value;
+    document.getElementById('ingamerenderQuality').value = 150;
+    // updateSettings();
 }
 
 // debug
@@ -273,6 +310,7 @@ function debug() {
     document.getElementById('fxOverlay').src = '/client/img/Debugging.png';
     document.getElementById('fxOverlay').style.display = 'inline-block';
 }
+function HCBBM() {}
 
 // console access
 consoleAccess = new URLSearchParams(window.location.search).get('console');

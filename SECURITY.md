@@ -33,7 +33,6 @@ Supported versions are stable and up-to-date versions which will work with the d
 | 0.2.0   | :x:                |
 | 0.1.1   | :x:                |
 | 0.1.0   | :x:                |
-| 0.0.0   | :x:                |
 
 ### Reporting a Vulnerability
 

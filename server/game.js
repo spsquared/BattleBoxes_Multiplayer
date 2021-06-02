@@ -71,11 +71,21 @@ startRound = function() {
                 j++;
             }
         }
+        for (var i in BOT_LIST) {
+            localbot = BOT_LIST[i];
+            localbot.respawn(MAPS[CURRENT_MAP].spawns[j].x, MAPS[CURRENT_MAP].spawns[j].y);
+            pack.push({id:localbot.id, x:localbot.x, y:localbot.y, hp:localbot.hp, debug:{xspeed:localbot.xspeed, yspeed:localbot.yspeed, colliding:{left:localbot.colliding.left, right:localbot.colliding.right, bottom:localbot.colliding.bottom, top:localbot.colliding.top}}});
+            pack2.push({id:localbot.id, score:localbot.score});
+            j++;
+        }
         remainingPlayers = 0;
         for (var i in PLAYER_LIST) {
             if (PLAYER_LIST[i].ingame) {
                 remainingPlayers++;
             }
+        }
+        for (var i in BOT_LIST) {
+            remainingPlayers++;
         }
         io.emit('update', pack);
         io.emit('roundstart', pack2);
@@ -86,17 +96,23 @@ endRound = function() {
     io.emit('roundend');
     round.inProgress = false;
     var nextround = true;
+    var ingamePlayers = [];
     for (var i in PLAYER_LIST) {
-        var localplayer = PLAYER_LIST[i];
+        ingamePlayers.push({isplayer:true, data:PLAYER_LIST[i]});
+    }
+    for (var i in BOT_LIST) {
+        ingamePlayers.push({isplayer:false, data:BOT_LIST[i]});
+    }
+    for (var i in ingamePlayers) {
+        var localplayer = ingamePlayers[i].data;
         if (localplayer.alive) {
             localplayer.score++;
             if (localplayer.score > 9) {
-                localplayer.trackedData.wins++;
+                if (ingamePlayers[i].isplayer) {
+                    localplayer.trackedData.wins++;
+                }
                 endGame(localplayer.id);
                 nextround = false;
-                for (var j in PLAYER_LIST) {
-                    localplayer.score = 0;
-                }
             }
         }
     }
@@ -142,7 +158,7 @@ Achievements = function() {
         {id:"10_Deaths", name:"Careless but Alive", aqquired:false},
         {id:"100_Deaths", name:"Witchcraft", aqquired:false},
         {id:"1000_Deaths", name:"Immortal", aqquired:false},
-        {id:"1000000_Deaths", name:"How did we get get here?", aqquired:false},
+        {id:"1000000_Deaths", name:"How did we get here?", aqquired:false},
         {id:"all_achievements", name:"Overachiever", aqquired:false},
         {id:"debug_EasterEgg", name:"Debugger", aqquired:false},
         {id:"null_EasterEgg", name:"Hacker", aqquired:false}

@@ -1,5 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 
+PLAYER_LIST = [];
+BULLET_LIST = [];
+DEBUG_INFO = [];
+
 // entity
 Entity = function() {
     var self = {x:0, y:0, relx:0, rely:0, id:'', color:'#000000', debug:false};
@@ -29,7 +33,6 @@ Player = function(id, name, color) {
         self.hp = hp;
         self.relx = -(camera.x - self.x);
         self.rely = -(camera.y - self.y);
-        self.draw();
     };
     self.draw = function() {
         if (self.alive) {
@@ -56,6 +59,11 @@ Player.update = function(players) {
         localplayer.update(players[i].x, players[i].y, players[i].hp);
     }
 }
+Player.draw = function() {
+    for (var i in PLAYER_LIST) {
+        PLAYER_LIST[i].draw();
+    }
+}
 
 // bullets
 Bullet = function(id, x, y, angle, parent, color) {
@@ -75,7 +83,6 @@ Bullet = function(id, x, y, angle, parent, color) {
         self.y += self.yspeed;
         self.relx = -(camera.x - self.x);
         self.rely = -(camera.y - self.y);
-        self.draw();
     }
     self.draw = function() {
         game.fillStyle = color;
@@ -88,6 +95,11 @@ Bullet.update = function() {
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
+    }
+}
+Bullet.draw = function() {
+    for (var i in BULLET_LIST) {
+        BULLET_LIST[i].draw();
     }
 }
 

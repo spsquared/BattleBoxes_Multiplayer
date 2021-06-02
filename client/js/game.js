@@ -1,5 +1,10 @@
 // Copyright (C) 2021 Radioactive64
 
+MAPS = [];
+CURRENT_MAP = 0;
+TRACKED_DATA = {kills:0, deaths:0, wins:0};
+ACHIEVEMENTS = [];
+BANNERS = [];
 var mouseX;
 var mouseY;
 var shooting = false;
@@ -11,49 +16,63 @@ var readyforstart = false;
 var countdowntext = {text:'', color:'', size:''};
 var loaded = false;
 var waitingforserver = false;
+drawInterval = null;
 
-// draw game
+// update game
 socket.on('update', function(pkg) {
     if (ingame) {
-        game.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        drawMap();
-        updateCamera();
-        if (player.debug) {
-            for (var i in pkg) {
-                if (pkg[i].id == player.id) {
-                    drawDebug(pkg[i], true);
-                } else {
-                    drawDebug(pkg[i], false);
-                }
-            }
-        }
-        Bullet.update();
+        DEBUG_INFO = pkg;
         Player.update(pkg);
-        drawBanners();
-        game.textAlign = 'center';
-        game.fillStyle = countdowntext.color;
-        game.font = countdowntext.size + 'px Pixel';
-        game.fillText(countdowntext.text, (window.innerWidth/2), ((window.innerHeight/2)+(countdowntext.size/2)-(window.innerHeight/10)));
-        player = PLAYER_LIST[player.id];
+        Bullet.update();
+        tpsCounter++;
+        lastDate = Date.now();
+        socket.emit('ping');
         connected = 0;
     }
 });
+
+// draw game
+function resetFPS() {
+    clearInterval(drawInterval);
+    drawInterval = setInterval(function() {
+        if (ingame) {
+            game.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            drawMap();
+            if (player.debug) {
+                for (var i in DEBUG_INFO) {
+                    if (DEBUG_INFO[i].id == player.id) {
+                        drawDebug(DEBUG_INFO[i], true);
+                    } else {
+                        drawDebug(DEBUG_INFO[i], false);
+                    }
+                }
+            }
+            updateCamera();
+            HCBBM();
+            Player.draw();
+            Bullet.draw();
+            drawCountdown();
+            drawBanners();
+            fpsCounter++;
+        }
+    }, 1000/settings.fps);
+}
 function drawMap() {
     game.drawImage(MAPS[CURRENT_MAP], -camera.x, -camera.y, MAPS[CURRENT_MAP].width, MAPS[CURRENT_MAP].height);
 }
 function updateCamera() {
     // collisions to move camera
-    if ((camera.width/2) > (player.relx-16)) {
-        camera.x -= (camera.width/2) - (player.relx-16);
+    if ((camera.x+(camera.width/2)) > (player.x-16)) {
+        camera.x -= (camera.x+(camera.width/2)) - (player.x-16);
     }
-    if ((camera.width*(3/2)) < (player.relx+16)) {
-        camera.x -= (camera.width*(3/2)) - (player.relx+16);
+    if ((camera.x+(camera.width*(3/2))) < (player.x+16)) {
+        camera.x -= (camera.x+(camera.width*(3/2))) - (player.x+16);
     }
-    if ((camera.height/2) > (player.rely-16)) {
-        camera.y -= (camera.height/2) - (player.rely-16);
+    if ((camera.y+(camera.height/2)) > (player.y-16)) {
+        camera.y -= (camera.y+(camera.height/2)) - (player.y-16);
     }
-    if ((camera.height*(3/2)) < (player.rely+16)) {
-        camera.y -= (camera.height*(3/2)) - (player.rely+16);
+    if ((camera.y+(camera.height*(3/2))) < (player.y+16)) {
+        camera.y -= (camera.y+(camera.height*(3/2))) - (player.y+16);
     }
     if (camera.x < 0) {
         camera.x = 0;
@@ -73,7 +92,7 @@ function drawDebug(data, isplayer) {
         // draw debug headers
         game.fillStyle = '#FFFFFF88';
         game.fillRect(4, 4, 380, 52);
-        game.fillRect((window.innerWidth - 128), 4, 124, 70)
+        game.fillRect((window.innerWidth - 200), 4, 196, 70);
         game.fillStyle = '#000000';
         game.font = '16px Pixel';
         game.textAlign = 'left';
@@ -84,12 +103,9 @@ function drawDebug(data, isplayer) {
         game.fillText('Angle:' + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
         game.font = '24px Pixel';
         game.textAlign = 'right';
+        game.fillText('FPS:' + fps, (window.innerWidth-112), 32);
         game.fillText('TPS:' + tps, (window.innerWidth-8), 32);
         game.fillText('Ping:' + ping + 'ms', (window.innerWidth-8), 64);
-        // tps and ping counter
-        tpsCounter++;
-        lastDate = Date.now();
-        socket.emit('ping');
     }
     // draw collision debug
     game.beginPath();
@@ -134,6 +150,13 @@ function drawDebug(data, isplayer) {
     game.lineTo(tempx+40, tempy+41);
     game.closePath();
     game.stroke();
+}
+function drawCountdown() {
+    game.textAlign = 'center';
+    game.fillStyle = countdowntext.color;
+    game.font = countdowntext.size + 'px Pixel';
+    game.fillText(countdowntext.text, (window.innerWidth/2), ((window.innerHeight/2)+(countdowntext.size/2)-(window.innerHeight/10)));
+    player = PLAYER_LIST[player.id];
 }
 socket.on('ping', function() {
     currentDate = Date.now();
@@ -326,7 +349,7 @@ socket.on('game-joined', function() {
     var waitforload = setInterval(function() {
         if (loaded) {
             document.getElementById('canceljoingame').style.display = 'none';
-            document.getElementById('gameCanvas').style.display = 'block';
+            gameCanvas.style.display = 'block';
             ingame = true;
             canmove = true;
             document.getElementById('gameContainer').style.backgroundColor = 'black';
@@ -408,6 +431,7 @@ socket.on('winner', function(id) {
         game.save();
         game.translate(x+(550*(window.innerWidth/1536)), 400*(window.innerHeight/864));
         game.rotate(-15.5*(Math.PI/180));
+        game.textAlign = 'center';
         game.font = (window.innerHeight/12) + 'px Pixel';
         game.fillText(PLAYER_LIST[id].name, 0, 0);
         game.restore();
@@ -421,6 +445,7 @@ socket.on('winner', function(id) {
             game.save();
             game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
             game.rotate(-15.5*(Math.PI/180));
+            game.textAlign = 'center';
             game.font = (window.innerHeight/12) + 'px Pixel';
             game.fillText(PLAYER_LIST[id].name, 0, 0);
             game.restore();
@@ -433,6 +458,7 @@ socket.on('winner', function(id) {
                 game.save();
                 game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
                 game.rotate(-15.5*(Math.PI/180));
+                game.textAlign = 'center';
                 game.font = (window.innerHeight/12) + 'px Pixel';
                 game.fillText(PLAYER_LIST[id].name, 0, 0);
                 game.restore();
@@ -471,6 +497,7 @@ socket.on('winner', function(id) {
         }, 1);
     }, 500);
     setTimeout(function() {
+        document.getElementById('playAgain').style.opacity = 0;
         document.getElementById('playAgain').style.display = 'inline-block';
         var fadeAmount = 0;
         var fadeInterval = setInterval(function() {
@@ -488,19 +515,21 @@ socket.on('winner', function(id) {
     }, 3000);
 });
 socket.on('gamecut', function() {
-    document.getElementById('menuContainer').style.display = 'block';
-    document.getElementById('gameContainer').style.display = 'none';
-    music.src = ('/client/sound/Menu.mp3');
-    music.play();
-    ingame = false;
-    inmenu = false;
-    readyforstart = false;
-    document.getElementById('ready').style.opacity = 1;
-    document.getElementById('ready').style.display = 'inline-block';
-    document.getElementById('scoreContainer').style.display = 'none';
-    ingameBack();
-    document.getElementById('ingameMenu').style.display = 'none';
-    fadeOut();
+    if (ingame) {
+        document.getElementById('menuContainer').style.display = 'block';
+        document.getElementById('gameContainer').style.display = 'none';
+        music.src = ('/client/sound/Menu.mp3');
+        music.play();
+        ingame = false;
+        inmenu = false;
+        readyforstart = false;
+        document.getElementById('ready').style.opacity = 1;
+        document.getElementById('ready').style.display = 'inline-block';
+        document.getElementById('scoreContainer').style.display = 'none';
+        ingameBack();
+        document.getElementById('ingameMenu').style.display = 'none';
+        fadeOut();
+    }
 });
 socket.on('roundstart', function(scores) {
     if (ingame) {
@@ -622,6 +651,8 @@ socket.on('yeet', function() {
 setInterval(function() {
     tps = tpsCounter;
     tpsCounter = 0;
+    fps = fpsCounter;
+    fpsCounter = 0;
     ping = pingCounter;
 }, 1000);
 

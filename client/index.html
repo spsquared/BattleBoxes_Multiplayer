@@ -55,18 +55,33 @@
                     </tr>
                     <tr>
                         <td colspan="2">
-                            Global Volume <span id="GV-label">100%</span><br>
+                            Global Volume: <span id="GV-label">100%</span><br>
                             <input type="range" min="0" max="100" value="100" class="ui-largeSlider" id="globalVolume">
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            Music Volume <span id="MV-label">50%</span><br>
+                            Music Volume: <span id="MV-label">50%</span><br>
                             <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="musicVolume">
                         </td>
                         <td>
-                            Effects Volume <span id="EV-label">50%</span><br>
+                            Effects Volume: <span id="EV-label">50%</span><br>
                             <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="sfxVolume">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="display: inline-table;">
+                                FPS:<br>
+                                <select id="fpsSelect">
+                                    <option value="30">30</option>
+                                    <option value="60" selected>60</option>
+                                </select>
+                            </div>
+                            <div style="display: inline-table;">
+                                Render Quality: <span id="RQ-label">150%</span><br>
+                                <input type="range" min="50" max="200" step="10" value="150" class="ui-largeSlider" id="renderQuality">
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -198,6 +213,21 @@
                                 <input type="range" min="0" max="100" value="50" class="ui-largeSlider" id="ingamesfxVolume">
                             </td>
                         </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div style="display: inline-table;">
+                                    FPS:<br>
+                                    <select id="ingamefpsSelect">
+                                        <option value="30">30</option>
+                                        <option value="60" selected>60</option>
+                                    </select>
+                                </div>
+                                <div style="display: inline-table;">
+                                    Render Quality: <span id="ingameRQ-label">150%</span><br>
+                                    <input type="range" min="40" max="200" step="10" value="150" class="ui-largeSlider" id="ingamerenderQuality">
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
                 <div id="ingameAchievementsContainer">
@@ -228,7 +258,7 @@
             <p class="ui-lightText" id="gamelocked">Game is in progress, cannot join...</p>
             <input type="button" class="ui-largeButton" id="canceljoingame" value="BACK" onclick="canceljoin();"><br><br>
         </div>
-        <h5 id="versionLabel">v1.0.1</h5>
+        <h5 id="versionLabel">v1.1.0</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https:www.github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

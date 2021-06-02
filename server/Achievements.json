@@ -13,7 +13,7 @@
         {"id":"10_Deaths", "name":"Careless but Alive", "aqquired":false},
         {"id":"100_Deaths", "name":"Witchcraft", "aqquired":false},
         {"id":"1000_Deaths", "name":"Immortal", "aqquired":false},
-        {"id":"1000000_Deaths", "name":"How did we get get here?", "aqquired":false},
+        {"id":"1000000_Deaths", "name":"How did we get here?", "aqquired":false},
         {"id":"all_achievements", "name":"Overachiever", "description":"Get all non-easteregg achievements", "aqquired":false},
         {"id":"debug_EasterEgg", "name":"Debugger", "aqquired":false},
         {"id":"null_EasterEgg", "name":"Hacker", "aqquired":false}

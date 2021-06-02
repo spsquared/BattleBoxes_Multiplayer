@@ -261,6 +261,24 @@ body:-moz-full-screen {
 #sfxVolume {
     width: 252px;
 }
+#fpsSelect {
+    width: 56px;
+    height: 40px;
+    background-color: #dddddd;
+    border: 2px solid black;
+    font-family: 'Pixel';
+    font-size: 18px;
+    margin: 2px 2px;
+    cursor: pointer;
+}
+#renderQuality {
+    width: 444px;
+    cursor: not-allowed;
+}
+/* temp */
+#renderQuality::-webkit-slider-thumb {
+    cursor: not-allowed;
+}
 /* delete account button */
 #deleteAccount {
     border-width: 3px;
@@ -461,6 +479,24 @@ body:-moz-full-screen {
 }
 #ingamesfxVolume {
     width: 252px;
+}
+#ingamefpsSelect {
+    width: 56px;
+    height: 40px;
+    background-color: #dddddd;
+    border: 2px solid black;
+    font-family: 'Pixel';
+    font-size: 18px;
+    margin: 2px 2px;
+    cursor: pointer;
+}
+#ingamerenderQuality {
+    width: 444px;
+    cursor: not-allowed;
+}
+/* temp */
+#ingamerenderQuality::-webkit-slider-thumb {
+    cursor: not-allowed;
 }
 
 /* version label */

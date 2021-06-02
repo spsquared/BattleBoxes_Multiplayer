@@ -1,6 +1,8 @@
 // Copyright (C) 2021 Radioactive64
 
+const Pathfind = require('pathfinding');
 PLAYER_LIST = [];
+BOT_LIST = [];
 BULLET_LIST = [];
 COLORS = [['#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9900FF', '#FF00FF', '#000000', '#AA0000', '#996600', '#EECC33', '#00AA00', '#0088CC', '#8877CC', '#CC77AA'], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
 remainingPlayers = 0;
@@ -281,6 +283,8 @@ Player = function() {
                 self.respawn(MAPS[CURRENT_MAP].spawns[0].x, MAPS[CURRENT_MAP].spawns[0].y);
             } else {
                 self.death();
+                self.xspeed = 0;
+                self.yspeed = 0;
             }
         }
         self.x += self.xspeed;
@@ -299,13 +303,17 @@ Player = function() {
         }
     }
     self.respawn = function(x, y) {
+        self.Wpressed = false;
+        self.Spressed = false;
+        self.Apressed = false;
+        self.Dpressed = false;
         self.xspeed = 0;
         self.yspeed = 0;
         self.x = x;
         self.y = y;
         self.alive = true;
         self.hp = 5;
-    };
+    }
     self.checkAchievements = function() {
         var aqquiredachievements = 0;
         var totalachievements = 0;
@@ -348,7 +356,7 @@ Player.update = function() {
 }
 
 // bullets
-Bullet = function(mousex, mousey, x, y, parent, color) {
+Bullet = function(mousex, mousey, x, y, parent, color, isplayer) {
     var self = Entity();
     self.id = Math.random();
     self.x = x;
@@ -358,8 +366,11 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
     self.yspeed = Math.sin(self.angle)*20;
     self.halfsize = 4;
     self.parent = parent;
+    self.parentisPlayer = isplayer;
     self.color = color;
     self.valid = true;
+    var pack = {id:self.id, x:self.x, y:self.y, angle:self.angle, parent:self.parent, color:self.color};
+    io.emit('newbullet', pack);
 
     self.update = function() {
         self.updatePos();
@@ -376,7 +387,26 @@ Bullet = function(mousex, mousey, x, y, parent, color) {
                     self.valid = false;
                     localplayer.hp--;
                     if (localplayer.hp < 1) {
-                        PLAYER_LIST[self.parent].trackedData.kills++;
+                        if (self.parentisPlayer) {
+                            PLAYER_LIST[self.parent].trackedData.kills++;
+                        }
+                        Achievements.update();
+                    }
+                    io.emit('deletebullet', self.id);
+                    delete BULLET_LIST[self.id];
+                }
+            }
+        }
+        for (var i in BOT_LIST) {
+            var localbot = BOT_LIST[i];
+            if (localbot.id != self.parent && localbot.alive) {
+                if (Math.abs(self.x - localbot.x) < 16 && Math.abs(self.y - localbot.y) < 16 && self.valid) {
+                    self.valid = false;
+                    localbot.hp--;
+                    if (localbot.hp < 1) {
+                        if (self.parentisPlayer) {
+                            PLAYER_LIST[self.parent].trackedData.kills++;
+                        }
                         Achievements.update();
                     }
                     io.emit('deletebullet', self.id);
@@ -395,4 +425,181 @@ Bullet.update = function() {
         localbullet.update();
     }
     return;
+}
+
+// bots
+Bot = function(targetOtherBots) {
+    var self = new Entity();
+    self.id = Math.random();
+    self.halfsize = 16;
+    self.Wpressed = false;
+    self.Spressed = false;
+    self.Apressed = false;
+    self.Dpressed = false;
+    self.maxCPS = 10;
+    self.lastclick = 0;
+    self.hp = 5;
+    self.score = 0;
+    self.alive = true;
+    remainingPlayers++;
+    var j = 0;
+    for (var i in COLORS[1]) {
+        if (COLORS[1][i] == 1) {
+            j++;
+        }
+    }
+    self.color = COLORS[0][j];
+    COLORS[1][j] = 1;
+    self.name = 'BOT_' + BOT_LIST.length;
+    self.pathfinder = new Pathfind.JumpPointFinder({allowDiagonal:true});
+    self.attackBots = targetOtherBots;
+
+    self.update = function() {
+        self.collide();
+        self.path();
+        self.updatePos();
+        self.lastclick++;
+        if (self.hp < 1 && self.alive) {
+            self.death();
+        }
+    }
+    self.updatePos = function() {
+        if (self.Dpressed) {
+            self.xspeed += 1;
+        }
+        if (self.Apressed) {
+            self.xspeed -= 1;
+        }
+        if (self.Wpressed && self.colliding.bottom && !self.colliding.left && !self.colliding.right) {
+            self.yspeed = 15;
+        }
+        if (self.Wpressed && self.Apressed && self.colliding.left) {
+            self.yspeed = 15;
+            self.xspeed = 15;
+        }
+        if (self.Wpressed && self.Dpressed && self.colliding.right) {
+            self.yspeed = 15;
+            self.xspeed = -15;
+        }
+        self.yspeed -= 0.75;
+        self.xspeed *= 0.9;
+        if (self.yspeed < -30) {
+            self.yspeed = -30;
+        }
+        if (self.x < 16) {
+            self.x = 16;
+            self.xspeed = 0;
+        }
+        if (self.x+16 > (MAPS[CURRENT_MAP].width*40)) {
+            self.x = MAPS[CURRENT_MAP].width*40-16;
+            self.xspeed = 0;
+        }
+        if (self.y+32 > (MAPS[CURRENT_MAP].height*40)+40) {
+            if (self.invincible) {
+                self.respawn(MAPS[CURRENT_MAP].spawns[0].x, MAPS[CURRENT_MAP].spawns[0].y);
+            } else {
+                self.death();
+            }
+        }
+        self.x += self.xspeed;
+        self.y -= self.yspeed;
+    }
+    self.death = function() {
+        if (self.alive) {
+            self.alive = false;
+            remainingPlayers--;
+            io.emit('playerdied', self.id);
+            Achievements.update();
+            if (remainingPlayers < 2 && round.inProgress) {
+                endRound();
+            }
+        }
+    }
+    self.respawn = function(x, y) {
+        self.Wpressed = false;
+        self.Spressed = false;
+        self.Apressed = false;
+        self.Dpressed = false;
+        self.xspeed = 0;
+        self.yspeed = 0;
+        self.x = x;
+        self.y = y;
+        self.alive = true;
+        self.hp = 5;
+    }
+    self.path = function() {
+        var closestplayer = null;
+        for (var i in PLAYER_LIST) {
+            if (closestplayer == null || self.getDistance(self.x, self.y, PLAYER_LIST[i].x, PLAYER_LIST[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y)) {
+                closestplayer = PLAYER_LIST[i];
+            }
+        }
+        if (self.attackBots) {
+            for (var i in BOT_LIST) {
+                if (closestplayer == null || (self.getDistance(self.x, self.y, BOT_LIST[i].x, BOT_LIST[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) && i != self.id)) {
+                    closestplayer = BOT_LIST[i];
+                }
+            }
+        }
+        if (closestplayer != null) {
+            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 960) {
+                var pathgrid = MAPS[CURRENT_MAP].pfgrid.clone();
+                // self.pathfinder.findPath(closestplayer.x, closestplayer.y, pathgrid);
+                // convert coordinates to movement
+            }
+            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 160) {
+                // stop moving closer
+            }
+            if (round.inProgress && self.alive && self.validateLineOfSight(closestplayer.x, closestplayer.y) && self.lastclick > ((1000/self.maxCPS)/(1000/60))) {
+                self.lastclick = 0;
+                new Bullet(closestplayer.x+(Math.floor(Math.random()*21)-10), closestplayer.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color);
+            }
+        }
+    }
+    self.getDistance = function(x1, y1, x2, y2) {
+        return Math.sqrt((Math.pow(x1-x2, 2)) + (Math.pow(y1-y2, 2)));
+    }
+    self.validateLineOfSight = function(targetx, targety) {
+        var ray = {
+            x: self.x,
+            y: self.y,
+            xspeed: 0,
+            yspeed: 0,
+            valid: true
+        };
+        ray.angle = Math.atan2(-(ray.y-targetx), -(ray.x-targety));
+        ray.xspeed = Math.cos(ray.angle)*20;
+        ray.yspeed = Math.sin(ray.angle)*20;
+        for (var i = 0; i <= 1000; i++) {
+            ray.x += ray.xspeed;
+            ray.y += ray.yspeed;
+            if (self.getDistance(ray.x, ray.y, targetx, targety) <= 16 && ray.valid) {
+                break;
+            }
+            var rx = Math.floor(ray.x/40);
+            var ry = Math.floor(ray.y/40);
+            if (rx > -1 && rx < (MAPS[CURRENT_MAP].width+1) && ry > -1 && ry < (MAPS[CURRENT_MAP].height+1)) {
+                if (MAPS[CURRENT_MAP][ry][rx] == 1) {
+                    ray.valid = false;
+                    break;
+                }
+            }
+        }
+        if (ray.valid) {
+            return true;
+        }
+        return false;
+    }
+    
+    BOT_LIST[self.id] = self;
+    return self;
+}
+Bot.update = function() {
+    var pack = [];
+    for (var i in BOT_LIST) {
+        var localbot = BOT_LIST[i];
+        localbot.update();
+        pack.push({id:localbot.id, x:localbot.x, y:localbot.y, hp:localbot.hp, debug:{xspeed:localbot.xspeed, yspeed:localbot.yspeed, colliding:{left:localbot.colliding.left, right:localbot.colliding.right, bottom:localbot.colliding.bottom, top:localbot.colliding.top}}});
+    }
+    return pack;
 }

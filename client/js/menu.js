@@ -175,6 +175,7 @@ function quittoMenu() {
         document.getElementById('playAgain').style.opacity = '0';
         document.getElementById('playAgain').style.display = 'none';
         document.getElementById('scoreContainer').style.display = 'none';
+        document.getElementById('scoreContainer').style.opacity = 1;
         ingameBack();
         document.getElementById('ingameMenu').style.display = 'none';
         fadeOut();
