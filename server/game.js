@@ -16,6 +16,11 @@ startGame = function() {
             pack.push(localplayer.name);
         }
     }
+    for (var i in BOT_LIST) {
+        var localbot = BOT_LIST[i];
+        localbot.score = 0;
+        pack.push(localbot.name);
+    }
     setTimeout(function () {
         io.emit('gamestart', pack);
         gameinProgress = true;

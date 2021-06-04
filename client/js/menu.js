@@ -145,6 +145,9 @@ function navAchievements() {
 
 // ingame menu functions
 function resume() {
+    if (consoleAccess) {
+        document.getElementById('adminConsole').style.display = 'none';
+    }
     document.getElementById('ingameMenu').style.display = 'none';
     inmenu = false;
 }

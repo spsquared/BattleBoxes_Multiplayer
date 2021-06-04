@@ -8,8 +8,9 @@ BANNERS = [];
 var mouseX;
 var mouseY;
 var shooting = false;
-var ingame;
-var inmenu;
+var ingame = false;
+var inmenu = false;
+var inchat = false;
 var canmove = false;
 var connected = 0;
 var readyforstart = false;
@@ -247,10 +248,16 @@ document.onkeyup = function(event) {
         }
         if (event.key == 'Escape') {
             if (inmenu) {
+                if (consoleAccess) {
+                    document.getElementById('adminConsole').style.display = 'none';
+                }
                 document.getElementById('ingameMenu').style.display = 'none';
                 ingameBack();
                 inmenu = false;
             } else {
+                if (consoleAccess) {
+                    document.getElementById('adminConsole').style.display = '';
+                }
                 document.getElementById('ingameMenu').style.display = 'inline-block';
                 inmenu = true;
                 socket.emit('keyPress', {key:'W', state:false});
@@ -258,6 +265,13 @@ document.onkeyup = function(event) {
                 socket.emit('keyPress', {key:'D', state:false});
             }
             
+        }
+        if (event.key == 'Enter') {
+            if (inchat && !inmenu) {
+                document.getElementById('chatInput').blur();
+            } else if (!inmenu) {
+                document.getElementById('chatInput').focus();
+            }
         }
         if (event.code == 'Backslash') {
             player.debug = !player.debug;
@@ -281,7 +295,7 @@ document.onmousedown = function(event) {
         switch (event.button) {
             case 0:
                 socket.emit('click', {button:'left', x:mouseX, y:mouseY});
-                shooting = true; 
+                shooting = true;
             case 2:
                 socket.emit('click', {button:'right'});
                 shooting = true;
@@ -346,12 +360,15 @@ function ready() {
 
 // game handlers
 socket.on('game-joined', function() {
+    for (var i in PLAYER_LIST) {
+        PLAYER_LIST[i].alive = true;
+    }
+    ingame = true;
+    canmove = true;
     var waitforload = setInterval(function() {
         if (loaded) {
             document.getElementById('canceljoingame').style.display = 'none';
             gameCanvas.style.display = 'block';
-            ingame = true;
-            canmove = true;
             document.getElementById('gameContainer').style.backgroundColor = 'black';
             fadeOut();
             clearInterval(waitforload);

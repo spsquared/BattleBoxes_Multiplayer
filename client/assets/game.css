@@ -53,6 +53,7 @@
     top: 340px;
     user-select: none;
     -webkit-user-select: none;
+    -moz-user-select: none;
 }
 #serverfull {
     display: none;
@@ -60,6 +61,7 @@
     top: 340px;
     user-select: none;
     -webkit-user-select: none;
+    -moz-user-select: none;
 }
 #gamelocked {
     display: none;
@@ -67,6 +69,7 @@
     top: 340px;
     user-select: none;
     -webkit-user-select: none;
+    -moz-user-select: none;
 }
 /* loading screen cancel join button */
 #canceljoingame {
@@ -88,6 +91,8 @@
     height: 100%;
     -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
     cursor: crosshair;
     image-rendering: optimizeSpeed;
     image-rendering: optimizeContrast;
@@ -100,6 +105,30 @@
     -ms-interpolation-mode: nearest-neighbor;
 }
 
+/* chat box */
+#chat {
+    display: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 25vw;
+    background-color: #FFFFFF88;
+    cursor: text;
+}
+#chatInput {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 400px;
+    height: 26px;
+    border: 2px black solid;
+    padding: 4px 4px;
+    margin: 0px 0px;
+    background-color: #FFFFFF;
+    font-family: 'Pixel';
+    font-size: 16px;
+    cursor: text;
+}
+
 /* score container */
 #scoreContainer {
     display: none;
@@ -109,7 +138,7 @@
     position: absolute;
     bottom: 0px;
     right: 0px;
-    width: 75%;
+    width: 80vw;
     user-select: none;
     cursor: crosshair;
     font-family: 'Pixel';

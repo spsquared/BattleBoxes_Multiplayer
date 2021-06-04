@@ -441,7 +441,7 @@ Bot = function(targetOtherBots) {
     self.hp = 5;
     self.score = 0;
     self.alive = true;
-    remainingPlayers++;
+    self.invincible = false;
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {

@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.1.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.1.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.1.0\n');
+console.log('\nThis server is running BattleBoxes Server v-1.1.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -23,6 +23,7 @@ require('./server/entity.js');
 require('./server/game.js');
 MAPS = [];
 CURRENT_MAP = 0;
+OPS = require('./server/ops.json').ops;
 
 app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
 app.use('/client',express.static(__dirname + '/client'));
@@ -323,6 +324,9 @@ io.on('connection', function(socket) {
                 j++;
             }
         }
+        for (var i in BOT_LIST) {
+            j++;
+        }
         if (j > 15) {
             socket.emit('gamefull');
             console.log('"' + player.name + '" was not able to join; Reason:Game_Full');
@@ -336,7 +340,9 @@ io.on('connection', function(socket) {
             var bullets = [];
             for (var i in PLAYER_LIST) {
                 var localplayer = PLAYER_LIST[i];
-                players.push({id:localplayer.id, name:localplayer.name, color:localplayer.color});
+                if (localplayer.ingame) {
+                    players.push({id:localplayer.id, name:localplayer.name, color:localplayer.color});
+                }
             }
             for (var i in BOT_LIST) {
                 var localbot = BOT_LIST[i];
@@ -402,6 +408,25 @@ io.on('connection', function(socket) {
                 console.log('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!');
                 io.emit('achievement_get', {player:player.name, achievement:localachievement.id});
             }
+        }
+    });
+    socket.on('consoleInput', async function(input) {
+        console.log(player.name + ': ' + input);
+        if (SERVER.findOP(player.name)) {
+            try {
+                var command = Function('return (' + input + ')')();
+                var msg = await command;
+                if (msg == null) {
+                    msg = 'Successfully executed command';
+                }
+                socket.emit('consoleLog', {color:'green', msg:msg});
+            } catch (err) {
+                socket.emit('consoleLog', {color:'red', msg:'Error: "' + input + '" is not a valid input.\n' + err});
+                console.error('ERROR: "' + input + '" is not a valid input.');
+                console.error(err + '');
+            }
+        } else {
+            socket.emit('consoleLog', {color:'red', msg:'ERROR: NO PERMISSION.'});
         }
     });
     socket.on('ping', function() {socket.emit('ping');});
@@ -470,8 +495,8 @@ prompt.on('line', async function(input) {
             var command = Function('return (' + input + ')')();
             command;
         } catch (err) {
-            console.error('Error: "' + input + '" is not a valid input.');
-            console.error(err + '\n');
+            console.error('ERROR: "' + input + '" is not a valid input.');
+            console.error(err + '');
         }
     }
 });
@@ -547,14 +572,17 @@ debug = function() {
             log: async function() {
                 stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
                 // database.query('SELECT username FROM users', function(err, res) {if (err) stop(err); console.log(res.rows);});
+                // return res.rows;
             },
             remove: async function(username) {
                 stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
                 // database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err); console.log('Removed "' + username + '".');});
+                // return 'Removed "' + username + '".';
             },
             reset: async function(username) {
                 stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
                 // database.query('UPDATE users SET data=$2 WHERE username=$1;', [username, new Achievements()], function(err, res) {if (err) stop(err); console.log('Reset "' + username + '".');});
+                // return 'Reset "' + username + '".';
             },
             grant: async function(username, id) {
                 if (self.findUser(username)) {
@@ -568,8 +596,10 @@ debug = function() {
                         }
                     }
                     console.log('Granted "' + id + '" to "' + username + '".');
+                    return 'Granted "' + id + '" to "' + username + '".';
                 } else {
-                    console.error('ERROR:Could not find user "' + username + '".');
+                    console.error('ERROR: Could not find user "' + username + '".');
+                    return 'ERROR: Could not find user "' + username + '".';
                 }
             },
             revoke: async function(username, id) {
@@ -584,16 +614,34 @@ debug = function() {
                         }
                     }
                     console.log('Revoked "' + id + '" from "' + username + '".');
+                    return 'Revoked "' + id + '" from "' + username + '".';
                 } else {
-                    console.error('ERROR:Could not find user "' + username + '".');
+                    console.error('ERROR: Could not find user "' + username + '".');
+                    return 'ERROR: Could not find user "' + username + '".';
                 }
             }
         },
         game: {
             log: async function() {
+                var pack = [];
                 for (var i in PLAYER_LIST) {
+                    pack.push(PLAYER_LIST[i].name);
                     console.log(PLAYER_LIST[i].name);
                 }
+                for (var i in BOT_LIST) {
+                    pack.push(BOT_LIST[i].name);
+                    console.log(BOT_LIST[i].name);
+                }
+                return pack;
+            },
+            start: async function() {
+                startGame();
+                for (var i in PLAYER_LIST) {
+                    PLAYER_LIST[i].ready = false;
+                }
+            },
+            end: async function(winner) {
+                endGame(winner);
             },
             kick: async function(username) {
                 if (self.findUser(username)) {
@@ -603,20 +651,25 @@ debug = function() {
                             console.log('Kicked "' + username + '".');
                         }
                     }
+                    return 'Kicked "' + username + '".';
                 } else {
-                    console.error('ERROR:Could not find user "' + username + '".');
+                    console.error('ERROR: Could not find user "' + username + '".');
+                    return 'ERROR: Could not find user "' + username + '".';
                 }
             },
             kickall: async function() {
                 io.emit('disconnected');
                 console.log('Kicked all players.');
+                return 'Kicked all players.';
             },
             kill: async function(username) {
                 if (self.findUser(username)) {
                     self.findUser(username).death();
                     console.log('Killed "' + username + '".');
+                    return 'Killed "' + username + '".';
                 } else {
-                    console.error('ERROR:Could not find user "' + username + '".');
+                    console.error('ERROR: Could not find user "' + username + '".');
+                    return 'ERROR: Could not find user "' + username + '".';
                 }
             },
             tp: async function(username, xORname2, y) {
@@ -627,18 +680,22 @@ debug = function() {
                         localplayer.x = localplayer2.x;
                         localplayer.y = localplayer2.y;
                         console.log('Teleported "' + username + '" to "' + xORname2 + '".');
+                        return 'Teleported "' + username + '" to "' + xORname2 + '".';
                     } else {
                         if (isNaN(xORname2*10)) {
-                            console.error('ERROR:Could not find user "' + xORname2 + '".');
+                            console.error('ERROR: Could not find user "' + xORname2 + '".');
+                            return 'ERROR: Could not find user "' + xORname2 + '".';
                         } else {
                             var localplayer = self.findUser(username);
                             localplayer.x = xORname2;
                             localplayer.y = y;
                             console.log('Teleported "' + username + '" to (' + xORname2 + ',' + y + ').');
+                            return 'Teleported "' + username + '" to (' + xORname2 + ',' + y + ').';
                         }
                     }
                 } else {
-                    console.error('ERROR:Could not find user "' + username + '".');
+                    console.error('ERROR: Could not find user "' + username + '".');
+                    return 'ERROR: Could not find user "' + username + '".';
                 }
             },
             noclip: async function(username) {
@@ -646,8 +703,10 @@ debug = function() {
                     var localplayer = self.findUser(username);
                     localplayer.noclip = !localplayer.noclip;
                     console.log('Set noclip of "' + username + '" to ' + localplayer.noclip + '.');
+                    return 'Set noclip of "' + username + '" to ' + localplayer.noclip + '.';
                 } else {
-                    console.error('ERROR:Could not find user "' + username + '".');
+                    console.error('ERROR: Could not find user "' + username + '".');
+                    return 'ERROR: Could not find user "' + username + '".';
                 }
             },
             godmode: async function(username) {
@@ -655,22 +714,41 @@ debug = function() {
                     var localplayer = self.findUser(username);
                     localplayer.invincible = !localplayer.invincible;
                     console.log('Set godmode of "' + username + '" to ' + localplayer.invincible + '.');
+                    return 'Set godmode of "' + username + '" to ' + localplayer.invincible + '.';
                 } else {
-                    console.error('ERROR:Could not find user "' + username + '".');
+                    console.error('ERROR: Could not find user "' + username + '".');
+                    return 'ERROR: Could not find user "' + username + '".';
                 }
             },
             yeet: async function() {
                 for (var i in PLAYER_LIST) {
                     PLAYER_LIST[i].yspeed = 50;
                 }
+                for (var i in BOT_LIST) {
+                    BOT_LIST[i].yspeed = 50;
+                }
                 io.emit('yeet');
                 console.log('Yeeted all players!');
+                return 'Yeeted all players!';
             }
         },
         findUser: function(username) {
             for (var i in PLAYER_LIST) {
                 if (PLAYER_LIST[i].name == username) {
                     return PLAYER_LIST[i];
+                }
+            }
+            for (var i in BOT_LIST) {
+                if (BOT_LIST[i].name == username) {
+                    return BOT_LIST[i];
+                }
+            }
+            return false;
+        },
+        findOP: function(username) {
+            for (var i in OPS) {
+                if (OPS[i] == username) {
+                    return true;
                 }
             }
             return false;

@@ -123,6 +123,8 @@ body:-moz-full-screen {
     user-select: none;
     -webkit-user-drag: none;
     -webkit-user-select: none;
+    -moz-user-drag: none;
+    -moz-user-select: none;
 }
 .ui-navButton:hover {
     border-bottom: black 4px solid;
@@ -154,8 +156,10 @@ body:-moz-full-screen {
     left: 0px;
     width: 100%;
     height: 100%;
-    -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    -moz-user-select: none;
 }
 
 /* login container */
@@ -165,18 +169,18 @@ body:-moz-full-screen {
 }
 /* login buttons/inputs */
 #usrname {
+    width: 200px;
+    border: 2px black solid;
     font-family: 'Pixel';
     font-size: 16px;
     cursor: text;
 }
 #psword {
+    width: 200px;
+    border: 2px black solid;
+    font-family: 'Pixel';
     font-size: 16px;
     cursor: text;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 #login {
     border-color: rgb(0, 130, 0);
@@ -303,6 +307,7 @@ body:-moz-full-screen {
     width: 80%;
     user-select: text;
     -webkit-user-select: text;
+    -moz-user-select: text;
 }
 /* announcements page */
 #announcementsPage {
@@ -506,6 +511,8 @@ body:-moz-full-screen {
     padding: 8px 8px;
     padding-top: 0px;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
     font-family: 'Pixel';
     font-size: 16px;
 }
@@ -520,6 +527,8 @@ body:-moz-full-screen {
     right: 0px;
     -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
 }
 /* credits button */
 #credits {
@@ -529,6 +538,8 @@ body:-moz-full-screen {
     font-size: 10px;
     text-decoration: none;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
     cursor: pointer;
 }
 #credits:hover {
@@ -543,6 +554,8 @@ body:-moz-full-screen {
     font-size: 10px;
     text-decoration: none;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
     cursor: pointer;
 }
 #githublink:hover {
@@ -558,8 +571,10 @@ body:-moz-full-screen {
     bottom: 0px;
     left: 0px;
     right: 0px;
-    -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    -moz-user-select: none;
 }
 /* disconnected message */
 #disconnected {
@@ -584,6 +599,8 @@ body:-moz-full-screen {
     font-family: 'Pixel';
     -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
 }
 
 /* game fx overlay */
@@ -597,4 +614,46 @@ body:-moz-full-screen {
 #jsdisabled {
     font-family: "Pixel";
     text-align: center;
+}
+
+/* debug console */
+#adminConsole {
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 600px;
+    height: 300px;
+    border: 2px black solid;
+    background-color: whitesmoke;
+    text-align: left;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+#adminConsole-top {
+    padding-left: 8px;
+    padding-top: 4px;
+    cursor: move;
+    background-color: black;
+}
+#adminConsole-log {
+    margin-left: 8px;
+    margin-right: 8px;
+    overflow-y: scroll;
+    max-height: 250px;
+    cursor: text;
+}
+#adminConsole-input {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 596px;
+    height: 20px;
+    border: none;
+    border-top: 2px black solid;
+    background-color: white;
+    font-family: 'Pixel';
+    font-size: 16px;
+    cursor: text;
 }

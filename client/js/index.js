@@ -32,7 +32,6 @@ lastDate = 0;
 currentDate = 0;
 player = null;
 camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
-consoleAccess = false;
 var firstload = true;
 
 // handlers
@@ -239,10 +238,38 @@ function toggleFullscreen() {
     }
 }
 
-// init
+// game init
 document.addEventListener('mousedown', function() {
     music.play();
 });
+
+// // chat init
+// var chatInput = document.getElementById('chatInput');
+// chatInput.onkeydown = function(event) {
+//     if (event.key == 'Enter') {
+//         if (chatInput.value != '') {
+//             socket.emit('chatInput', chatInput.value);
+//             chatInput.value = '';
+//         }
+//     }
+// }
+// chatInput.onkeyup = function(event) {
+//     if (event.key == 'Enter') {
+//         if (chatInput.value != '') {
+//             chatInput.blur();
+//         }
+//     }
+// }
+// chatInput.onfocus = function() {
+//     inchat = true;
+//     canmove = false;
+// }
+// chatInput.onblur = function() {
+//     inchat = false;
+//     canmove = true;
+// }
+
+// settings init
 document.getElementById('globalVolume').oninput = function() {
     settings.globalvolume = (document.getElementById('globalVolume').value/100);
     document.getElementById('ingameglobalVolume').value = document.getElementById('globalVolume').value;
@@ -313,7 +340,90 @@ function debug() {
 function HCBBM() {}
 
 // console access
-consoleAccess = new URLSearchParams(window.location.search).get('console');
-if (consoleAccess == null) {
-    consoleAccess = false;
+const consoleAccess = new URLSearchParams(window.location.search).get('console');
+if (consoleAccess) {
+    adminConsole();
+}
+function adminConsole() {
+    if (consoleAccess) {
+        var consoleHistory = [];
+        var historyIndex = 0;
+        var consolewindow = {
+            dragging: false,
+            xOffset: 0,
+            yOffset: 0,
+            x: 0,
+            y: 50
+        };
+        adminConsole = document.createElement('div');
+        adminConsole.style.display = 'none';
+        adminConsole.className = 'ui-darkText';
+        adminConsole.id = 'adminConsole';
+        adminConsole.innerHTML = '<div class="ui-lightText" id="adminConsole-top">ADMIN CONSOLE</div><div id="adminConsole-log"></div><input class="ui-darkText" id="adminConsole-input" autocomplete="off">';
+        adminConsole.style.transform = 'translate(0px, 50px)';
+        document.getElementById('gameContainer').appendChild(adminConsole);
+        consoleBar = document.getElementById('adminConsole-top');
+        consoleInput = document.getElementById('adminConsole-input');
+        consoleLog = document.getElementById('adminConsole-log');
+        function renderConsole() {
+            adminConsole.style.display = '';
+            if (consolewindow.dragging) {
+                adminConsole.style.transform = 'translate(' + consolewindow.x + 'px, ' + consolewindow.y + 'px)';
+            }
+        }
+        consoleBar.onmousedown = function(event) {
+            consolewindow.xOffset = event.pageX - consolewindow.x;
+            consolewindow.yOffset = event.pageY - consolewindow.y;
+            consolewindow.dragging = true;
+        }
+        document.addEventListener('mousemove', function(event) {
+            if (consolewindow.dragging) {
+                consolewindow.x = Math.min(Math.max(event.pageX-consolewindow.xOffset, 0), window.innerWidth-604);
+                consolewindow.y = Math.min(Math.max(event.pageY-consolewindow.yOffset, 0), window.innerHeight-304);
+                renderConsole();
+            }
+        });
+        document.addEventListener('mouseup', function() {
+            consolewindow.dragging = false;
+        });
+        consoleInput.onkeydown = function(event) {
+            if (event.key == 'Enter') {
+                socket.emit('consoleInput', consoleInput.value);
+                consoleHistory.push(consoleInput.value);
+                historyIndex = consoleHistory.length;
+                log = document.createElement('div');
+                log.className = 'ui-darkText';
+                log.innerText = '> ' + consoleInput.value;
+                document.getElementById('adminConsole-log').appendChild(log);
+                consoleInput.value = '';
+            }
+            if (event.key == 'ArrowUp') {
+                historyIndex--;
+                if (historyIndex < 0) {
+                    historyIndex = 0;
+                }
+                consoleInput.value = consoleHistory[historyIndex];
+            }
+            if (event.key == 'ArrowDown') {
+                historyIndex++;
+                consoleInput.value = consoleHistory[historyIndex];
+                if (historyIndex >= consoleHistory.length) {
+                    historyIndex = consoleHistory.length;
+                    consoleInput.value = '';
+                }
+                console.log(historyIndex)
+            }
+        }
+        socket.on('consoleLog', function(msg) {
+            log = document.createElement('div');
+            log.className = 'ui-darkText';
+            log.style.color = msg.color;
+            log.innerText = msg.msg;
+            document.getElementById('adminConsole-log').appendChild(log);
+            if (consoleLog.scrollTop + consoleLog.clientHeight >= consoleLog.scrollHeight - 5) consoleLog.scrollTop = consoleLog.scrollHeight;
+        });
+        console.log('Admin console opened, you may still not be able to use it');
+    } else {
+        console.warn('No permission to perform this action!');
+    }
 }

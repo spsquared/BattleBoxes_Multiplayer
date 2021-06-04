@@ -24,7 +24,7 @@ Player = function(id, name, color) {
     self.hp = 5;
     self.score = 0;
     self.color = color;
-    self.alive = true;
+    self.alive = false;
     var HP_Color = ['#FFFFFF', '#FF0000', '#FF9900', '#FFFF00', '#99FF00', '#00FF00'];
     
     self.update = function(x, y, hp) {
