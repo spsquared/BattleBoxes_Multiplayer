@@ -65,8 +65,9 @@ socket.on('init', function() {
     resetFPS();
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
-    document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
-    document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
+    document.getElementById('loading').style.left = ((window.innerWidth/2)-64) + 'px';
+    document.getElementById('ready').style.left = ((window.innerWidth/2)-100) + 'px';
+    document.getElementById('scoreTable').style.width = ((window.innerWidth*0.75)-12) + 'px';
     // insert announcements
     document.getElementById('announcementsPage').width = (window.innerWidth-64);
     var announcementsEmbed = document.createElement('div');
@@ -218,6 +219,7 @@ window.onresize = function() {
     document.getElementById('fade').width = window.innerHeight;
     document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
     document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
+    document.getElementById('scoreTable').style.width = ((window.innerWidth*0.75)-12) + 'px';
     camera.width = window.innerWidth/2;
     camera.height = window.innerHeight/2;
 }
@@ -228,12 +230,14 @@ function toggleFullscreen() {
         // if (document.exitFullscreen()) {document.exitFullscreen();}
         // if (document.webkitExitFullscreen()) {document.webkitExitFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'greenyellow';
+        document.getElementById('ingamefullscreen').style.backgroundColor = 'greenyellow';
         settings.fullscreen = false;
     } else {
         window.alert('Press "F11" to enter fullscreen mode');
         // if (document.body.requestFullscreen()) {document.body.requestFullscreen();}
         // if (document.body.webkitRequestFullscreen()) {document.body.webkitRequestFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'lime';
+        document.getElementById('ingamefullscreen').style.backgroundColor = 'lime';
         settings.fullscreen = true;
     }
 }
@@ -243,31 +247,44 @@ document.addEventListener('mousedown', function() {
     music.play();
 });
 
-// // chat init
-// var chatInput = document.getElementById('chatInput');
-// chatInput.onkeydown = function(event) {
-//     if (event.key == 'Enter') {
-//         if (chatInput.value != '') {
-//             socket.emit('chatInput', chatInput.value);
-//             chatInput.value = '';
-//         }
-//     }
-// }
-// chatInput.onkeyup = function(event) {
-//     if (event.key == 'Enter') {
-//         if (chatInput.value != '') {
-//             chatInput.blur();
-//         }
-//     }
-// }
-// chatInput.onfocus = function() {
-//     inchat = true;
-//     canmove = false;
-// }
-// chatInput.onblur = function() {
-//     inchat = false;
-//     canmove = true;
-// }
+// chat init
+var chatInput = document.getElementById('chatInput');
+var chat = document.getElementById('chat');
+chatInput.onkeydown = function(event) {
+    if (event.key == 'Enter') {
+        if (chatInput.value != '') {
+            socket.emit('chatInput', chatInput.value);
+            chatInput.value = '';
+        }
+    }
+}
+chatInput.onkeyup = function(event) {
+    if (event.key == 'Enter') {
+        if (chatInput.value != '') {
+            chatInput.blur();
+        }
+    }
+}
+chatInput.onfocus = function() {
+    inchat = true;
+    canmove = false;
+}
+chatInput.onblur = function() {
+    inchat = false;
+    canmove = true;
+}
+socket.on('insertChat', function(msg) {
+    if (ingame) {
+        text = document.createElement('div');
+        text.className = 'ui-darkText';
+        text.style.color = msg.color;
+        text.innerText = msg.msg;
+        var scroll = false;
+        if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 5) scroll = true;
+        chat.appendChild(text);
+        if (scroll) chat.scrollTop = chat.scrollHeight;
+    }
+});
 
 // settings init
 document.getElementById('globalVolume').oninput = function() {
@@ -379,7 +396,7 @@ function adminConsole() {
         document.addEventListener('mousemove', function(event) {
             if (consolewindow.dragging) {
                 consolewindow.x = Math.min(Math.max(event.pageX-consolewindow.xOffset, 0), window.innerWidth-604);
-                consolewindow.y = Math.min(Math.max(event.pageY-consolewindow.yOffset, 0), window.innerHeight-304);
+                consolewindow.y = Math.min(Math.max(event.pageY-consolewindow.yOffset, 0), window.innerHeight-305);
                 renderConsole();
             }
         });
@@ -419,11 +436,13 @@ function adminConsole() {
             log.className = 'ui-darkText';
             log.style.color = msg.color;
             log.innerText = msg.msg;
-            document.getElementById('adminConsole-log').appendChild(log);
-            if (consoleLog.scrollTop + consoleLog.clientHeight >= consoleLog.scrollHeight - 5) consoleLog.scrollTop = consoleLog.scrollHeight;
+            var scroll = false;
+            if (consoleLog.scrollTop + consoleLog.clientHeight >= consoleLog.scrollHeight - 10) scroll = true;
+            consoleLog.appendChild(log);
+            if (scroll) consoleLog.scrollTop = consoleLog.scrollHeight;
         });
-        console.log('Admin console opened, you may still not be able to use it');
+        console.warn('Admin console opened, you may still not be able to use it');
     } else {
-        console.warn('No permission to perform this action!');
+        console.error('No permission to perform this action!');
     }
 }

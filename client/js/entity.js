@@ -105,6 +105,9 @@ Bullet.draw = function() {
 
 // game handlers
 socket.on('initgame', function(pkg) {
+    for (var i in PLAYER_LIST) {
+        delete PLAYER_LIST[i];
+    }
     for (var i in pkg.players) {
         var localplayer = Player(pkg.players[i].id, pkg.players[i].name, pkg.players[i].color);
         PLAYER_LIST[localplayer.id] = localplayer;

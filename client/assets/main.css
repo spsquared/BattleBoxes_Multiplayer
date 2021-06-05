@@ -9,7 +9,7 @@
     font-style: normal;
 }
 
-/* stop image smoothing */
+/* stop image smoothing and other */
 body {
     image-rendering: optimizeSpeed;
     image-rendering: optimizeContrast;
@@ -20,6 +20,7 @@ body {
     image-rendering: -webkit-crisp-edges;
     /* image-rendering: pixelated; */
     -ms-interpolation-mode: nearest-neighbor;
+    background-color: white;
 }
 img {
     image-rendering: optimizeSpeed;
@@ -342,7 +343,6 @@ body:-moz-full-screen {
 /* achievements achievements */
 #achievementsACHIEVEMENTS {
     display: none;
-    position: relative;
     text-align: left;
     width: 100%;
     background-color: lightgrey;
@@ -364,6 +364,14 @@ body:-moz-full-screen {
     font-size: 32px;
     margin: 0px 0px;
     width: 100%;
+}
+#achievementsMEADOWGUARDER {
+    display: none;
+    text-align: center;
+    width: 100%;
+    background-color: lightgrey;
+    border-top: grey 16px solid;
+    height: 100%;
 }
 /* color pulsing */
 @keyframes red-pulse {
@@ -475,6 +483,14 @@ body:-moz-full-screen {
     top: 10%;
 }
 
+/* ingame fullscreen button */
+#ingamefullscreen {
+    width: 90%;
+    border-width: 3px;
+    background-color: greenyellow;
+    font-size: 20px;
+    transition: all 0.5s ease-in-out;
+}
 /* volume sliders */
 #ingameglobalVolume {
     width: 512px;

@@ -128,19 +128,36 @@ function canceljoin() {
 // achievements menu functions
 function navStatistics() {
     document.getElementById('achievementsACHIEVEMENTS').style.display = 'none';
+    document.getElementById('achievementsMEADOWGUARDER').style.display = 'none';
     document.getElementById('achievementsSTATISTICS').style.display = 'inline-block';
     document.getElementById('navStatistics').style.backgroundColor = 'grey';
     document.getElementById('navStatistics').style.borderBottom = 'grey 4px solid';
     document.getElementById('navAchievements').style.backgroundColor = '';
     document.getElementById('navAchievements').style.borderBottom = '';
+    document.getElementById('navMeadowGuarder').style.backgroundColor = '';
+    document.getElementById('navMeadowGuarder').style.borderBottom = '';
 }
 function navAchievements() {
     document.getElementById('achievementsSTATISTICS').style.display = 'none';
+    document.getElementById('achievementsMEADOWGUARDER').style.display = 'none';
     document.getElementById('achievementsACHIEVEMENTS').style.display = 'inline-block';
     document.getElementById('navAchievements').style.backgroundColor = 'grey';
     document.getElementById('navAchievements').style.borderBottom = 'grey 4px solid';
     document.getElementById('navStatistics').style.backgroundColor = '';
     document.getElementById('navStatistics').style.borderBottom = '';
+    document.getElementById('navMeadowGuarder').style.backgroundColor = '';
+    document.getElementById('navMeadowGuarder').style.borderBottom = '';
+}
+function navMeadowGuarder() {
+    document.getElementById('achievementsSTATISTICS').style.display = 'none';
+    document.getElementById('achievementsACHIEVEMENTS').style.display = 'none';
+    document.getElementById('achievementsMEADOWGUARDER').style.display = 'inline-block';
+    document.getElementById('navAchievements').style.backgroundColor = '';
+    document.getElementById('navAchievements').style.borderBottom = '';
+    document.getElementById('navStatistics').style.backgroundColor = '';
+    document.getElementById('navStatistics').style.borderBottom = '';
+    document.getElementById('navMeadowGuarder').style.backgroundColor = 'grey';
+    document.getElementById('navMeadowGuarder').style.borderBottom = 'grey 4px solid';
 }
 
 // ingame menu functions
@@ -149,6 +166,8 @@ function resume() {
         document.getElementById('adminConsole').style.display = 'none';
     }
     document.getElementById('ingameMenu').style.display = 'none';
+    document.getElementById('credits').style.display = 'none';
+    document.getElementById('githublink').style.display = 'none';
     inmenu = false;
 }
 function openingameSettings() {
@@ -179,8 +198,11 @@ function quittoMenu() {
         document.getElementById('playAgain').style.display = 'none';
         document.getElementById('scoreContainer').style.display = 'none';
         document.getElementById('scoreContainer').style.opacity = 1;
+        document.getElementById('chatContainer').style.opacity = 1;
         ingameBack();
         document.getElementById('ingameMenu').style.display = 'none';
+        document.getElementById('credits').style.display = '';
+        document.getElementById('githublink').style.display = '';
         fadeOut();
     }, 1000);
 }

@@ -175,6 +175,10 @@ Entity = function() {
                     self.y += ((tempy*40)+40) - (self.y-self.halfsize);
                     self.yspeed *= -0.25;
                     self.colliding.top = true;
+                } else {
+                    self.y += (tempy*40) - (self.y+self.halfsize);
+                    self.yspeed = 0;
+                    self.colliding.bottom = true;
                 }
                 self.colliding.center = true;
             }

@@ -107,24 +107,30 @@
 
 /* chat box */
 #chat {
-    display: absolute;
-    bottom: 0px;
+    position: absolute;
+    bottom: 26px;
     left: 0px;
     width: 25vw;
-    background-color: #FFFFFF88;
-    cursor: text;
+    padding: 0px 4px;
+    height: 20vh;
+    text-align: left;
+    overflow-y: scroll;
+    max-height: 20vh;
+    background-color: #FFFFFF66;
+    border: 2px black solid;
+    border-bottom: none;
+    cursor: crosshair;
 }
 #chatInput {
     position: absolute;
     bottom: 0px;
     left: 0px;
-    width: 400px;
-    height: 26px;
-    border: 2px black solid;
-    padding: 4px 4px;
+    width: 25vw;
+    height: 24px;
+    padding: 0px 4px;
     margin: 0px 0px;
     background-color: #FFFFFF;
-    font-family: 'Pixel';
+    border: 2px black solid;
     font-size: 16px;
     cursor: text;
 }
@@ -138,7 +144,7 @@
     position: absolute;
     bottom: 0px;
     right: 0px;
-    width: 80vw;
+    width: 75vw;
     user-select: none;
     cursor: crosshair;
     font-family: 'Pixel';
@@ -151,10 +157,7 @@
     border-width: 4px;
     border-color: black;
     border-style: solid;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    padding-left: 0px;
-    padding-right: 0px;
+    padding: 8px 0px;
 }
 
 /* ready button */

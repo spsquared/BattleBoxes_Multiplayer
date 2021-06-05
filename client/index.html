@@ -113,6 +113,7 @@
                 <nav class="ui-darkText" style = "text-align: left; width: 100%;">
                     <div class="ui-navButton" id="navStatistics" onclick="navStatistics();">STATISTICS</div>
                     <div class="ui-navButton" id="navAchievements" onclick="navAchievements();">ACHIEVEMENTS</div>
+                    <div class="ui-navButton" id="navMeadowGuarder" onclick="navMeadowGuarder();">MEADOW GUARDER</div>
                 </nav>
                 <div id="achievementsSTATISTICS">
                     <table class="ui-darkText" id="aSTATStable">
@@ -129,10 +130,12 @@
                             <td class="aSTATStable" id="aSTATS_wins">If you are seeing this, something went wrong.</td>
                         </tr>
                     </table>
-                    <h1 class="ui-darkText" style="text-align: center;">PLAY MEADOW GUARDER!!!</h1>
-                    <embed src="https://meadowguarder.herokuapp.com/" width="100%" height="500px">
                 </div>
                 <div id="achievementsACHIEVEMENTS" class="ui-darkText"></div>
+                <div id="achievementsMEADOWGUARDER" class="ui-darkTest">
+                    <h1 class="ui-darkText" style="text-align: center; margin: 0px;">PLAY MEADOW GUARDER!!!</h1>
+                    <embed src="https://meadowguarder.herokuapp.com/" width="100%" height="500px">
+                </div>
             </div>
             <div id="creditsContainer">
                 music is from YouTube audio library
@@ -142,10 +145,10 @@
             <canvas id="gameCanvas"></canvas>
             <input type="image" src="/client/img/Ready.png" alt="ready" id="ready" onclick="ready();">
             <input type="button" class="ui-largeButton" id="playAgain" value="MAIN MENU" onclick="quittoMenu();">
-            <!-- <div id="chatContainer">
+            <div id="chatContainer">
                 <div class="ui-darkText" id="chat"></div>
                 <input class="ui-darkText" id="chatInput" maxlength="64">
-            </div> -->
+            </div>
             <div id="scoreContainer">
                 <table class="scoreTable" id="scoreTable">
                     <tr>
@@ -202,7 +205,7 @@
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <input type="button" class="ui-smallButton" id="fullscreen" value="FULLSCREEN" onclick="toggleFullscreen();"><br><br>
+                                <input type="button" class="ui-smallButton" id="ingamefullscreen" value="FULLSCREEN" onclick="toggleFullscreen();"><br><br>
                             </td>
                         </tr>
                         <tr>
@@ -266,7 +269,7 @@
             <p class="ui-lightText" id="gamelocked">Game is in progress, cannot join...</p>
             <input type="button" class="ui-largeButton" id="canceljoingame" value="BACK" onclick="canceljoin();"><br><br>
         </div>
-        <h5 id="versionLabel">v1.1.1</h5>
+        <h5 id="versionLabel">v1.1.2</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https:www.github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

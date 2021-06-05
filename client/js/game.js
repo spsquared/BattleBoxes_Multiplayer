@@ -252,6 +252,8 @@ document.onkeyup = function(event) {
                     document.getElementById('adminConsole').style.display = 'none';
                 }
                 document.getElementById('ingameMenu').style.display = 'none';
+                document.getElementById('credits').style.display = 'none';
+                document.getElementById('githublink').style.display = 'none';
                 ingameBack();
                 inmenu = false;
             } else {
@@ -259,6 +261,8 @@ document.onkeyup = function(event) {
                     document.getElementById('adminConsole').style.display = '';
                 }
                 document.getElementById('ingameMenu').style.display = 'inline-block';
+                document.getElementById('credits').style.display = '';
+                document.getElementById('githublink').style.display = '';
                 inmenu = true;
                 socket.emit('keyPress', {key:'W', state:false});
                 socket.emit('keyPress', {key:'A', state:false});
@@ -304,7 +308,7 @@ document.onmousedown = function(event) {
 }
 document.onmouseup = function() {
     shooting = false;
-};
+}
 
 // game functions
 function fadeIn() {
@@ -370,6 +374,8 @@ socket.on('game-joined', function() {
             document.getElementById('canceljoingame').style.display = 'none';
             gameCanvas.style.display = 'block';
             document.getElementById('gameContainer').style.backgroundColor = 'black';
+            document.getElementById('credits').style.display = 'none';
+            document.getElementById('githublink').style.display = 'none';
             fadeOut();
             clearInterval(waitforload);
         }
@@ -466,6 +472,8 @@ socket.on('winner', function(id) {
             game.font = (window.innerHeight/12) + 'px Pixel';
             game.fillText(PLAYER_LIST[id].name, 0, 0);
             game.restore();
+            document.getElementById('credits').style.display = '';
+            document.getElementById('githublink').style.display = '';
             window.addEventListener('resize', function() {
                 game.fillStyle = PLAYER_LIST[id].color;
                 game.fillRect(0, 0, window.innerWidth, window.innerHeight);
@@ -494,6 +502,7 @@ socket.on('winner', function(id) {
             clearInterval(fadeInterval);
         }
         document.getElementById('scoreContainer').style.opacity = fadeAmount;
+        document.getElementById('chatContainer').style.opacity = fadeAmount;
         music.volume = audiofade;
     }, 1);
     setTimeout(function() {
@@ -510,6 +519,7 @@ socket.on('winner', function(id) {
                 clearInterval(fadeInterval);
             }
             document.getElementById('scoreContainer').style.opacity = fadeAmount;
+            document.getElementById('chatContainer').style.opacity = fadeAmount;
             music.volume = audiofade;
         }, 1);
     }, 500);
@@ -543,8 +553,14 @@ socket.on('gamecut', function() {
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';
         document.getElementById('scoreContainer').style.display = 'none';
-        ingameBack();
+        if (consoleAccess) {
+            document.getElementById('adminConsole').style.display = 'none';
+        }
         document.getElementById('ingameMenu').style.display = 'none';
+        document.getElementById('credits').style.display = 'none';
+        document.getElementById('githublink').style.display = 'none';
+        ingameBack();
+        inmenu = false;
         fadeOut();
     }
 });

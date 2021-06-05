@@ -4,6 +4,36 @@ round = {inProgress:false, number:0};
 gameinProgress = false;
 const achievementsTemplate = require('./Achievements.json').data;
 
+// chat functions
+insertChat = function(text, textcolor) {
+    var time = new Date();
+    var minute = '' + time.getMinutes();
+    if(minute.length === 1){
+        minute = '' + 0 + minute;
+    }
+    if(minute === '0'){
+        minute = '00';
+    }
+    var color = '#000000';
+    if (textcolor != '#FFFFFF00') {
+        color = textcolor;
+    }
+    console.log('[' + time.getHours() + ':' + minute + '] ' + text);
+    var msg = '[' + time.getHours() + ':' + minute + '] ' + text;
+    io.emit('insertChat', {msg:msg, color:color});
+}
+log = function(text) {
+    var time = new Date();
+    var minute = '' + time.getMinutes();
+    if(minute.length === 1){
+        minute = '' + 0 + minute;
+    }
+    if(minute === '0'){
+        minute = '00';
+    }
+    console.log('[' + time.getHours() + ':' + minute + '] ' + text);
+}
+
 // game functions
 startGame = function() {
     endRound();
@@ -23,16 +53,22 @@ startGame = function() {
     }
     setTimeout(function () {
         io.emit('gamestart', pack);
+        insertChat('Game started!', '#000000');
         gameinProgress = true;
         startRound();
     }, 1000);
 }
 endGame = function(id) {
     if (id == null) {
+        insertChat('Game was cut short.', '#000000');
         io.emit('gamecut');
     } else {
+        insertChat(PLAYER_LIST[id].name + ' Wins!', PLAYER_LIST[id].color);
         io.emit('winner', id);
         Achievements.update();
+    }
+    for (var i in PLAYER_LIST) {
+        PLAYER_LIST[i].ingame = false;
     }
     round.inProgress = false;
     gameinProgress = false;
