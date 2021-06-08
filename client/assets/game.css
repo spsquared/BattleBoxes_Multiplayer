@@ -114,6 +114,7 @@
     padding: 0px 4px;
     height: 20vh;
     text-align: left;
+    overflow-wrap: break-word;
     overflow-y: scroll;
     max-height: 20vh;
     background-color: #FFFFFF66;
@@ -133,6 +134,42 @@
     border: 2px black solid;
     font-size: 16px;
     cursor: text;
+}
+/* chat style thing */
+@keyframes rainbow-pulse-text {
+    0% {
+        color: red;
+    }
+    10% {
+        color: orange;
+    }
+    20% {
+        color: yellow;
+    }
+    30% {
+        color: lime;
+    }
+    40% {
+        color: green;
+    }
+    50% {
+        color: teal;
+    }
+    60% {
+        color: blue;
+    }
+    70% {
+        color: navy;
+    }
+    80% {
+        color: indigo;
+    }
+    90% {
+        color: purple;
+    }
+    100% {
+        color: red;
+    }
 }
 
 /* score container */

@@ -199,10 +199,13 @@ function quittoMenu() {
         document.getElementById('scoreContainer').style.display = 'none';
         document.getElementById('scoreContainer').style.opacity = 1;
         document.getElementById('chatContainer').style.opacity = 1;
-        ingameBack();
+        if (consoleAccess) {
+            document.getElementById('adminConsole').style.display = 'none';
+        }
         document.getElementById('ingameMenu').style.display = 'none';
         document.getElementById('credits').style.display = '';
         document.getElementById('githublink').style.display = '';
+        ingameBack();
         fadeOut();
     }, 1000);
 }

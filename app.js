@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.1.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.2.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.1.2\n');
+console.log('\nThis server is running BattleBoxes Server v-1.2.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -18,6 +18,7 @@ const salt = 5;
 const { Client } = require('pg');
 const database = new Client({connectionString: cryptr.decrypt('4dd0a6ee3fedd098427c1ee988bf8bcbc7cb401b422829d0d33545b567424da8aa791317d1edf3ea3b9edf0838a10bdee8845e75da2f29c4f84d13e202e7e29f41167457f4bd0c99c058ffec43c25bd1acbc4dd4e63ccc75350c6886fc6f5bbdcb13f403462f08b465ccd384dfb7963bf46005c5461bb9ab0cf99f71773ee63b3a2d28ac359674cfab687e5b16029fee1ceaacaa022fd6a45e349bb417b7e3bbfe029415fd230e06bad2d04a80a9896f83073a87756f5265a2f5159377c40dedd67e7409ef2d249efde5a55e85fab545659db325f5f26ca16226ad41d442d84d31e04abef22c6af117a8dc041d283cd1b77ac0f0bbb833'), ssl:{rejectUnauthorized:false}});
 const Pathfind = require('pathfinding');
+const spamcheck = require('spam-detection');
 
 require('./server/entity.js');
 require('./server/game.js');
@@ -67,9 +68,9 @@ var port;
 try {
     database.connect();
 } catch (err) {
-    console.error('\nFATAL ERROR:');
-    console.error(err);
-    console.error('STOP.\n');
+    error('\nFATAL ERROR:');
+    error(err);
+    error('STOP.\n');
     prompt.close();
     log('Server stopped.');
     process.abort();
@@ -137,13 +138,14 @@ async function updateCredentials(username, password) {
 // Enable TEST_BOT by removing the double slashes (//)
 //TEST_BOT = new Bot(true);
 //TEST_BOT.respawn(60, 60);
+//TEST_BOX = new LootBox(60, 100);
 
 // client connection
 io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
-    socket.emit('init');
+    socket.emit('init')
     socket.id = Math.random();
-    var player = new Player();
+    var player = new Player(socket.id);
     SOCKET_LIST[socket.id] = socket;
     log('Client connection made.');
     // connection handlers
@@ -179,83 +181,84 @@ io.on('connection', function(socket) {
             socket.emit('disconnected');
         } else {
             var fetchedcreds = await getCredentials(cred.usrname);
-            if (fetchedcreds == false) {
-                socket.emit('loginFailed', 'invalidusrname');
-                log('Player could not login. Reason:USER_NOT_FOUND');
-            } else if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
-                var signedin;
-                for (var i in PLAYER_LIST) {
-                    if (PLAYER_LIST[i].name == cred.usrname) {
-                        signedin = true;
+            if (fetchedcreds) {
+                if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
+                    var signedin;
+                    for (var i in PLAYER_LIST) {
+                        if (PLAYER_LIST[i].name == cred.usrname) {
+                            signedin = true;
+                        }
                     }
-                }
-                if (signedin) {
-                    socket.emit('loginFailed', 'alreadyloggedin');
-                    log('Player could not login. Reason:ALREADY_LOGGED_IN');
-                } else {
-                    player.name = cred.usrname;
-                    socket.name = cred.usrname;
-                    if (cred.usrname == 'null') {
-                        player.color = '#FFFFFF00';
-                    }
-                    try {
-                        // fetch tracked data
-                        var data = await database.query('SELECT username, data FROM users');
-                        for (var i in data.rows) {
-                            if (data.rows[i].username == cred.usrname) {
-                                var localtrackedData = data.rows[i].data;
-                                try {
-                                    var checkfornull = localtrackedData.achievements;
-                                    if (checkfornull == null) {
-                                        checkfornull = new Achievements().achievements;
-                                    }
-                                    var checkfornull = localtrackedData.kills;
-                                    if (checkfornull == null) {
-                                        checkfornull = 0;
-                                    }
-                                    var checkfornull = localtrackedData.deaths;
-                                    if (checkfornull == null) {
-                                        checkfornull = 0;
-                                    }
-                                    var checkfornull = localtrackedData.wins;
-                                    if (checkfornull == null) {
-                                        checkfornull = 0;
-                                    }
-                                } catch (err) {
-                                    console.error('ERROR: Player trackedData was "' + data.rows[i].data + '" during fetch.');
+                    if (signedin) {
+                        socket.emit('loginFailed', 'alreadyloggedin');
+                        log('Player could not login. Reason:ALREADY_LOGGED_IN');
+                    } else {
+                        player.name = cred.usrname;
+                        socket.name = cred.usrname;
+                        if (cred.usrname == 'null') {
+                            player.color = '#FFFFFF00';
+                        }
+                        try {
+                            // fetch tracked data
+                            var data = await database.query('SELECT username, data FROM users');
+                            for (var i in data.rows) {
+                                if (data.rows[i].username == cred.usrname) {
+                                    var localtrackedData = data.rows[i].data;
                                     try {
-                                        await database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, new Achievements()]);
-                                        localtrackedData = new Achievements();
+                                        var checkfornull = localtrackedData.achievements;
+                                        if (checkfornull == null) {
+                                            checkfornull = new TrackedData().achievements;
+                                        }
+                                        var checkfornull = localtrackedData.kills;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.deaths;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.wins;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
                                     } catch (err) {
-                                        stop(err);
-                                    }
-                                }
-                                player.trackedData.kills = localtrackedData.kills;
-                                player.trackedData.deaths = localtrackedData.deaths;
-                                player.trackedData.wins = localtrackedData.wins;
-                                for (var j in localtrackedData.achievements) {
-                                    var localfetchedachievement = localtrackedData.achievements[j];
-                                    for (var k in player.trackedData.achievements) {
-                                        var localplayerachievement = player.trackedData.achievements[k];
-                                        if (localplayerachievement.id == localfetchedachievement.id) {
-                                            localplayerachievement.aqquired = localfetchedachievement.aqquired;
+                                        error('ERROR: Player trackedData was "' + data.rows[i].data + '" during fetch.');
+                                        try {
+                                            await database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, new TrackedData()]);
+                                            localtrackedData = new TrackedData();
+                                        } catch (err) {
+                                            stop(err);
                                         }
                                     }
+                                    player.trackedData.kills = localtrackedData.kills;
+                                    player.trackedData.deaths = localtrackedData.deaths;
+                                    player.trackedData.wins = localtrackedData.wins;
+                                    for (var j in localtrackedData.achievements) {
+                                        var localfetchedachievement = localtrackedData.achievements[j];
+                                        for (var k in player.trackedData.achievements) {
+                                            var localplayerachievement = player.trackedData.achievements[k];
+                                            if (localplayerachievement.id == localfetchedachievement.id) {
+                                                localplayerachievement.aqquired = localfetchedachievement.aqquired;
+                                            }
+                                        }
+                                    }
+                                    // player.trackedData.achievements = localtrackedData.achievements;
                                 }
-                                // player.trackedData.achievements = localtrackedData.achievements;
                             }
+                        } catch (err) {
+                            stop(err);
                         }
-                    } catch (err) {
-                        stop(err);
+                        socket.emit('inittrackedData', player.trackedData);
+                        socket.emit('loginConfirmed', 'login');
+                        log('Player with username "' + player.name + '" logged in.');
                     }
-                    socket.emit('inittrackedData', player.trackedData);
-                    socket.emit('loginConfirmed', 'login');
-                    log('Player with username "' + player.name + '" logged in.');
+                } else {
+                    socket.emit('loginFailed', 'incorrect');
+                    log('Player could not login. Reason:INCORRECT_CREDENTIALS');
                 }
-    
             } else {
-                socket.emit('loginFailed', 'incorrect');
-                log('Player could not login. Reason:INCORRECT_CREDENTIALS');
+                socket.emit('loginFailed', 'invalidusrname');
+                log('Player could not login. Reason:USER_NOT_FOUND');
             }
         }
     });
@@ -264,11 +267,9 @@ io.on('connection', function(socket) {
             socket.emit('disconnected');
         } else {
             var fetchedcreds = await getCredentials(cred.usrname);
-            if (fetchedcreds != false) {
+            if (fetchedcreds) {
                 socket.emit('loginFailed', 'usrexists');
                 log('Player could not sign up. Reason:USER_EXISTS');
-            } else if (cred.usrname.indexOf(' ') == 0 || cred.usrname.indexOf('\\') == 0 || cred.usrname.indexOf('"') == 0 || cred.psword.indexOf('\\') == 0 || cred.psword.indexOf('"') == 0) {
-                socket.emit('disconnected');
             } else {
                 player.name = cred.usrname;
                 socket.name = cred.usrname;
@@ -297,7 +298,7 @@ io.on('connection', function(socket) {
             var fetchedcreds = await getCredentials(cred.usrname);
             if (fetchedcreds == false) {
                 socket.emit('disconnected');
-                console.error('Error: Could not delete account. Reason:USER_NOT_FOUND');
+                error('Error: Could not delete account. Reason:USER_NOT_FOUND');
             } else if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
                 deleteCredentials(cred.usrname);
                 socket.emit('loginConfirmed', 'deleted');
@@ -335,36 +336,48 @@ io.on('connection', function(socket) {
             player.respawn(MAPS[0].spawns[0].x, MAPS[0].spawns[0].y);
             player.invincible = true;
             // send all existing players
-            var pack;
             var players = [];
-            var bullets = [];
             for (var i in PLAYER_LIST) {
                 var localplayer = PLAYER_LIST[i];
                 if (localplayer.ingame) {
-                    players.push({id:localplayer.id, name:localplayer.name, color:localplayer.color});
+                    players.push({
+                        id: localplayer.id,
+                        name: localplayer.name,
+                        color: localplayer.color
+                    });
                 }
             }
             for (var i in BOT_LIST) {
                 var localbot = BOT_LIST[i];
-                players.push({id:localbot.id, name:localbot.name, color:localbot.color});
+                players.push({
+                    id: localbot.id,
+                    name: localbot.name,
+                    color: localbot.color
+                });
             }
-            for (var i in BULLET_LIST) {
-                var localbullet = BULLET_LIST[i];
-                bullets.push({id:localbullet.id, x:localbullet.x, y:localbullet.y, angle:localbullet.angle, parent:localbullet.parent, color:localbullet.color});
-            }
-            pack = {self:player.id, players:players, bullets:bullets};
+            var pack = {
+                self: player.id,
+                players: players
+            };
             socket.emit('initgame', pack);
             pack = [];
             for (var i in MAPS) {
-                pack.push({id:i, width:(MAPS[i].width*40), height:(MAPS[i].height*40)});
+                pack.push({
+                    id: i,
+                    width: (MAPS[i].width*40),
+                    height: (MAPS[i].height*40)
+                });
             }
             socket.emit('initmap', pack);
             // send new player to all clients
-            var pack = {id:player.id, name:player.name, color:player.color};
+            var pack = {
+                id: player.id,
+                name: player.name,
+                color: player.color
+            };
             io.emit('newplayer', pack);
-            
             socket.emit('game-joined');
-            insertChat('"' + player.name + '" joined the game.', player.color);
+            insertChat('"' + player.name + '" joined the game.', 'server');
         } else {
             socket.emit('gamerunning');
             log('"' + player.name + '" was not able to join; Reason: Game_Started');
@@ -382,41 +395,73 @@ io.on('connection', function(socket) {
                 io.emit('deleteplayer', player.id);
             } catch (err) {}
         }, 1000);
-        insertChat('"' + player.name + '" left the game.', player.color);
+        insertChat('"' + player.name + '" left the game.', 'server');
     });
     socket.on('keyPress', function(key) {
-        if (key.key == 'W') {player.Wpressed = key.state;}
-        if (key.key == 'S') {player.Spressed = key.state;}
-        if (key.key == 'A') {player.Apressed = key.state;}
-        if (key.key == 'D') {player.Dpressed = key.state;}
+        if (key.key == 'W') player.Wpressed = key.state;
+        if (key.key == 'S') player.Spressed = key.state;
+        if (key.key == 'A') player.Apressed = key.state;
+        if (key.key == 'D') player.Dpressed = key.state;
     });
     socket.on('ready', function() {
         player.ready = true;
     });
     socket.on('click', function(click) {
         if (click.button == 'left' && round.inProgress && player.alive) {
-            if (player.lastclick > ((1000/player.maxCPS)/(1000/60))) {
-                player.lastclick = 0;
-                new Bullet(click.x, click.y, player.x, player.y, player.id, player.color);
-            }
+            player.shoot(click.x, click.y);
         }
     });
     // chat handlers
-    socket.on('chatInput', function(input) {
+    var messageRate = 0;
+    var spamOffenses = 0;
+    setInterval(async function() {
+        messageRate--;
+        if (messageRate < 0) messageRate = 0;
+    }, 3000);
+    setInterval(async function() {
+        spamOffenses--;
+        if (spamOffenses < 0) spamOffenses = 0;
+    }, 5000);
+    socket.on('chatInput', async function(input) {
         if (input.length > 64) {
             socket.emit('disconnected');
+            insertChat('"' + player.name + '" attempted to circumvent the chat message limit.', 'server');
+            try {
+                io.emit('deleteplayer', player.id);
+            } catch (err) {}
+            player.ingame = false;
+        } else if (spamcheck.detect(input) == 'spam') {
+            spamOffenses++;
+            if (spamOffenses >= 10) {
+                socket.emit('disconnected');
+                insertChat('"' + player.name + '" was kicked for spamming.', 'server');
+                try {
+                    io.emit('deleteplayer', player.id);
+                } catch (err) {}
+                player.ingame = false;
+            }
         } else {
             var msg = player.name + ': ' + input;
             insertChat(msg, player.color);
+            spamcheck.detect(input);
+            messageRate++;
+            if (messageRate >= 10) {
+                socket.emit('disconnected');
+                insertChat('"' + player.name + '" was kicked for spamming.', 'server');
+                try {
+                    io.emit('deleteplayer', player.id);
+                } catch (err) {}
+                player.ingame = false;
+            }
         }
-    })
+    });
     // debug handlers
     socket.on('debug', function() {
         for (var i in player.trackedData.achievements) {
             var localachievement = player.trackedData.achievements[i];
             if (localachievement.id == 'debug_EasterEgg' && localachievement.aqquired == false) {
                 localachievement.aqquired = true;
-                log('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!');
+                insertChat('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!', player.color);
                 io.emit('achievement_get', {player:player.name, achievement:localachievement.id});
             }
         }
@@ -431,24 +476,28 @@ io.on('connection', function(socket) {
                     msg = 'Successfully executed command';
                 }
                 socket.emit('consoleLog', {color:'green', msg:msg});
+                log(msg);
             } catch (err) {
                 socket.emit('consoleLog', {color:'red', msg:'Error: "' + input + '" is not a valid input.\n' + err});
-                console.error('ERROR: "' + input + '" is not a valid input.');
-                console.error(err + '');
+                error('ERROR: "' + input + '" is not a valid input.');
+                error(err + '');
             }
         } else {
             socket.emit('consoleLog', {color:'red', msg:'ERROR: NO PERMISSION.'});
+            error('ERROR: NO PERMISSION.');
         }
     });
-    socket.on('ping', function() {socket.emit('ping');});
+    socket.on('ping', async function() {socket.emit('ping');});
 });
 // server-side tps
 setInterval(function() {
     // advance game tick
-    Bullet.update();
-    var pack = Player.update();
-    var pack2 = Bot.update();
-    io.emit('update', pack.concat(pack2));
+    var players1 = Player.update();
+    var players2 = Bot.update();
+    var bullets = Bullet.update();
+    LootBox.update();
+    var pack = {players:players1.concat(players2), bullets:bullets};
+    io.emit('update', pack);
     // round handling
     var j = 0;
     var k = 0;
@@ -506,8 +555,8 @@ prompt.on('line', async function(input) {
             var command = Function('return (' + input + ')')();
             command;
         } catch (err) {
-            console.error('ERROR: "' + input + '" is not a valid input.');
-            console.error(err + '');
+            error('ERROR: "' + input + '" is not a valid input.');
+            error(err + '');
         }
     }
 });
@@ -538,18 +587,22 @@ function queryStop(firstrun) {
 }
 function stop(stoperr) {
     if (stoperr) {
-        console.error('\nFATAL ERROR:');
-        console.error(stoperr);
-        console.error('STOP.\n');
+        error('\nFATAL ERROR:');
+        error(stoperr);
+        error('STOP.\n');
     }
     log('Closing server...');
-    endGame();
+    if (gameinProgress) endGame();
     io.emit('disconnected');
     log('Saving user data...');
     for (var i in PLAYER_LIST) {
-        database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData], function(err, res) {if (err) console.log(err);});
+        try {
+            database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData]);
+        } catch (err) {
+            console.error(err);
+        }
     }
-    console.log('Stopping server...');
+    log('Stopping server...');
     fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) console.error(err);
         lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -561,9 +614,9 @@ function stop(stoperr) {
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
                 database.end();
                 prompt.close();
-                console.log('Server stopped.');
+                log('Server stopped.');
                 if (stoperr) {
-                    console.log('Press ENTER to exit.');
+                    console.log('\nPress ENTER to exit.');
                     const stopprompt = readline.createInterface({input: process.stdin, output: process.stdout});
                     stopprompt.on('line', function(input) {
                         process.exit();
@@ -581,18 +634,21 @@ debug = function() {
     self = {
         users: {
             log: async function() {
-                stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
+                error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
+                return 'YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!';
                 // database.query('SELECT username FROM users', function(err, res) {if (err) stop(err); log(res.rows);});
                 // return res.rows;
             },
             remove: async function(username) {
-                stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
+                error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
+                return 'YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!';
                 // database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err); log('Removed "' + username + '".');});
                 // return 'Removed "' + username + '".';
             },
             reset: async function(username) {
-                stop('YOU ARE NOT ALLOWED TO USE THIS FEATURE!');
-                // database.query('UPDATE users SET data=$2 WHERE username=$1;', [username, new Achievements()], function(err, res) {if (err) stop(err); log('Reset "' + username + '".');});
+                error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
+                return 'YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!';
+                // database.query('UPDATE users SET data=$2 WHERE username=$1;', [username, new TrackedData()], function(err, res) {if (err) stop(err); log('Reset "' + username + '".');});
                 // return 'Reset "' + username + '".';
             },
             grant: async function(username, id) {
@@ -609,7 +665,7 @@ debug = function() {
                     log('Granted "' + id + '" to "' + username + '".');
                     return 'Granted "' + id + '" to "' + username + '".';
                 } else {
-                    console.error('ERROR: Could not find user "' + username + '".');
+                    error('ERROR: Could not find user "' + username + '".');
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
@@ -627,7 +683,7 @@ debug = function() {
                     log('Revoked "' + id + '" from "' + username + '".');
                     return 'Revoked "' + id + '" from "' + username + '".';
                 } else {
-                    console.error('ERROR: Could not find user "' + username + '".');
+                    error('ERROR: Could not find user "' + username + '".');
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             }
@@ -651,20 +707,24 @@ debug = function() {
                     PLAYER_LIST[i].ready = false;
                 }
             },
-            end: async function(winner) {
-                endGame(winner);
+            end: async function(name) {
+                if (self.findUser(name)) {
+                    var localplayer = self.findUser(name);
+                    endGame(localplayer.id);
+                }
             },
             kick: async function(username) {
                 if (self.findUser(username)) {
                     for (var i in SOCKET_LIST) {
                         if (SOCKET_LIST[i].name == username) {
                             SOCKET_LIST[i].emit('disconnected');
+                            delete SOCKET_LIST[i];
                             log('Kicked "' + username + '".');
                         }
                     }
                     return 'Kicked "' + username + '".';
                 } else {
-                    console.error('ERROR: Could not find user "' + username + '".');
+                    error('ERROR: Could not find user "' + username + '".');
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
@@ -679,7 +739,7 @@ debug = function() {
                     log('Killed "' + username + '".');
                     return 'Killed "' + username + '".';
                 } else {
-                    console.error('ERROR: Could not find user "' + username + '".');
+                    error('ERROR: Could not find user "' + username + '".');
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
@@ -694,7 +754,7 @@ debug = function() {
                         return 'Teleported "' + username + '" to "' + xORname2 + '".';
                     } else {
                         if (isNaN(xORname2*10)) {
-                            console.error('ERROR: Could not find user "' + xORname2 + '".');
+                            error('ERROR: Could not find user "' + xORname2 + '".');
                             return 'ERROR: Could not find user "' + xORname2 + '".';
                         } else {
                             var localplayer = self.findUser(username);
@@ -705,7 +765,7 @@ debug = function() {
                         }
                     }
                 } else {
-                    console.error('ERROR: Could not find user "' + username + '".');
+                    error('ERROR: Could not find user "' + username + '".');
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
@@ -716,7 +776,7 @@ debug = function() {
                     log('Set noclip of "' + username + '" to ' + localplayer.noclip + '.');
                     return 'Set noclip of "' + username + '" to ' + localplayer.noclip + '.';
                 } else {
-                    console.error('ERROR: Could not find user "' + username + '".');
+                    error('ERROR: Could not find user "' + username + '".');
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
@@ -727,7 +787,7 @@ debug = function() {
                     log('Set godmode of "' + username + '" to ' + localplayer.invincible + '.');
                     return 'Set godmode of "' + username + '" to ' + localplayer.invincible + '.';
                 } else {
-                    console.error('ERROR: Could not find user "' + username + '".');
+                    error('ERROR: Could not find user "' + username + '".');
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },

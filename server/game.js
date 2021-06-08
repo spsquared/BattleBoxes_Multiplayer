@@ -15,7 +15,11 @@ insertChat = function(text, textcolor) {
         minute = '00';
     }
     var color = '#000000';
-    if (textcolor != '#FFFFFF00') {
+    if (textcolor == 'server') {
+        color = 'server';
+    } else if (textcolor == '#FFFFFF00') {
+        color = 'rainbow-pulse'
+    } else {
         color = textcolor;
     }
     console.log('[' + time.getHours() + ':' + minute + '] ' + text);
@@ -32,6 +36,17 @@ log = function(text) {
         minute = '00';
     }
     console.log('[' + time.getHours() + ':' + minute + '] ' + text);
+}
+error = function(text) {
+    var time = new Date();
+    var minute = '' + time.getMinutes();
+    if(minute.length === 1){
+        minute = '' + 0 + minute;
+    }
+    if(minute === '0'){
+        minute = '00';
+    }
+    console.error('[' + time.getHours() + ':' + minute + '] ' + text);
 }
 
 // game functions
@@ -65,10 +80,11 @@ endGame = function(id) {
     } else {
         insertChat(PLAYER_LIST[id].name + ' Wins!', PLAYER_LIST[id].color);
         io.emit('winner', id);
-        Achievements.update();
+        TrackedData.update();
     }
     for (var i in PLAYER_LIST) {
         PLAYER_LIST[i].ingame = false;
+        io.emit('deleteplayer', i);
     }
     round.inProgress = false;
     gameinProgress = false;
@@ -168,13 +184,13 @@ endRound = function() {
 }
 
 // achievements
-Achievements = function() {
+TrackedData = function() {
     var self = {
         achievements:achievementsTemplate,
         grant: function(player, achievement) {
             achievement.aqquired = true;
             io.emit('achievement_get', {player:player, achievement:achievement.id});
-            console.log('Player "' + player + '" got the achievement "' + achievement.name + '"!');
+            insertChat('Player "' + player + '" got the achievement "' + achievement.name + '"!', 'rainbow-pulse');
         },
         revoke: function(player, achievement) {
             achievement.aqquired = false;
@@ -206,16 +222,25 @@ Achievements = function() {
     ]
     return self;
 }
-Achievements.update = function() {
+TrackedData.update = function() {
+    var pack = [];
     for (var i in PLAYER_LIST) {
         var localplayer = PLAYER_LIST[i];
         if (localplayer.ingame) {
             localplayer.checkAchievements();
+            pack.push({
+                id: localplayer.id,
+                kills: localplayer.trackedData.kills,
+                deaths: localplayer.trackedData.deaths,
+                wins: localplayer.trackedData.wins
+            });
         }
+        io.emit('updateTrackedData', pack);
     }
 }
+
 // debug
-Achievements.log = function() {
+TrackedData.log = function() {
     for (var i in PLAYER_LIST) {
         var localplayer = PLAYER_LIST[i];
         console.log(localplayer.trackedData);

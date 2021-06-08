@@ -3,7 +3,7 @@
         {"id":"1_Wins", "name":"Winner Winner Chicken Dinner", "description":"Win a game", "color":"greenyellow", "aqquired":false, "hidden":false},
         {"id":"10_Wins", "name":"Master of Gaming", "description":"Win 10 games", "color":"lawngreen", "aqquired":false, "hidden":false},
         {"id":"100_Wins", "name":"The Ultimate Champion", "description":"Win 100 games", "color":"lime", "aqquired":false, "hidden":false},
-        {"id":"1000_Wins", "name":"Unparalleled Dominance", "description":"Win 1000 games!", "color":"limegreen", "aqquired":false, "hidden":false},
+        {"id":"1000_Wins", "name":"Unparalleled Dominance", "description":"Win 1000 games", "color":"limegreen", "aqquired":false, "hidden":false},
         {"id":"1_Kills", "name":"Pew pew gun!", "description":"Get one kill", "color":"lightyellow", "aqquired":false, "hidden":false},
         {"id":"10_Kills", "name":"Assassin", "description":"Get ten kills", "color":"palegoldenrod", "aqquired":false, "hidden":false},
         {"id":"100_Kills", "name":"Hitman", "description":"Get 100 kills", "color":"yellow", "aqquired":false, "hidden":false},

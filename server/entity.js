@@ -4,13 +4,29 @@ const Pathfind = require('pathfinding');
 PLAYER_LIST = [];
 BOT_LIST = [];
 BULLET_LIST = [];
-COLORS = [['#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9900FF', '#FF00FF', '#000000', '#AA0000', '#996600', '#EECC33', '#00AA00', '#0088CC', '#8877CC', '#CC77AA'], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+LOOT_BOXES = [];
+COLORS = [
+    ['#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9900FF', '#FF00FF', '#000000', '#AA0000', '#996600', '#EECC33', '#00AA00', '#0088CC', '#8877CC', '#CC77AA'],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+];
+LOOT_EFFECTS = [
+    {effect:'speed', percent:10},
+    {effect:'speed2', percent:5},
+    {effect:'jump', percent:10},
+    {effect:'heal', percent:10},
+    {effect:'damage', percent:5},
+    {effect:'shield', percent:10},
+    {effect:'homing', percent:15},
+    {effect:'firerate', percent:10},
+    {effect:'firerate2', percent:5},
+    {effect:'special', percent:20}
+];
 remainingPlayers = 0;
 
 // entity
 Entity = function() {
     var self = {
-        id: null,
+        id: Math.random(),
         x: 0,
         y: 0,
         lastx: 0,
@@ -195,9 +211,9 @@ Entity = function() {
 }
 
 // player
-Player = function() {
+Player = function(socketid) {
     var self = new Entity();
-    self.id = Math.random();
+    self.socketid = socketid;
     self.name = '';
     self.halfsize = 16;
     self.Wpressed = false;
@@ -210,11 +226,19 @@ Player = function() {
     self.maxCPS = 10;
     self.lastclick = 0;
     self.hp = 5;
+    self.shield = 0;
     self.score = 0;
     self.alive = true;
+    self.modifiers = {
+        moveSpeed: 1,
+        jumpHeight: 1,
+        bulletSpeed: 1,
+        bulletRate: 1,
+        homingBullets: false
+    };
     self.ready = false;
     self.ingame = false;
-    self.trackedData = new Achievements();
+    self.trackedData = new TrackedData();
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
@@ -239,33 +263,33 @@ Player = function() {
             self.xspeed = 0;
             self.yspeed = 0;
             if (self.Dpressed) {
-                self.xspeed = 10;
+                self.xspeed = 10*self.modifiers.moveSpeed;
             }
             if (self.Apressed) {
-                self.xspeed = -10;
+                self.xspeed = -10*self.modifiers.moveSpeed;
             }
             if (self.Wpressed) {
-                self.yspeed = 10;
+                self.yspeed = 10*self.modifiers.moveSpeed;
             }
             if (self.Spressed) {
-                self.yspeed = -10;
+                self.yspeed = -10*self.modifiers.moveSpeed;
             }
         } else {
             if (self.Dpressed) {
-                self.xspeed += 1;
+                self.xspeed += 1*self.modifiers.moveSpeed;
             }
             if (self.Apressed) {
-                self.xspeed -= 1;
+                self.xspeed -= 1*self.modifiers.moveSpeed;
             }
             if (self.Wpressed && self.colliding.bottom && !self.colliding.left && !self.colliding.right) {
-                self.yspeed = 15;
+                self.yspeed = 15*self.modifiers.jumpHeight;
             }
             if (self.Wpressed && self.Apressed && self.colliding.left) {
-                self.yspeed = 15;
+                self.yspeed = 15*self.modifiers.jumpHeight;
                 self.xspeed = 15;
             }
             if (self.Wpressed && self.Dpressed && self.colliding.right) {
-                self.yspeed = 15;
+                self.yspeed = 15*self.modifiers.jumpHeight;
                 self.xspeed = -15;
             }
             self.yspeed -= 0.75;
@@ -300,7 +324,7 @@ Player = function() {
             self.alive = false;
             remainingPlayers--;
             io.emit('playerdied', self.id);
-            Achievements.update();
+            TrackedData.update();
             if (remainingPlayers < 2 && round.inProgress) {
                 endRound();
             }
@@ -317,6 +341,20 @@ Player = function() {
         self.y = y;
         self.alive = true;
         self.hp = 5;
+        self.shield = 0;
+        self.modifiers = {
+            moveSpeed: 1,
+            jumpHeight: 1,
+            bulletSpeed: 1,
+            bulletRate: 1,
+            homingBullets: false
+        };
+    }
+    self.shoot = function(x, y) {
+        if (self.lastclick > ((1000/self.maxCPS)/(1000/60))) {
+            self.lastclick = 0;
+            new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.homingBullets);
+        }
     }
     self.checkAchievements = function() {
         var aqquiredachievements = 0;
@@ -353,27 +391,49 @@ Player.update = function() {
         var localplayer = PLAYER_LIST[i];
         if (localplayer.ingame) {
             localplayer.update();
-            pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, debug:{xspeed:localplayer.xspeed, yspeed:localplayer.yspeed, colliding:{left:localplayer.colliding.left, right:localplayer.colliding.right, bottom:localplayer.colliding.bottom, top:localplayer.colliding.top}}});
+            pack.push({
+                id: localplayer.id,
+                x: localplayer.x,
+                y: localplayer.y, 
+                hp: localplayer.hp,
+                shield: localplayer.shield,
+                debug: {
+                    xspeed: localplayer.xspeed,
+                    yspeed: localplayer.yspeed,
+                    colliding: {
+                        left: localplayer.colliding.left,
+                        right: localplayer.colliding.right,
+                        bottom: localplayer.colliding.bottom,
+                        top: localplayer.colliding.top
+                    }
+                }
+            });
         }
     }
     return pack;
 }
 
 // bullets
-Bullet = function(mousex, mousey, x, y, parent, color, isplayer) {
-    var self = Entity();
-    self.id = Math.random();
+Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, homing) {
+    var self = new Entity();
     self.x = x;
     self.y = y;
     self.angle = Math.atan2(-(self.y-mousey-16), -(self.x-mousex-16));
-    self.xspeed = Math.cos(self.angle)*20;
-    self.yspeed = Math.sin(self.angle)*20;
+    self.xspeed = Math.cos(self.angle)*20*speedModifier;
+    self.yspeed = Math.sin(self.angle)*20*speedModifier;
     self.halfsize = 4;
     self.parent = parent;
     self.parentisPlayer = isplayer;
+    self.homing = homing;
     self.color = color;
     self.valid = true;
-    var pack = {id:self.id, x:self.x, y:self.y, angle:self.angle, parent:self.parent, color:self.color};
+    var pack = {
+        id: self.id,
+        x: self.x,
+        y: self.y,
+        parent: self.parent,
+        color: self.color
+    };
     io.emit('newbullet', pack);
 
     self.update = function() {
@@ -389,12 +449,17 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer) {
             if (localplayer.id != self.parent && localplayer.alive) {
                 if (Math.abs(self.x - localplayer.x) < 16 && Math.abs(self.y - localplayer.y) < 16 && self.valid && !localplayer.invincible) {
                     self.valid = false;
-                    localplayer.hp--;
+                    if (localplayer.shield > 0) {
+                        localplayer.shield --;
+                    } else {
+                        localplayer.hp--;
+                    }
                     if (localplayer.hp < 1) {
                         if (self.parentisPlayer) {
                             PLAYER_LIST[self.parent].trackedData.kills++;
+                            TrackedData.update();
                         }
-                        Achievements.update();
+                        TrackedData.update();
                     }
                     io.emit('deletebullet', self.id);
                     delete BULLET_LIST[self.id];
@@ -406,12 +471,18 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer) {
             if (localbot.id != self.parent && localbot.alive) {
                 if (Math.abs(self.x - localbot.x) < 16 && Math.abs(self.y - localbot.y) < 16 && self.valid) {
                     self.valid = false;
-                    localbot.hp--;
+                    if (localbot.shield > 0) {
+                        localbot.shield --;
+                    } else {
+                        localbot.hp--;
+                    }
                     if (localbot.hp < 1) {
                         if (self.parentisPlayer) {
+                            console.log('thing')
                             PLAYER_LIST[self.parent].trackedData.kills++;
+                            TrackedData.update();
                         }
-                        Achievements.update();
+                        TrackedData.update();
                     }
                     io.emit('deletebullet', self.id);
                     delete BULLET_LIST[self.id];
@@ -419,22 +490,77 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer) {
             }
         }
     }
-    
+    self.updatePos = function() {
+        if (self.homing) {
+            var closestplayer = self.findClosestPlayer();
+            if (closestplayer) {
+                self.angle = Math.atan2(-(self.y-closestplayer.y), -(self.x-closestplayer.x));
+                self.xspeed = Math.cos(self.angle)*20*speedModifier;
+                self.yspeed = Math.sin(self.angle)*20*speedModifier;
+                // if (self.xspeed > 20*speedModifier) {
+                //     self.xspeed = 20*speedModifier;
+                // }
+                // if (self.xspeed < -20*speedModifier) {
+                //     self.xspeed = -20*speedModifier;
+                // }
+                // if (self.yspeed > 20*speedModifier) {
+                //     self.yspeed = 20*speedModifier;
+                // }
+                // if (self.yspeed < -20*speedModifier) {
+                //     self.yspeed = -20*speedModifier;
+                // }
+            }
+        }
+        self.x += self.xspeed;
+        self.y += self.yspeed;
+    }
+    self.findClosestPlayer = function() {
+        var closestplayer = null;
+        var players = [];
+        for (var i in PLAYER_LIST) {
+            if (i != self.parent) {
+                players.push(PLAYER_LIST[i]);
+            }
+        }
+        for (var i in BOT_LIST) {
+            if (BOT_LIST[i].id != self.parent) {
+                players.push(BOT_LIST[i]);
+            }
+        }
+        for (var i in players) {
+            if (closestplayer == null) {
+                closestplayer = players[i];
+            } else if (self.getDistance(self.x, self.y, players[i].x, players[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) && players[i].alive && players[i].id != self.parent) {
+                closestplayer = players[i];
+            }
+        }
+        if (closestplayer != null) return closestplayer;
+        else return false;
+    }
+    self.getDistance = function(x1, y1, x2, y2) {
+        return Math.sqrt((Math.pow(Math.abs(x1-x2), 2)) + (Math.pow(Math.abs(y1-y2), 2)));
+    }
+
     BULLET_LIST[self.id] = self;
     return self;
 }
 Bullet.update = function() {
+    var pack = [];
     for (var i in BULLET_LIST) {
         var localbullet = BULLET_LIST[i];
         localbullet.update();
+        pack.push({
+            id: localbullet.id,
+            x: localbullet.x,
+            y: localbullet.y
+        });
     }
-    return;
+    return pack;
 }
 
 // bots
 Bot = function(targetOtherBots) {
     var self = new Entity();
-    self.id = Math.random();
     self.halfsize = 16;
     self.Wpressed = false;
     self.Spressed = false;
@@ -446,6 +572,13 @@ Bot = function(targetOtherBots) {
     self.score = 0;
     self.alive = true;
     self.invincible = false;
+    self.modifiers = {
+        moveSpeed: 1,
+        jumpHeight: 1,
+        bulletSpeed: 1,
+        bulletRate: 1,
+        homingBullets: true
+    };
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
@@ -469,20 +602,20 @@ Bot = function(targetOtherBots) {
     }
     self.updatePos = function() {
         if (self.Dpressed) {
-            self.xspeed += 1;
+            self.xspeed += 1*self.modifiers.moveSpeed;
         }
         if (self.Apressed) {
-            self.xspeed -= 1;
+            self.xspeed -= 1*self.modifiers.moveSpeed;
         }
         if (self.Wpressed && self.colliding.bottom && !self.colliding.left && !self.colliding.right) {
-            self.yspeed = 15;
+            self.yspeed = 15*self.modifiers.jumpHeight;
         }
         if (self.Wpressed && self.Apressed && self.colliding.left) {
-            self.yspeed = 15;
+            self.yspeed = 15*self.modifiers.jumpHeight;
             self.xspeed = 15;
         }
         if (self.Wpressed && self.Dpressed && self.colliding.right) {
-            self.yspeed = 15;
+            self.yspeed = 15*self.modifiers.jumpHeight;
             self.xspeed = -15;
         }
         self.yspeed -= 0.75;
@@ -513,7 +646,7 @@ Bot = function(targetOtherBots) {
             self.alive = false;
             remainingPlayers--;
             io.emit('playerdied', self.id);
-            Achievements.update();
+            TrackedData.update();
             if (remainingPlayers < 2 && round.inProgress) {
                 endRound();
             }
@@ -531,18 +664,26 @@ Bot = function(targetOtherBots) {
         self.alive = true;
         self.hp = 5;
     }
+    self.shoot = function() {
+        if (round.inProgress && self.alive && self.validateLineOfSight(closestplayer.x, closestplayer.y) && self.lastclick > ((1000/self.maxCPS)/(1000/60))) {
+            self.lastclick = 0;
+            new Bullet(closestplayer.x+(Math.floor(Math.random()*21)-10), closestplayer.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color, false, self.modifiers.bulletSpeed, self.modifiers.homingBullets);
+        }
+    }
     self.path = function() {
         var closestplayer = null;
+        var players = [];
         for (var i in PLAYER_LIST) {
-            if (closestplayer == null || self.getDistance(self.x, self.y, PLAYER_LIST[i].x, PLAYER_LIST[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y)) {
-                closestplayer = PLAYER_LIST[i];
-            }
+            players.push(PLAYER_LIST[i]);
         }
         if (self.attackBots) {
             for (var i in BOT_LIST) {
-                if (closestplayer == null || (self.getDistance(self.x, self.y, BOT_LIST[i].x, BOT_LIST[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) && i != self.id)) {
-                    closestplayer = BOT_LIST[i];
-                }
+                players.push(BOT_LIST[i]);
+            }
+        }
+        for (var i in players) {
+            if (closestplayer == null || self.getDistance(self.x, self.y, players[i].x, players[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y)) {
+                closestplayer = players[i];
             }
         }
         if (closestplayer != null) {
@@ -554,10 +695,7 @@ Bot = function(targetOtherBots) {
             if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 160) {
                 // stop moving closer
             }
-            if (round.inProgress && self.alive && self.validateLineOfSight(closestplayer.x, closestplayer.y) && self.lastclick > ((1000/self.maxCPS)/(1000/60))) {
-                self.lastclick = 0;
-                new Bullet(closestplayer.x+(Math.floor(Math.random()*21)-10), closestplayer.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color);
-            }
+            self.shoot();
         }
     }
     self.getDistance = function(x1, y1, x2, y2) {
@@ -606,4 +744,104 @@ Bot.update = function() {
         pack.push({id:localbot.id, x:localbot.x, y:localbot.y, hp:localbot.hp, debug:{xspeed:localbot.xspeed, yspeed:localbot.yspeed, colliding:{left:localbot.colliding.left, right:localbot.colliding.right, bottom:localbot.colliding.bottom, top:localbot.colliding.top}}});
     }
     return pack;
+}
+
+// loot boxes
+LootBox = function(x, y) {
+    var self = new Entity();
+    self.halfsize = 20;
+    self.x = x;
+    self.y = y;
+    self.obfuscated = false;
+    var random = Math.ceil(Math.random()*100);
+    for (var i in LOOT_EFFECTS) {
+        var min = 0;
+        var max = 0;
+        if (i == 0) {
+            min = 0;
+            max = LOOT_EFFECTS[i].percent;
+        } else {
+            max += LOOT_EFFECTS[0].percent;
+            for (var j = 0; j < i; j++) {
+                min += LOOT_EFFECTS[j].percent;
+                max += LOOT_EFFECTS[j+1].percent;
+            }
+        }
+        if (random >= min && random <= max) {
+            self.effect = LOOT_EFFECTS[i].effect;
+            break;
+        }
+    }
+    if (Math.random() > 0.5 || self.effect == 'speed2' || self.effect == 'damage' || self.effect == 'firerate2') {
+        self.obfuscated = true;
+    }
+    self.valid = true;
+    var pack = {
+        id: self.id,
+        x: self.x,
+        y: self.y,
+        effect: self.effect,
+        obfuscated: self.obfuscated
+    };
+    io.emit('newlootbox', pack);
+
+    self.update = function() {
+        for (var i in PLAYER_LIST) {
+            var localplayer = PLAYER_LIST[i];
+            if (Math.abs(self.x-localplayer.x) < 36 && Math.abs(self.y-localplayer.y) < 36) {
+                switch (self.effect) {
+                    case 'speed':
+                        localplayer.modifiers.moveSpeed = 1.2;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'speed');
+                        setTimeout(function() {if (localplayer.modifiers.moveSpeed == 1.2) localplayer.modifiers.moveSpeed = 1;}, 10000);
+                        break;
+                    case 'speed2':
+                        localplayer.modifiers.moveSpeed = 1.5;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'speed2');
+                        setTimeout(function() {if (localplayer.modifiers.moveSpeed == 1.5) localplayer.modifiers.moveSpeed = 1;}, 10000);
+                        break;
+                    case 'jump':
+                        localplayer.modifiers.jumpHeight = 1.2;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'jump');
+                        setTimeout(function() {if (localplayer.modifiers.jumpHeight == 1.2) localplayer.modifiers.jumpHeight = 1;}, 10000);
+                        break;
+                    case 'heal':
+                        localplayer.hp = 5;
+                        break;
+                    case 'damage':
+                        localplayer.hp -= 2;
+                        break;
+                    case 'shield':
+                        localplayer.shield = 5;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'shield');
+                        break;
+                    case 'homing':
+                        localplayer.modifiers.homingBullets = true;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'homing');
+                        break;   
+                    case 'firerate':
+                        localplayer.modifiers.bulletRate = 2;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate');
+                        setTimeout(function() {if (localplayer.modifiers.bulletRate == 2) localplayer.modifiers.bulletRate = 1;}, 10000);
+                        break;
+                    case 'firerate2':
+                        localplayer.modifiers.bulletRate = 3;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate2');
+                        setTimeout(function() {if (localplayer.modifiers.bulletRate == 3) localplayer.modifiers.bulletRate = 1;}, 10000);
+                        break;
+                }
+                io.emit('deletelootbox', self.id);
+                self.valid = false;
+            }
+        }
+    }
+
+    LOOT_BOXES[self.id] = self;
+    return self;
+}
+LootBox.update = function() {
+    for (var i in LOOT_BOXES) {
+        var locallootbox = LOOT_BOXES[i];
+        if (locallootbox.valid) locallootbox.update();
+    }
 }

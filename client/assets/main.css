@@ -533,19 +533,6 @@ body:-moz-full-screen {
     font-size: 16px;
 }
 
-/* credits container*/
-#creditsContainer {
-    display: none;
-    text-align: left;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    -webkit-user-drag: none;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-}
 /* credits button */
 #credits {
     position: fixed;

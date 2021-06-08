@@ -22,9 +22,10 @@ drawInterval = null;
 // update game
 socket.on('update', function(pkg) {
     if (ingame) {
-        DEBUG_INFO = pkg;
-        Player.update(pkg);
-        Bullet.update();
+        DEBUG_INFO = pkg.players;
+        Player.update(pkg.players);
+        Bullet.update(pkg.bullets);
+        LootBox.update();
         tpsCounter++;
         lastDate = Date.now();
         socket.emit('ping');
@@ -52,6 +53,7 @@ function resetFPS() {
             HCBBM();
             Player.draw();
             Bullet.draw();
+            LootBox.draw();
             drawCountdown();
             drawBanners();
             fpsCounter++;
@@ -169,12 +171,22 @@ function drawBanners() {
     }
 }
 // banner init
-function Banner(topText, bottomText, color) {
+function Banner(topText, bottomText, color, time) {
     j = 0;
     for (var i in BANNERS) {
         j++;
     }
-    var self = {id:Math.random(), v:-5, x:window.innerWidth, y:(j*64), top:topText, bottom:bottomText, color:color, todelete:false};
+    var self = {
+        id: Math.random(),
+        v: -5,
+        x: window.innerWidth,
+        y: (j*64),
+        top: topText,
+        bottom: bottomText,
+        color: color,
+        time: time,
+        todelete: false
+    };
 
     var slidein = setInterval(function() {
         self.v += 0.031;
@@ -206,7 +218,7 @@ function Banner(topText, bottomText, color) {
                             delete BANNERS[self.id];
                         }
                     }, 5);
-                }, 5000);
+                }, self.time*1000);
             }
         }
     }
@@ -271,9 +283,7 @@ document.onkeyup = function(event) {
             
         }
         if (event.key == 'Enter') {
-            if (inchat && !inmenu) {
-                document.getElementById('chatInput').blur();
-            } else if (!inmenu) {
+            if (!inchat && !inmenu) {
                 document.getElementById('chatInput').focus();
             }
         }
@@ -369,6 +379,7 @@ socket.on('game-joined', function() {
     }
     ingame = true;
     canmove = true;
+    document.getElementById('chat').innerHTML = '';
     var waitforload = setInterval(function() {
         if (loaded) {
             document.getElementById('canceljoingame').style.display = 'none';
@@ -405,7 +416,14 @@ socket.on('initmap', function(maps) {
             game.drawImage(MAPS[i], 0, 0);
         }
         loaded = true;
-    } catch (err) {}
+    } catch (err) {
+        var maploader = new CanvasRenderingContext2D(192, 108).getContext('2d');
+        for (var i in MAPS) {
+            maploader.drawImage(MAPS[i], 0, 0);
+            game.drawImage(MAPS[i], 0, 0);
+        }
+        loaded = true;
+    }
 });
 socket.on('map', function(id) {
     CURRENT_MAP = id;
@@ -662,7 +680,7 @@ socket.on('inittrackedData', function(pkg) {
 socket.on('achievement_get', function(pkg) {
     for (var i in ACHIEVEMENTS) {
         if (ACHIEVEMENTS[i].id == pkg.achievement) {
-            Banner(pkg.player + ' Achievement Get!', ACHIEVEMENTS[i].name, ACHIEVEMENTS[i].color);
+            Banner(pkg.player + ' Achievement Get!', ACHIEVEMENTS[i].name, ACHIEVEMENTS[i].color, 5);
             ACHIEVEMENTS[i].aqquired = true;
         }
     }
@@ -675,6 +693,41 @@ socket.on('achievementrevoked', function(pkg) {
         }
     }
     updateAchievements();
+});
+socket.on('updateTrackedData', function(pkg) {
+    for (var i in pkg) {
+        if (pkg[i].id == player.id) {
+            TRACKED_DATA.kills = pkg[i].kills;
+            TRACKED_DATA.deaths = pkg[i].deaths;
+            TRACKED_DATA.wins = pkg[i].wins;
+            updateAchievements();
+        }
+    }
+});
+socket.on('effect', function(effect) {
+    switch (effect) {
+        case 'speed':
+            Banner('Buff: SPEED', '10s', '#FFFF00', 10);
+            break;
+        case 'speed2':
+            Banner('Buff: SPEED 2', '10s', '#FFFF00', 10);
+            break;
+        case 'jump':
+            Banner('Buff: JUMP BOOST', '10s', '#FF9900', 10);
+            break;
+        case 'shield':
+            Banner('Buff: SHIELD', 'Shield Get!', '#0080FF', 10);
+            break;
+        case 'homing':
+            Banner('Buff: HOMING BULLETS', '10s', '#00FF00', 10);
+            break;
+        case 'firerate':
+            Banner('Buff: MACHINE GUN', '10s', '#FF0000', 10);
+            break;
+        case 'firerate2':
+            Banner('Buff: MINIGUN', '10s', '#FF0000', 10);
+            break;                                                  
+    }
 });
 socket.on('yeet', function() {
     Banner('YEET!', 'You just got yeeted!', 'white');
@@ -706,5 +759,5 @@ waiting = setInterval(function() {
 }, 1000/10);
 
 function achievementtest() {
-    Banner(player.name + ' Achievement Get!', 'Achievements tester');
+    Banner(player.name + ' Achievement Get!', 'Achievements tester', 5);
 }

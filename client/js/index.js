@@ -31,16 +31,24 @@ pingCounter = 0;
 lastDate = 0;
 currentDate = 0;
 player = null;
-camera = {x:0, y:0, width:window.innerWidth/2, height:window.innerHeight/2};
+camera = {
+    x: 0,
+    y: 0,
+    width: window.innerWidth/2,
+    height: window.innerHeight/2
+};
 var firstload = true;
+init();
 
-// handlers
+// init
 socket.on('init', function() {
     if (!firstload) {
         socket.emit('disconnected');
         window.location.reload();
     }
     firstload = false;
+});
+function init() {
     // set up page and canvas
     try {
         new OffscreenCanvas(1, 1);
@@ -55,7 +63,7 @@ socket.on('init', function() {
     gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
     gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
     game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
-    gameCanvas.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('contextmenu', e => e.preventDefault());
     document.getElementById('scoreContainer').addEventListener('contextmenu', e => e.preventDefault());
     game.lineWidth = 4;
     game.imageSmoothingEnabled = false;
@@ -68,6 +76,26 @@ socket.on('init', function() {
     document.getElementById('loading').style.left = ((window.innerWidth/2)-64) + 'px';
     document.getElementById('ready').style.left = ((window.innerWidth/2)-100) + 'px';
     document.getElementById('scoreTable').style.width = ((window.innerWidth*0.75)-12) + 'px';
+    // load cookies
+    try {
+        cookiesettings = JSON.parse(document.cookie.replace('settings=', ''));
+        settings.globalvolume = cookiesettings.globalvolume;
+        settings.musicvolume = cookiesettings.musicvolume;
+        settings.sfxvolume = cookiesettings.sfxvolume;
+        settings.fullscreen = cookiesettings.fullscreen;
+        settings.fps = cookiesettings.fps;
+        settings.renderQuality = cookiesettings.renderQuality;
+        document.getElementById('globalVolume').value = settings.globalvolume*100;
+        document.getElementById('ingameglobalVolume').value = settings.globalvolume*100;
+        document.getElementById('musicVolume').value = settings.musicvolume*100;
+        document.getElementById('ingamemusicVolume').value = settings.musicvolume*100;
+        document.getElementById('sfxVolume').value = settings.sfxvolume*100;
+        document.getElementById('ingamesfxVolume').value = settings.sfxvolume*100;
+        document.getElementById('fpsSelect').value = settings.fps;
+        document.getElementById('renderQuality').value = settings.renderQuality*100;
+        document.getElementById('ingamerenderQuality').value = settings.renderQuality*100;
+        updateSettings();
+    } catch {}
     // insert announcements
     document.getElementById('announcementsPage').width = (window.innerWidth-64);
     var announcementsEmbed = document.createElement('div');
@@ -116,13 +144,132 @@ socket.on('init', function() {
     music.src = '/client/sound/Menu.mp3';
     // place focus on username
     document.getElementById('usrname').focus();
+}
+
+// game init
+document.addEventListener('mousedown', function() {
+    music.play();
 });
+
+// chat init
+var chatInput = document.getElementById('chatInput');
+var chat = document.getElementById('chat');
+var toBlur = false;
+chatInput.onkeydown = function(event) {
+    if (event.key == 'Enter') {
+        if (chatInput.value != '') {
+            socket.emit('chatInput', chatInput.value);
+            chatInput.value = '';
+            toBlur = false;
+        } else {
+            toBlur = true;
+        }
+    }
+}
+chatInput.onkeyup = function(event) {
+    if (event.key == 'Enter') {
+        if (toBlur) {
+            chatInput.blur();
+        }
+    }
+}
+chatInput.onfocus = function() {
+    inchat = true;
+    canmove = false;
+    socket.emit('keyPress', {key:'W', state:false});
+    socket.emit('keyPress', {key:'A', state:false});
+    socket.emit('keyPress', {key:'D', state:false});
+}
+chatInput.onblur = function() {
+    setTimeout(function() {
+        inchat = false;
+        canmove = true;
+    }, 10);
+}
+socket.on('insertChat', function(msg) {
+    if (ingame) {
+        message = document.createElement('div');
+        message.className = 'ui-darkText';
+        if (msg.color == 'server') {
+            message.style.color = '#FF0000';
+            message.style.fontWeight = 'bold';
+        } else if (msg.color == 'rainbow-pulse') {
+            message.style.animation = 'rainbow-pulse-text 10s infinite';
+            message.style.animationTimingFunction = 'ease-in-out';
+        } else {
+            message.style.color = msg.color;
+        }
+        message.innerText = msg.msg;
+        var scroll = false;
+        if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 5) scroll = true;
+        chat.appendChild(message);
+        if (scroll) chat.scrollTop = chat.scrollHeight;
+    }
+});
+
+// settings init
+document.getElementById('globalVolume').oninput = function() {
+    settings.globalvolume = (document.getElementById('globalVolume').value/100);
+    document.getElementById('ingameglobalVolume').value = document.getElementById('globalVolume').value;
+    updateSettings();
+}
+document.getElementById('musicVolume').oninput = function() {
+    settings.musicvolume = (document.getElementById('musicVolume').value/100);
+    document.getElementById('ingamemusicVolume').value = document.getElementById('musicVolume').value;
+    updateSettings();
+}
+document.getElementById('sfxVolume').oninput = function() {
+    settings.sfxvolume = (document.getElementById('sfxVolume').value/100);
+    document.getElementById('ingamesfxVolume').value = document.getElementById('sfxVolume').value;
+    updateSettings();
+}
+document.getElementById('fpsSelect').oninput = function() {
+    settings.fps = document.getElementById('fpsSelect').value;
+    document.getElementById('ingamefpsSelect').value = document.getElementById('fpsSelect').value;
+    updateSettings();
+}
+document.getElementById('renderQuality').oninput = function() {
+    // settings.renderQuality = (document.getElementById('renderQuality').value/100);
+    // document.getElementById('ingamerenderQuality').value = document.getElementById('renderQuality').value;
+    document.getElementById('renderQuality').value = 150;
+    // updateSettings();
+}
+document.getElementById('ingameglobalVolume').oninput = function() {
+    settings.globalvolume = (document.getElementById('ingameglobalVolume').value/100);
+    document.getElementById('globalVolume').value = document.getElementById('ingameglobalVolume').value;
+    updateSettings();
+}
+document.getElementById('ingamemusicVolume').oninput = function() {
+    settings.musicvolume = (document.getElementById('ingamemusicVolume').value/100);
+    document.getElementById('musicVolume').value = document.getElementById('ingamemusicVolume').value;
+    updateSettings();
+}
+document.getElementById('ingamesfxVolume').oninput = function() {
+    settings.sfxvolume = (document.getElementById('ingamesfxVolume').value/100);
+    document.getElementById('sfxVolume').value = document.getElementById('ingamesfxVolume').value;
+    updateSettings();
+}
+document.getElementById('ingamefpsSelect').oninput = function() {
+    settings.fps = document.getElementById('ingamefpsSelect').value;
+    document.getElementById('fpsSelect').value = document.getElementById('ingamefpsSelect').value;
+    updateSettings();
+}
+document.getElementById('ingamerenderQuality').oninput = function() {
+    // settings.renderQuality = (document.getElementById('ingamerenderQuality').value/100);
+    // document.getElementById('renderQuality').value = document.getElementById('ingamerenderQuality').value;
+    document.getElementById('ingamerenderQuality').value = 150;
+    // updateSettings();
+}
+
+// connection handlers
 socket.on('connect_error',function(){
     setTimeout(function(){
-        socket.connect();
-    },1000);
+        window.location.reload();
+    },5000);
 });
 socket.on('disconnected', function() {
+    ingame = false;
+    socket.emit('disconnected');
     document.getElementById('menuContainer').style.display = 'none';
     document.getElementById('gameContainer').style.display = 'none';
     document.getElementById('disconnectedContainer').style.display = 'inline-block';
@@ -130,6 +277,10 @@ socket.on('disconnected', function() {
 });
 socket.on('timeout', function() {
     disconnectclient();
+    document.getElementById('menuContainer').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'none';
+    document.getElementById('disconnectedContainer').style.display = 'inline-block';
+    clearInterval(waiting);
 });
 
 // settings functions
@@ -150,6 +301,10 @@ function updateSettings() {
     // gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
     // game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
     resetFPS();
+    var cookiestring = JSON.stringify(settings)
+    var date = new Date();
+    date.setUTCFullYear(date.getUTCFullYear()+10, date.getUTCMonth(), date.getUTCDate())
+    document.cookie = 'settings=' + cookiestring + '; expires=' + date + ';';
 }
 
 // achievements functions
@@ -167,8 +322,8 @@ function updateAchievements() {
         if (localachievement.color == 'rainbow-pulse' && localachievement.aqquired) {
             achievement.style.animation = 'rainbow-pulse 10s infinite';
             achievement2.style.animation = 'rainbow-pulse 10s infinite';
-            achievement.style.animationTimingFunction = 'ease-in-out'
-            achievement2.style.animationTimingFunction = 'ease-in-out'
+            achievement.style.animationTimingFunction = 'ease-in-out';
+            achievement2.style.animationTimingFunction = 'ease-in-out';
         } else if (localachievement.color == 'pulsing-red' && localachievement.aqquired) {
             achievement.style.animation = 'red-pulse 2s infinite';
             achievement2.style.animation = 'red-pulse 2s infinite';
@@ -242,104 +397,6 @@ function toggleFullscreen() {
     }
 }
 
-// game init
-document.addEventListener('mousedown', function() {
-    music.play();
-});
-
-// chat init
-var chatInput = document.getElementById('chatInput');
-var chat = document.getElementById('chat');
-chatInput.onkeydown = function(event) {
-    if (event.key == 'Enter') {
-        if (chatInput.value != '') {
-            socket.emit('chatInput', chatInput.value);
-            chatInput.value = '';
-        }
-    }
-}
-chatInput.onkeyup = function(event) {
-    if (event.key == 'Enter') {
-        if (chatInput.value != '') {
-            chatInput.blur();
-        }
-    }
-}
-chatInput.onfocus = function() {
-    inchat = true;
-    canmove = false;
-}
-chatInput.onblur = function() {
-    inchat = false;
-    canmove = true;
-}
-socket.on('insertChat', function(msg) {
-    if (ingame) {
-        text = document.createElement('div');
-        text.className = 'ui-darkText';
-        text.style.color = msg.color;
-        text.innerText = msg.msg;
-        var scroll = false;
-        if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 5) scroll = true;
-        chat.appendChild(text);
-        if (scroll) chat.scrollTop = chat.scrollHeight;
-    }
-});
-
-// settings init
-document.getElementById('globalVolume').oninput = function() {
-    settings.globalvolume = (document.getElementById('globalVolume').value/100);
-    document.getElementById('ingameglobalVolume').value = document.getElementById('globalVolume').value;
-    updateSettings();
-}
-document.getElementById('musicVolume').oninput = function() {
-    settings.musicvolume = (document.getElementById('musicVolume').value/100);
-    document.getElementById('ingamemusicVolume').value = document.getElementById('musicVolume').value;
-    updateSettings();
-}
-document.getElementById('sfxVolume').oninput = function() {
-    settings.sfxvolume = (document.getElementById('sfxVolume').value/100);
-    document.getElementById('ingamesfxVolume').value = document.getElementById('sfxVolume').value;
-    updateSettings();
-}
-document.getElementById('fpsSelect').oninput = function() {
-    settings.fps = document.getElementById('fpsSelect').value;
-    document.getElementById('ingamefpsSelect').value = document.getElementById('fpsSelect').value;
-    updateSettings();
-}
-document.getElementById('renderQuality').oninput = function() {
-    // settings.renderQuality = (document.getElementById('renderQuality').value/100);
-    // document.getElementById('ingamerenderQuality').value = document.getElementById('renderQuality').value;
-    document.getElementById('renderQuality').value = 150;
-    // updateSettings();
-}
-document.getElementById('ingameglobalVolume').oninput = function() {
-    settings.globalvolume = (document.getElementById('ingameglobalVolume').value/100);
-    document.getElementById('globalVolume').value = document.getElementById('ingameglobalVolume').value;
-    updateSettings();
-}
-document.getElementById('ingamemusicVolume').oninput = function() {
-    settings.musicvolume = (document.getElementById('ingamemusicVolume').value/100);
-    document.getElementById('musicVolume').value = document.getElementById('ingamemusicVolume').value;
-    updateSettings();
-}
-document.getElementById('ingamesfxVolume').oninput = function() {
-    settings.sfxvolume = (document.getElementById('ingamesfxVolume').value/100);
-    document.getElementById('sfxVolume').value = document.getElementById('ingamesfxVolume').value;
-    updateSettings();
-}
-document.getElementById('ingamefpsSelect').oninput = function() {
-    settings.fps = document.getElementById('ingamefpsSelect').value;
-    document.getElementById('fpsSelect').value = document.getElementById('ingamefpsSelect').value;
-    updateSettings();
-}
-document.getElementById('ingamerenderQuality').oninput = function() {
-    // settings.renderQuality = (document.getElementById('ingamerenderQuality').value/100);
-    // document.getElementById('renderQuality').value = document.getElementById('ingamerenderQuality').value;
-    document.getElementById('ingamerenderQuality').value = 150;
-    // updateSettings();
-}
-
 // debug
 function debug() {
     socket.emit('debug');
@@ -376,7 +433,7 @@ function adminConsole() {
         adminConsole.style.display = 'none';
         adminConsole.className = 'ui-darkText';
         adminConsole.id = 'adminConsole';
-        adminConsole.innerHTML = '<div class="ui-lightText" id="adminConsole-top">ADMIN CONSOLE</div><div id="adminConsole-log"></div><input class="ui-darkText" id="adminConsole-input" autocomplete="off">';
+        adminConsole.innerHTML = '<div class="ui-lightText" id="adminConsole-top">ADMIN CONSOLE</div><div id="adminConsole-log"></div><input class="ui-darkText" id="adminConsole-input" autocomplete="off" spellcheck="false">';
         adminConsole.style.transform = 'translate(0px, 50px)';
         document.getElementById('gameContainer').appendChild(adminConsole);
         consoleBar = document.getElementById('adminConsole-top');
@@ -411,7 +468,10 @@ function adminConsole() {
                 log = document.createElement('div');
                 log.className = 'ui-darkText';
                 log.innerText = '> ' + consoleInput.value;
-                document.getElementById('adminConsole-log').appendChild(log);
+                var scroll = false;
+                if (consoleLog.scrollTop + consoleLog.clientHeight >= consoleLog.scrollHeight - 5) scroll = true;
+                consoleLog.appendChild(log);
+                if (scroll) consoleLog.scrollTop = consoleLog.scrollHeight;
                 consoleInput.value = '';
             }
             if (event.key == 'ArrowUp') {
@@ -428,7 +488,6 @@ function adminConsole() {
                     historyIndex = consoleHistory.length;
                     consoleInput.value = '';
                 }
-                console.log(historyIndex)
             }
         }
         socket.on('consoleLog', function(msg) {
@@ -437,7 +496,7 @@ function adminConsole() {
             log.style.color = msg.color;
             log.innerText = msg.msg;
             var scroll = false;
-            if (consoleLog.scrollTop + consoleLog.clientHeight >= consoleLog.scrollHeight - 10) scroll = true;
+            if (consoleLog.scrollTop + consoleLog.clientHeight >= consoleLog.scrollHeight - 5) scroll = true;
             consoleLog.appendChild(log);
             if (scroll) consoleLog.scrollTop = consoleLog.scrollHeight;
         });
