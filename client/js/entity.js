@@ -116,6 +116,12 @@ LootBox = function(id, x, y, effect, obfuscated) {
     var self = new Entity(id, x, y, null);
     self.effect = effect;
     self.obfuscated = obfuscated;
+    self.img = new Image(40, 40);
+    if (self.obfuscated) {
+        self.img.src = './client/img/LootBox_random.png';
+    } else {
+        self.img.src = './client/img/LootBox_' + self.effect + '.png';
+    }
     LOOT_BOXES[self.id] = self;
 
     self.update = function() {
@@ -123,43 +129,7 @@ LootBox = function(id, x, y, effect, obfuscated) {
         self.rely = -(camera.y - self.y);
     }
     self.draw = function() {
-        if (self.obfuscated) {
-            game.fillStyle = '#555555';
-            game.fillRect(self.relx-20, self.rely-20, 40, 40);
-        } else {
-            switch (self.effect) {
-                case 'speed':
-                    // draw speed arrow
-                    game.fillStyle = '#FFFF00';
-                    game.fillRect(self.relx-20, self.rely-20, 40, 40);
-                    break;
-                case 'jump':
-                    // draw green jump boost thing
-                    game.fillStyle = '#00FF00';
-                    game.fillRect(self.relx-20, self.rely-20, 40, 40);
-                    break;
-                case 'heal':
-                    // "HP"
-                    game.fillStyle = '#FF9900';
-                    game.fillRect(self.relx-20, self.rely-20, 40, 40);
-                    break;
-                case 'shield':
-                    // steal smashy road arena shield
-                    game.fillStyle = '#0000FF';
-                    game.fillRect(self.relx-20, self.rely-20, 40, 40);
-                    break;
-                case 'homing':
-                    // johnny rockets
-                    game.fillStyle = '#FF00FF';
-                    game.fillRect(self.relx-20, self.rely-20, 40, 40);
-                    break;     
-                case 'firerate':
-                    // minigun thing
-                    game.fillStyle = '#FF0000';
-                    game.fillRect(self.relx-20, self.rely-20, 40, 40);
-                    break;      
-            }
-        }
+        game.drawImage(self.img, self.relx-20, self.rely-20, 40, 40);
     }
 }
 LootBox.update = function() {
@@ -184,23 +154,23 @@ socket.on('initgame', function(pkg) {
     player = PLAYER_LIST[pkg.self];
 });
 socket.on('newplayer', function(pkg) {
-    new Player(pkg.id, pkg.name, pkg.color);
+    if (ingame) new Player(pkg.id, pkg.name, pkg.color);
 });
 socket.on('deleteplayer', function(id) {
-    delete PLAYER_LIST[id];
+    if (ingame) delete PLAYER_LIST[id];
 });
 socket.on('newbullet', function(pkg) {
-    new Bullet(pkg.id, pkg.x, pkg.y, pkg.parent, pkg.color);
+    if (ingame) new Bullet(pkg.id, pkg.x, pkg.y, pkg.parent, pkg.color);
 });
 socket.on('deletebullet', function(id) {
-    delete BULLET_LIST[id];
+    if (ingame) delete BULLET_LIST[id];
 });
 socket.on('newlootbox', function(pkg) {
-    new LootBox(pkg.id, pkg.x, pkg.y, pkg.effect, pkg.obfuscated);
+    if (ingame) new LootBox(pkg.id, pkg.x, pkg.y, pkg.effect, pkg.obfuscated);
 });
 socket.on('deletelootbox', function(id) {
-    delete LOOT_BOXES[id];
+    if (ingame) delete LOOT_BOXES[id];
 });
 socket.on('playerdied', function(id) {
-    PLAYER_LIST[id].alive = false;
+    if (ingame) PLAYER_LIST[id].alive = false;
 });

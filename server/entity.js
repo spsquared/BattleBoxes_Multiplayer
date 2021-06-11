@@ -12,11 +12,12 @@ COLORS = [
 LOOT_EFFECTS = [
     {effect:'speed', percent:10},
     {effect:'speed2', percent:5},
+    {effect:'slowness', percent:5},
     {effect:'jump', percent:10},
     {effect:'heal', percent:10},
     {effect:'damage', percent:5},
     {effect:'shield', percent:10},
-    {effect:'homing', percent:15},
+    {effect:'homing', percent:10},
     {effect:'firerate', percent:10},
     {effect:'firerate2', percent:5},
     {effect:'special', percent:20}
@@ -238,7 +239,7 @@ Player = function(socketid) {
     };
     self.ready = false;
     self.ingame = false;
-    self.trackedData = new TrackedData();
+    self.trackedData = Object.assign({}, new TrackedData());
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
@@ -324,6 +325,7 @@ Player = function(socketid) {
             self.alive = false;
             remainingPlayers--;
             io.emit('playerdied', self.id);
+            insertChat(self.name + ' died.', '#FF0000');
             TrackedData.update();
             if (remainingPlayers < 2 && round.inProgress) {
                 endRound();
@@ -374,6 +376,33 @@ Player = function(socketid) {
                 self.trackedData.grant(self.name, localachievement);
             }
             if (localachievement.id == self.trackedData.deaths + '_Deaths' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.total + 'total_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.lucky + 'lucky_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.unlucky + 'unlucky_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.speed + 'speed_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.jump + 'jump_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.shield + 'shield_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.random + 'random_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.homing + 'homing_Lootboxes' && localachievement.aqquired == false) {
+                self.trackedData.grant(self.name, localachievement);
+            }
+            if (localachievement.id == self.trackedData.lootboxcollections.firerate + 'firerate_Lootboxes' && localachievement.aqquired == false) {
                 self.trackedData.grant(self.name, localachievement);
             }
             if (aqquiredachievements >= totalachievements && localachievement.id == 'all_achievements' && localachievement.aqquired == false) {
@@ -772,7 +801,7 @@ LootBox = function(x, y) {
             break;
         }
     }
-    if (Math.random() > 0.5 || self.effect == 'speed2' || self.effect == 'damage' || self.effect == 'firerate2') {
+    if (Math.random() < 0.5 || self.effect == 'speed2' || self.effect == 'slowness' || self.effect == 'damage' || self.effect == 'firerate2' || self.effect == 'special') {
         self.obfuscated = true;
     }
     self.valid = true;
@@ -794,44 +823,85 @@ LootBox = function(x, y) {
                         localplayer.modifiers.moveSpeed = 1.2;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'speed');
                         setTimeout(function() {if (localplayer.modifiers.moveSpeed == 1.2) localplayer.modifiers.moveSpeed = 1;}, 10000);
+                        localplayer.trackedData.lootboxcollections.speed++;
+                        localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'speed2':
                         localplayer.modifiers.moveSpeed = 1.5;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'speed2');
                         setTimeout(function() {if (localplayer.modifiers.moveSpeed == 1.5) localplayer.modifiers.moveSpeed = 1;}, 10000);
+                        localplayer.trackedData.lootboxcollections.speed++;
+                        localplayer.trackedData.lootboxcollections.lucky++;
+                        break;
+                    case 'slowness':
+                        localplayer.modifiers.moveSpeed = 0.75;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'slowness');
+                        setTimeout(function() {if (localplayer.modifiers.moveSpeed == 0.75) localplayer.modifiers.moveSpeed = 1;}, 5000);
+                        localplayer.trackedData.lootboxcollections.unlucky++;
                         break;
                     case 'jump':
                         localplayer.modifiers.jumpHeight = 1.2;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'jump');
                         setTimeout(function() {if (localplayer.modifiers.jumpHeight == 1.2) localplayer.modifiers.jumpHeight = 1;}, 10000);
+                        localplayer.trackedData.lootboxcollections.jump++;
+                        localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'heal':
                         localplayer.hp = 5;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'heal');
+                        localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'damage':
                         localplayer.hp -= 2;
+                        SOCKET_LIST[localplayer.socketid].emit('effect', 'damage');
+                        localplayer.trackedData.lootboxcollections.unlucky++;
                         break;
                     case 'shield':
                         localplayer.shield = 5;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'shield');
+                        localplayer.trackedData.lootboxcollections.shield++;
+                        localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'homing':
                         localplayer.modifiers.homingBullets = true;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'homing');
+                        localplayer.trackedData.lootboxcollections.homing++;
+                        localplayer.trackedData.lootboxcollections.lucky++;
                         break;   
                     case 'firerate':
                         localplayer.modifiers.bulletRate = 2;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate');
                         setTimeout(function() {if (localplayer.modifiers.bulletRate == 2) localplayer.modifiers.bulletRate = 1;}, 10000);
+                        localplayer.trackedData.lootboxcollections.firerate++;
+                        localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'firerate2':
                         localplayer.modifiers.bulletRate = 3;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate2');
                         setTimeout(function() {if (localplayer.modifiers.bulletRate == 3) localplayer.modifiers.bulletRate = 1;}, 10000);
+                        localplayer.trackedData.lootboxcollections.firerate++;
+                        localplayer.trackedData.lootboxcollections.lucky++;
+                        break;
+                    case 'special':
+                        SOCKET_LIST[localplayer.socketid].emit('effect');
+                        break;
+                    default:
                         break;
                 }
+                localplayer.trackedData.lootboxcollections.total++;
+                if (self.obfuscated) {
+                    localplayer.trackedData.lootboxcollections.random++;
+                }
+                TrackedData.update();
                 io.emit('deletelootbox', self.id);
                 self.valid = false;
+                self.roundId = round.id;
+                setTimeout(function() {
+                    if (round.id == self.roundId) {
+                        new LootBox(self.x, self.y);
+                        delete LOOT_BOXES[self.id];
+                    }
+                }, 30000);
             }
         }
     }

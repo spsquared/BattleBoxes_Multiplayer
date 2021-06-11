@@ -118,21 +118,66 @@
                 <div id="achievementsSTATISTICS">
                     <table class="ui-darkText" id="aSTATStable">
                         <tr>
-                            <td class="aSTATStable">Kills:&nbsp;</td>
-                            <td class="aSTATStable" id="aSTATS_kills">If you are seeing this, something went wrong.</td>
+                            <td class="aSTATStable">Kills:&nbsp;<span id="aSTATS_kills">If you are seeing this, something went wrong.</span>&emsp;</td>
+                            <td class="aSTATStable">Deaths:&nbsp;<span id="aSTATS_deaths">If you are seeing this, something went wrong.</span>&emsp;</td>
+                            <td class="aSTATStable">Wins:&nbsp;<span id="aSTATS_wins">If you are seeing this, something went wrong.</span>&emsp;</td>
+                        </tr>
+                    </table>
+                    <table class="ui-darkText" id="aSTATStable">
+                        <tr>
+                            <td class="aSTATStable" style="font-weight: bold;">
+                                Loot Boxes:
+                            </td>
                         </tr>
                         <tr>
-                            <td class="aSTATStable">Deaths:&nbsp;</td>
-                            <td class="aSTATStable" id="aSTATS_deaths">If you are seeing this, something went wrong.</td>
+                            <td class="aSTATStable">
+                                Total:&nbsp<span id="aSTATS_loottotal">If you are seeing this, something went wrong.</span>
+                            </td>
                         </tr>
                         <tr>
-                            <td class="aSTATStable">Wins:&nbsp;</td>
-                            <td class="aSTATStable" id="aSTATS_wins">If you are seeing this, something went wrong.</td>
+                            <td class="aSTATStable">
+                                Lucky:&nbsp<span id="aSTATS_lootlucky">If you are seeing this, something went wrong.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">
+                                Unlucky:&nbsp<span id="aSTATS_lootunlucky">If you are seeing this, something went wrong.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">
+                                Speed:&nbsp<span id="aSTATS_lootspeed">If you are seeing this, something went wrong.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">
+                                Jump Boost:&nbsp<span id="aSTATS_lootjump">If you are seeing this, something went wrong.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">
+                                Shield:&nbsp<span id="aSTATS_lootshield">If you are seeing this, something went wrong.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">
+                                Random:&nbsp<span id="aSTATS_lootrandom">If you are seeing this, something went wrong.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">
+                                Homing:&nbsp<span id="aSTATS_loothoming">If you are seeing this, something went wrong.</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="aSTATStable">
+                                Fire Rate:&nbsp<span id="aSTATS_lootfirerate">If you are seeing this, something went wrong.</span>
+                            </td>
                         </tr>
                     </table>
                 </div>
                 <div id="achievementsACHIEVEMENTS" class="ui-darkText"></div>
-                <div id="achievementsMEADOWGUARDER" class="ui-darkTest">
+                <div id="achievementsMEADOWGUARDER" class="ui-darkText">
                     <h1 class="ui-darkText" style="text-align: center; margin: 0px;">PLAY MEADOW GUARDER!!!</h1>
                     <embed src="https://meadowguarder.herokuapp.com/" width="100%" height="500px">
                 </div>
@@ -266,7 +311,7 @@
             <p class="ui-lightText" id="gamelocked">Game is in progress, cannot join...</p>
             <input type="button" class="ui-largeButton" id="canceljoingame" value="BACK" onclick="canceljoin();"><br><br>
         </div>
-        <h5 id="versionLabel">v1.2.0</h5>
+        <h5 id="versionLabel">v1.2.1</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https:www.github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

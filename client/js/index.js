@@ -22,21 +22,13 @@ settings = {
     renderQuality: (document.getElementById('renderQuality').value/100)
 };
 var currentmusic = 1;
-tpsCounter = 0;
-tps = 0;
-fpsCounter = 0;
-fps = 0;
-ping = 0;
-pingCounter = 0;
-lastDate = 0;
-currentDate = 0;
-player = null;
 camera = {
     x: 0,
     y: 0,
     width: window.innerWidth/2,
     height: window.innerHeight/2
 };
+gameid = Math.random();
 var firstload = true;
 init();
 
@@ -47,6 +39,20 @@ socket.on('init', function() {
         window.location.reload();
     }
     firstload = false;
+    // show page
+    document.getElementById('loginContainer').style.display = 'inline-block';
+    document.getElementById('mainmenuContainer').style.display = 'none';
+    document.getElementById('disconnectedContainer').style.display = 'none';
+    document.getElementById('menuContainer').style.display = 'block';
+    // start music
+    music.volume = settings.musicvolume;
+    for (var i in sfx) {
+        sfx[i].volume = settings.sfxvolume;
+    }
+    music.src = '/client/sound/Menu.mp3';
+    // place focus on username
+    document.getElementById('usrname').focus();
+    fadeOut();
 });
 function init() {
     // set up page and canvas
@@ -131,19 +137,6 @@ function init() {
             document.getElementById('ingameAchievementsACHIEVEMENTS').appendChild(achievement2);
         }
     });
-    // show page
-    document.getElementById('loginContainer').style.display = 'inline-block';
-    document.getElementById('mainmenuContainer').style.display = 'none';
-    document.getElementById('disconnectedContainer').style.display = 'none';
-    document.getElementById('menuContainer').style.display = 'block';
-    // start music
-    music.volume = settings.musicvolume;
-    for (var i in sfx) {
-        sfx[i].volume = settings.sfxvolume;
-    }
-    music.src = '/client/sound/Menu.mp3';
-    // place focus on username
-    document.getElementById('usrname').focus();
 }
 
 // game init
@@ -312,6 +305,15 @@ function updateAchievements() {
     document.getElementById('aSTATS_kills').innerText = TRACKED_DATA.kills;
     document.getElementById('aSTATS_deaths').innerText = TRACKED_DATA.deaths;
     document.getElementById('aSTATS_wins').innerText = TRACKED_DATA.wins;
+    document.getElementById('aSTATS_loottotal').innerText = TRACKED_DATA.lootboxcollections.total;
+    document.getElementById('aSTATS_lootlucky').innerText = TRACKED_DATA.lootboxcollections.lucky;
+    document.getElementById('aSTATS_lootunlucky').innerText = TRACKED_DATA.lootboxcollections.unlucky;
+    document.getElementById('aSTATS_lootspeed').innerText = TRACKED_DATA.lootboxcollections.speed;
+    document.getElementById('aSTATS_lootjump').innerText = TRACKED_DATA.lootboxcollections.jump;
+    document.getElementById('aSTATS_lootshield').innerText = TRACKED_DATA.lootboxcollections.shield;
+    document.getElementById('aSTATS_lootrandom').innerText = TRACKED_DATA.lootboxcollections.random;
+    document.getElementById('aSTATS_loothoming').innerText = TRACKED_DATA.lootboxcollections.homing;
+    document.getElementById('aSTATS_lootfirerate').innerText = TRACKED_DATA.lootboxcollections.firerate;
     document.getElementById('ingameaSTATS_kills').innerText = TRACKED_DATA.kills;
     document.getElementById('ingameaSTATS_deaths').innerText = TRACKED_DATA.deaths;
     document.getElementById('ingameaSTATS_wins').innerText = TRACKED_DATA.wins;

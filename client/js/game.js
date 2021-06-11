@@ -1,10 +1,35 @@
 // Copyright (C) 2021 Radioactive64
 
+var loaded = false;
 MAPS = [];
 CURRENT_MAP = 0;
-TRACKED_DATA = {kills:0, deaths:0, wins:0};
+TRACKED_DATA = {
+    kills: 0,
+    deaths: 0,
+    wins: 0,
+    lootboxcollections: {
+        total: 0,
+        lucky: 0,
+        unlucky: 0,
+        speed: 0,
+        jump: 0,
+        shield: 0,
+        homing: 0,
+        firerate: 0,
+        random: 0
+    }
+};
 ACHIEVEMENTS = [];
 BANNERS = [];
+var tpsCounter = 0;
+var tps = 0;
+var fpsCounter = 0;
+var fps = 0;
+var ping = 0;
+var pingCounter = 0;
+var lastDate = 0;
+var currentDate = 0;
+var player = null;
 var mouseX;
 var mouseY;
 var shooting = false;
@@ -13,11 +38,18 @@ var inmenu = false;
 var inchat = false;
 var canmove = false;
 var connected = 0;
+var countdowntext = {
+    text: '',
+    color: '',
+    size: ''
+};
+var mapname = {
+    text:'',
+    color: ''
+};
 var readyforstart = false;
-var countdowntext = {text:'', color:'', size:''};
-var loaded = false;
+var drawInterval = null;
 var waitingforserver = false;
-drawInterval = null;
 
 // update game
 socket.on('update', function(pkg) {
@@ -156,6 +188,9 @@ function drawDebug(data, isplayer) {
 }
 function drawCountdown() {
     game.textAlign = 'center';
+    game.fillStyle = mapname.color;
+    game.font = '96px Pixel';
+    game.fillText(mapname.text, (window.innerWidth/2), 96);
     game.fillStyle = countdowntext.color;
     game.font = countdowntext.size + 'px Pixel';
     game.fillText(countdowntext.text, (window.innerWidth/2), ((window.innerHeight/2)+(countdowntext.size/2)-(window.innerHeight/10)));
@@ -193,7 +228,7 @@ function Banner(topText, bottomText, color, time) {
         self.x += self.v;
     }, 5);
     self.update = function() {
-        game.fillStyle = '#222222';
+        game.fillStyle = '#000000';
         game.fillRect(self.x, self.y, 400, 60);
         game.fillStyle = '#FFFFFF';
         game.fillStyle = self.color;
@@ -372,7 +407,7 @@ function ready() {
     }
 }
 
-// game handlers
+// join/leave handlers
 socket.on('game-joined', function() {
     for (var i in PLAYER_LIST) {
         PLAYER_LIST[i].alive = true;
@@ -380,6 +415,9 @@ socket.on('game-joined', function() {
     ingame = true;
     canmove = true;
     document.getElementById('chat').innerHTML = '';
+    for (var i in LOOT_BOXES) {
+        delete LOOT_BOXES[i];
+    }
     var waitforload = setInterval(function() {
         if (loaded) {
             document.getElementById('canceljoingame').style.display = 'none';
@@ -400,6 +438,7 @@ socket.on('gamerunning', function() {
     document.getElementById('gamelocked').style.display = 'block';
     document.getElementById('canceljoingame').style.display = 'inline-block';
 });
+// map handlers
 socket.on('initmap', function(maps) {
     for (var i in maps) {
         MAPS[i] = new Image(maps[i].width, maps[i].height);
@@ -408,6 +447,7 @@ socket.on('initmap', function(maps) {
         } else {
             MAPS[i].src = '/client/img/Map' + maps[i].id + '.png';
         }
+        MAPS[i].name = maps[i].name;
     }
     try {
         var maploader = new OffscreenCanvas(192, 108).getContext('2d');
@@ -427,7 +467,9 @@ socket.on('initmap', function(maps) {
 });
 socket.on('map', function(id) {
     CURRENT_MAP = id;
+
 });
+// game handlers
 socket.on('gamestart', function(pkg) {
     if (ingame) {
         document.getElementById('ready').style.display = 'none';
@@ -439,6 +481,8 @@ socket.on('gamestart', function(pkg) {
     }
 });
 socket.on('winner', function(id) {
+    var color = PLAYER_LIST[id].color;
+    var name = PLAYER_LIST[id].name;
     ingame = false;
     canmove = false;
     document.getElementById('loadingContainer').style.display = 'none';
@@ -464,7 +508,7 @@ socket.on('winner', function(id) {
             v *= 0.96;
         }
         x += v;
-        game.fillStyle = PLAYER_LIST[id].color;
+        game.fillStyle = color;
         game.fillRect(x, 0, window.innerWidth, window.innerHeight);
         game.drawImage(winOverlay, x+(window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
         game.drawImage(winOverlay2, x, 0, winOverlay.width, winOverlay.height);
@@ -474,11 +518,11 @@ socket.on('winner', function(id) {
         game.rotate(-15.5*(Math.PI/180));
         game.textAlign = 'center';
         game.font = (window.innerHeight/12) + 'px Pixel';
-        game.fillText(PLAYER_LIST[id].name, 0, 0);
+        game.fillText(name, 0, 0);
         game.restore();
         if (x < 0.1) {
             clearInterval(slide);
-            game.fillStyle = PLAYER_LIST[id].color;
+            game.fillStyle = color;
             game.fillRect(0, 0, window.innerWidth, window.innerHeight);
             game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
             game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
@@ -488,23 +532,26 @@ socket.on('winner', function(id) {
             game.rotate(-15.5*(Math.PI/180));
             game.textAlign = 'center';
             game.font = (window.innerHeight/12) + 'px Pixel';
-            game.fillText(PLAYER_LIST[id].name, 0, 0);
+            game.fillText(name, 0, 0);
             game.restore();
             document.getElementById('credits').style.display = '';
             document.getElementById('githublink').style.display = '';
+            var currentId = gameid;
             window.addEventListener('resize', function() {
-                game.fillStyle = PLAYER_LIST[id].color;
-                game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-                game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
-                game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
-                game.fillStyle = '#000000';
-                game.save();
-                game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
-                game.rotate(-15.5*(Math.PI/180));
-                game.textAlign = 'center';
-                game.font = (window.innerHeight/12) + 'px Pixel';
-                game.fillText(PLAYER_LIST[id].name, 0, 0);
-                game.restore();
+                if (gameid == currentId) {
+                    game.fillStyle = color;
+                    game.fillRect(0, 0, window.innerWidth, window.innerHeight);
+                    game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
+                    game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
+                    game.fillStyle = '#000000';
+                    game.save();
+                    game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
+                    game.rotate(-15.5*(Math.PI/180));
+                    game.textAlign = 'center';
+                    game.font = (window.innerHeight/12) + 'px Pixel';
+                    game.fillText(name, 0, 0);
+                    game.restore();
+                }
             });
         }
     }, 5);
@@ -568,6 +615,7 @@ socket.on('gamecut', function() {
         ingame = false;
         inmenu = false;
         readyforstart = false;
+        gameid = Math.random();
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';
         document.getElementById('scoreContainer').style.display = 'none';
@@ -582,12 +630,20 @@ socket.on('gamecut', function() {
         fadeOut();
     }
 });
+// round handlers
 socket.on('roundstart', function(scores) {
     if (ingame) {
+        mapname.text = MAPS[CURRENT_MAP].name;
+        mapname.color = 'rgb(0, 100, 255)';
         fadeOut();
         setTimeout(function() {
             canmove = true;
         }, 3000);
+        for (var i in BANNERS) {
+            if (BANNERS[i].top.indexOf('Buff') == 0) {
+                delete BANNERS[i];
+            }
+        }
         for (var i in PLAYER_LIST) {
             PLAYER_LIST[i].alive = true;
         }
@@ -655,6 +711,17 @@ socket.on('roundstart', function(scores) {
                 }
             }, 1);
         }, 3000);
+        setTimeout(function() {
+            var opacity = 1;
+            var fade = setInterval(function() {
+                opacity -= 0.01;
+                mapname.color = 'rgba(0, 100, 255, ' + opacity + ')';
+                if (opacity < 0.01) {
+                    mapname.text = '';
+                    clearInterval(fade);
+                }
+            }, 1);
+        }, 5000);
     }
 });
 socket.on('roundend', function() {
@@ -663,8 +730,12 @@ socket.on('roundend', function() {
         for (var i in BULLET_LIST) {
             delete BULLET_LIST[i];
         }
+        for (var i in LOOT_BOXES) {
+            delete LOOT_BOXES[i];
+        }
     }
 });
+// tracked data handlers
 socket.on('inittrackedData', function(pkg) {
     for (var i in pkg.achievements) {
         var localachievement = pkg.achievements[i];
@@ -675,7 +746,18 @@ socket.on('inittrackedData', function(pkg) {
             }
         }
     }
-    TRACKED_DATA = {kills:pkg.kills, deaths:pkg.deaths, wins:pkg.wins};
+    TRACKED_DATA.kills = pkg.kills;
+    TRACKED_DATA.deaths = pkg.deaths;
+    TRACKED_DATA.wins = pkg.wins;
+    TRACKED_DATA.lootboxcollections.total = pkg.lootboxcollections.total;
+    TRACKED_DATA.lootboxcollections.lucky = pkg.lootboxcollections.lucky;
+    TRACKED_DATA.lootboxcollections.unlucky = pkg.lootboxcollections.unlucky;
+    TRACKED_DATA.lootboxcollections.speed = pkg.lootboxcollections.speed;
+    TRACKED_DATA.lootboxcollections.jump = pkg.lootboxcollections.jump;
+    TRACKED_DATA.lootboxcollections.shield = pkg.lootboxcollections.shield;
+    TRACKED_DATA.lootboxcollections.homing = pkg.lootboxcollections.homing;
+    TRACKED_DATA.lootboxcollections.firerate = pkg.lootboxcollections.firerate;
+    TRACKED_DATA.lootboxcollections.random = pkg.lootboxcollections.random;
 });
 socket.on('achievement_get', function(pkg) {
     for (var i in ACHIEVEMENTS) {
@@ -700,10 +782,20 @@ socket.on('updateTrackedData', function(pkg) {
             TRACKED_DATA.kills = pkg[i].kills;
             TRACKED_DATA.deaths = pkg[i].deaths;
             TRACKED_DATA.wins = pkg[i].wins;
+            TRACKED_DATA.lootboxcollections.total = pkg[i].lootboxcollections.total;
+            TRACKED_DATA.lootboxcollections.lucky = pkg[i].lootboxcollections.lucky;
+            TRACKED_DATA.lootboxcollections.unlucky = pkg[i].lootboxcollections.unlucky;
+            TRACKED_DATA.lootboxcollections.speed = pkg[i].lootboxcollections.speed;
+            TRACKED_DATA.lootboxcollections.jump = pkg[i].lootboxcollections.jump;
+            TRACKED_DATA.lootboxcollections.shield = pkg[i].lootboxcollections.shield;
+            TRACKED_DATA.lootboxcollections.homing = pkg[i].lootboxcollections.homing;
+            TRACKED_DATA.lootboxcollections.firerate = pkg[i].lootboxcollections.firerate;
+            TRACKED_DATA.lootboxcollections.random = pkg[i].lootboxcollections.random;
             updateAchievements();
         }
     }
 });
+// other handlers
 socket.on('effect', function(effect) {
     switch (effect) {
         case 'speed':
@@ -712,11 +804,20 @@ socket.on('effect', function(effect) {
         case 'speed2':
             Banner('Buff: SPEED 2', '10s', '#FFFF00', 10);
             break;
+        case 'slowness':
+            Banner('DeBuff: SLOWNESS', '5s', '#FFFFFF', 5);
+            break;
         case 'jump':
             Banner('Buff: JUMP BOOST', '10s', '#FF9900', 10);
             break;
+        case 'heal':
+            Banner('Buff: HEAL', 'You were healed!', '#008000', 5);
+            break;
+        case 'damage':
+            Banner('DeBuff: Damage', '-2 HP', '#aa00FF', 5);
+            break;
         case 'shield':
-            Banner('Buff: SHIELD', 'Shield Get!', '#0080FF', 10);
+            Banner('Buff: SHIELD', 'Shield Get!', '#0080FF', 5);
             break;
         case 'homing':
             Banner('Buff: HOMING BULLETS', '10s', '#00FF00', 10);
@@ -726,11 +827,14 @@ socket.on('effect', function(effect) {
             break;
         case 'firerate2':
             Banner('Buff: MINIGUN', '10s', '#FF0000', 10);
-            break;                                                  
+            break;
+        default:
+            Banner('Buff: ERR:INVALIDBUFF', 'NaN\'s\'', '#FFFFFF', 60);
+            break;
     }
 });
 socket.on('yeet', function() {
-    Banner('YEET!', 'You just got yeeted!', 'white');
+    Banner('YEET!', 'You just got yeeted!', 'white', 5000);
 });
 
 // fps & tps counter

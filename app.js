@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.2.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.2.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.2.0\n');
+console.log('\nThis server is running BattleBoxes Server v-1.2.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -30,7 +30,7 @@ app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');
 app.use('/client',express.static(__dirname + '/client'));
 
 // init functions
-getMap = function(name, id) {
+getMap = function(name) {
     var data1 = require('./' + name);
     var data2 = [];
     data2.name = data1.name;
@@ -52,17 +52,24 @@ getMap = function(name, id) {
         data2.spawns[i].x = (data1.spawns[i].x*40)+20;
         data2.spawns[i].y = (data1.spawns[i].y*40)+20;
     }
-    MAPS[id] = data2;
+    data2.lootspawns = [];
+    for (var i in data1.lootspawns) {
+        data2.lootspawns[i] = {x:null, y:null};
+        data2.lootspawns[i].x = (data1.lootspawns[i].x*40)+20;
+        data2.lootspawns[i].y = (data1.lootspawns[i].y*40)+20;
+    }
+    MAPS[MAPS.length] = data2;
 }
 
 // initialize
 log('Starting server...');
-getMap('./server/Lobby.json', 0);
-getMap('./server/Map1.json', 1);
-getMap('./server/Map2.json', 2);
-getMap('./server/Map3.json', 3);
-getMap('./server/Map4.json', 4);
-getMap('./server/Map5.json', 5);
+getMap('./server/Lobby.json');
+getMap('./server/Map1.json');
+getMap('./server/Map2.json');
+getMap('./server/Map3.json');
+getMap('./server/Map4.json');
+getMap('./server/Map5.json');
+// getMap('./server/Map6.json');
 SOCKET_LIST = [];
 var port;
 try {
@@ -79,6 +86,7 @@ if (process.env.PORT) {
     port = process.env.PORT;
     server.listen(port);
     log('Server started, listening to port ' + port + '.');
+    started = true;
 } else {
     fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) stop(err);
@@ -101,6 +109,7 @@ if (process.env.PORT) {
                 for (i = 1; i < ports; i++) {port += 100;}
                 server.listen(port);
                 log('Server started, listening to port ' + port + '.');
+                started = true;
             });
         });
     });
@@ -205,6 +214,10 @@ io.on('connection', function(socket) {
                                 if (data.rows[i].username == cred.usrname) {
                                     var localtrackedData = data.rows[i].data;
                                     try {
+                                        var checkfornull = localtrackedData;
+                                        if (checkfornull == null) {
+                                            checkfornull = new TrackedData();
+                                        }
                                         var checkfornull = localtrackedData.achievements;
                                         if (checkfornull == null) {
                                             checkfornull = new TrackedData().achievements;
@@ -221,6 +234,46 @@ io.on('connection', function(socket) {
                                         if (checkfornull == null) {
                                             checkfornull = 0;
                                         }
+                                        var checkfornull = localtrackedData.lootboxcollections;
+                                        if (checkfornull == null) {
+                                            checkfornull = new TrackedData().lootboxcollections;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.total;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.lucky;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.unlucky;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.speed;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.jump;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.shield;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.homing;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.firerate;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
+                                        var checkfornull = localtrackedData.lootboxcollections.random;
+                                        if (checkfornull == null) {
+                                            checkfornull = 0;
+                                        }
                                     } catch (err) {
                                         error('ERROR: Player trackedData was "' + data.rows[i].data + '" during fetch.');
                                         try {
@@ -233,6 +286,15 @@ io.on('connection', function(socket) {
                                     player.trackedData.kills = localtrackedData.kills;
                                     player.trackedData.deaths = localtrackedData.deaths;
                                     player.trackedData.wins = localtrackedData.wins;
+                                    player.trackedData.lootboxcollections.total = localtrackedData.lootboxcollections.total;
+                                    player.trackedData.lootboxcollections.lucky = localtrackedData.lootboxcollections.lucky;
+                                    player.trackedData.lootboxcollections.unlucky = localtrackedData.lootboxcollections.unlucky;
+                                    player.trackedData.lootboxcollections.speed = localtrackedData.lootboxcollections.speed;
+                                    player.trackedData.lootboxcollections.jump = localtrackedData.lootboxcollections.jump;
+                                    player.trackedData.lootboxcollections.shield = localtrackedData.lootboxcollections.shield;
+                                    player.trackedData.lootboxcollections.homing = localtrackedData.lootboxcollections.homing;
+                                    player.trackedData.lootboxcollections.firerate = localtrackedData.lootboxcollections.firerate;
+                                    player.trackedData.lootboxcollections.random = localtrackedData.lootboxcollections.random;
                                     for (var j in localtrackedData.achievements) {
                                         var localfetchedachievement = localtrackedData.achievements[j];
                                         for (var k in player.trackedData.achievements) {
@@ -242,7 +304,6 @@ io.on('connection', function(socket) {
                                             }
                                         }
                                     }
-                                    // player.trackedData.achievements = localtrackedData.achievements;
                                 }
                             }
                         } catch (err) {
@@ -335,6 +396,17 @@ io.on('connection', function(socket) {
             player.ingame = true;
             player.respawn(MAPS[0].spawns[0].x, MAPS[0].spawns[0].y);
             player.invincible = true;
+            // load maps
+            var pack = [];
+            for (var i in MAPS) {
+                pack.push({
+                    id: i,
+                    width: (MAPS[i].width*40),
+                    height: (MAPS[i].height*40),
+                    name: MAPS[i].name
+                });
+            }
+            socket.emit('initmap', pack);
             // send all existing players
             var players = [];
             for (var i in PLAYER_LIST) {
@@ -360,15 +432,6 @@ io.on('connection', function(socket) {
                 players: players
             };
             socket.emit('initgame', pack);
-            pack = [];
-            for (var i in MAPS) {
-                pack.push({
-                    id: i,
-                    width: (MAPS[i].width*40),
-                    height: (MAPS[i].height*40)
-                });
-            }
-            socket.emit('initmap', pack);
             // send new player to all clients
             var pack = {
                 id: player.id,
@@ -417,11 +480,11 @@ io.on('connection', function(socket) {
     setInterval(async function() {
         messageRate--;
         if (messageRate < 0) messageRate = 0;
-    }, 3000);
+    }, 5000);
     setInterval(async function() {
         spamOffenses--;
         if (spamOffenses < 0) spamOffenses = 0;
-    }, 5000);
+    }, 10000);
     socket.on('chatInput', async function(input) {
         if (input.length > 64) {
             socket.emit('disconnected');
@@ -599,7 +662,7 @@ function stop(stoperr) {
         try {
             database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData]);
         } catch (err) {
-            console.error(err);
+            error(err);
         }
     }
     log('Stopping server...');

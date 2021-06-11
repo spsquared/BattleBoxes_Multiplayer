@@ -81,6 +81,9 @@ function play() {
     sfx[0].src = ('/client/sound/Play.mp3');
     sfx[0].play();
     document.getElementById('canceljoingame').style.display = 'none';
+    for (var i in PLAYER_LIST) {
+        delete PLAYER_LIST[i];
+    }
     fadeIn();
     setTimeout(function() {
         socket.emit('joingame');
@@ -192,6 +195,7 @@ function quittoMenu() {
         ingame = false;
         inmenu = false;
         readyforstart = false;
+        gameid = Math.random();
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';
         document.getElementById('playAgain').style.opacity = '0';

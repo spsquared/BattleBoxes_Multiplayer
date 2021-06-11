@@ -1,13 +1,17 @@
 // Copyright (C) 2021 Radioactive64'
 
-round = {inProgress:false, number:0};
+round = {
+    inProgress:false,
+    id:null,
+    number:0
+};
 gameinProgress = false;
-const achievementsTemplate = require('./Achievements.json').data;
+const achievementsTemplate = Object.assign({}, require('./Achievements.json')).data;
 
 // chat functions
 insertChat = function(text, textcolor) {
     var time = new Date();
-    var minute = '' + time.getMinutes();
+    var minute = '' + time.getUTCMinutes();
     if(minute.length === 1){
         minute = '' + 0 + minute;
     }
@@ -22,20 +26,20 @@ insertChat = function(text, textcolor) {
     } else {
         color = textcolor;
     }
-    console.log('[' + time.getHours() + ':' + minute + '] ' + text);
-    var msg = '[' + time.getHours() + ':' + minute + '] ' + text;
+    console.log('[' + time.getUTCHours() + ':' + minute + '] ' + text);
+    var msg = '[' + time.getUTCHours() + ':' + minute + '] ' + text;
     io.emit('insertChat', {msg:msg, color:color});
 }
 log = function(text) {
     var time = new Date();
-    var minute = '' + time.getMinutes();
+    var minute = '' + time.getUTCMinutes();
     if(minute.length === 1){
         minute = '' + 0 + minute;
     }
     if(minute === '0'){
         minute = '00';
     }
-    console.log('[' + time.getHours() + ':' + minute + '] ' + text);
+    console.log('[' + time.getUTCHours() + ':' + minute + '] ' + text);
 }
 error = function(text) {
     var time = new Date();
@@ -66,6 +70,7 @@ startGame = function() {
         localbot.score = 0;
         pack.push(localbot.name);
     }
+    round.number = 0;
     setTimeout(function () {
         io.emit('gamestart', pack);
         insertChat('Game started!', '#000000');
@@ -84,7 +89,6 @@ endGame = function(id) {
     }
     for (var i in PLAYER_LIST) {
         PLAYER_LIST[i].ingame = false;
-        io.emit('deleteplayer', i);
     }
     round.inProgress = false;
     gameinProgress = false;
@@ -96,6 +100,9 @@ endGame = function(id) {
 // round functions
 startRound = function() {
     if (gameinProgress) {
+        round.id = Math.random();
+        round.number++;
+        // change map
         switch (Math.floor(Math.random()*5)) {
             case 0:
                 CURRENT_MAP = 1;
@@ -113,9 +120,20 @@ startRound = function() {
                 CURRENT_MAP = 5;
                 break;
             default:
+                stop('INVALID MAP')
                 break;
         }
+        // spawn lootboxes
         io.emit('map', CURRENT_MAP);
+        for (var i in LOOT_BOXES) {
+            io.emit('deletelootbox', LOOT_BOXES[i].id);
+            delete LOOT_BOXES[i];
+        }
+        var lootspawns = MAPS[CURRENT_MAP].lootspawns;
+        for (var i in lootspawns) {
+            new LootBox(lootspawns[i].x, lootspawns[i].y);
+        }
+        // spawn players
         var j = 0;
         var pack = [];
         var pack2 = [];
@@ -146,6 +164,7 @@ startRound = function() {
         }
         io.emit('update', pack);
         io.emit('roundstart', pack2);
+        insertChat('Round ' + round.number + '!', '#000000');
         round.inProgress = true;
     }
 }
@@ -176,6 +195,9 @@ endRound = function() {
     for (var i in BULLET_LIST) {
         delete BULLET_LIST[i];
     }
+    for (var i in LOOT_BOXES) {
+        delete LOOT_BOXES[i];
+    }
     if (remainingPlayers != 0 && nextround && gameinProgress) {
         setTimeout(function () {
             startRound();
@@ -198,7 +220,18 @@ TrackedData = function() {
         },
         kills: 0,
         deaths: 0,
-        wins: 0
+        wins: 0,
+        lootboxcollections: {
+            total: 0,
+            lucky: 0,
+            unlucky: 0,
+            speed: 0,
+            jump: 0,
+            shield: 0,
+            homing: 0,
+            firerate: 0,
+            random: 0
+        }
     };
     // temporary hard-coding while linking is fixed
     self.achievements = [
@@ -206,7 +239,8 @@ TrackedData = function() {
         {id:"10_Wins", name:"Master of Gaming", aqquired:false},
         {id:"100_Wins", name:"The Ultimate Champion", aqquired:false},
         {id:"1000_Wins", name:"Unparalleled Dominance", aqquired:false},
-        {id:"1_Kills", name:"Pew pew gun!", aqquired:false},
+        {id:"1000000_Wins", name:"Cheated or Sat Here Too Long", aqquired:false},
+        {id:"1_Kills", name:"Pew Pew Gun!", aqquired:false},
         {id:"10_Kills", name:"Assassin", aqquired:false},
         {id:"100_Kills", name:"Hitman", aqquired:false},
         {id:"1000_Kills", name:"Homocide", aqquired:false},
@@ -216,6 +250,32 @@ TrackedData = function() {
         {id:"100_Deaths", name:"Witchcraft", aqquired:false},
         {id:"1000_Deaths", name:"Immortal", aqquired:false},
         {id:"1000000_Deaths", name:"How did we get here?", aqquired:false},
+        {id:"1total_Lootboxes", name:"OOOH, what's this?", aqquired:false},
+        {id:"100total_Lootboxes", name:"Loot Finder", aqquired:false},
+        {id:"1000total_Lootboxes", name:"Looty McLootFace", aqquired:false},
+        {id:"1lucky_Lootboxes", name:"Lucky Man", aqquired:false},
+        {id:"100lucky_Lootboxes", name:"Lucky pants", aqquired:false},
+        {id:"1000lucky_Lootboxes", name:"Gambler", aqquired:false},
+        {id:"1unlucky_Lootboxes", name:"Better Luck Next Time!", aqquired:false},
+        {id:"100unlucky_Lootboxes", name:"Gambler that Didn't Quit When they Should Have", aqquired:false},
+        {id:"1speed_Lootboxes", name:"SPEEED!", aqquired:false},
+        {id:"10speed_Lootboxes", name:"SPEEEEEED!!", aqquired:false},
+        {id:"100speed_Lootboxes", name:"I AM SPEEEEEEEEEEEEEEEEEEEED!!!!!", aqquired:false},
+        {id:"1jump_Lootboxes", name:"High Jump", aqquired:false},
+        {id:"10jump_Lootboxes", name:"Sky High", aqquired:false},
+        {id:"100_jump_Lootboxes", name:"I Believe I can Fly!", aqquired:false},
+        {id:"1shield_Lootboxes", name:"I Have a Shield!", aqquired:false},
+        {id:"10shield_Lootboxes", name:"*Insert Shield Joke*", aqquired:false},
+        {id:"100shield_Lootboxes", name:"Too Many Shields", aqquired:false},
+        {id:"1homing_Lootboxes", name:"Homing Bullet", aqquired:false},
+        {id:"10homing_Lootboxes", name:"100% Aim Assist", aqquired:false},
+        {id:"100homing_Lootboxes", name:"Don't Need to Aim", aqquired:false},
+        {id:"1firerate_Lootboxes", name:"Pew Pew Pew Pew Pew Pew Pew Pew Pew Pew Gun!", aqquired:false},
+        {id:"10firerate_Lootboxes", name:"More Bullets = More Damage", aqquired:false},
+        {id:"100firerate_Lootboxes", name:"Somehow Still Have Bullets", aqquired:false},
+        {id:"1random_Lootboxes", name:"What's in Here?", aqquired:false},
+        {id:"10random_Lootboxes", name:"Risk Taker", aqquired:false},
+        {id:"100random_Lootboxes", name:"Risk Ignorance", aqquired:false},
         {id:"all_achievements", name:"Overachiever", aqquired:false},
         {id:"debug_EasterEgg", name:"Debugger", aqquired:false},
         {id:"null_EasterEgg", name:"Hacker", aqquired:false}
@@ -232,7 +292,8 @@ TrackedData.update = function() {
                 id: localplayer.id,
                 kills: localplayer.trackedData.kills,
                 deaths: localplayer.trackedData.deaths,
-                wins: localplayer.trackedData.wins
+                wins: localplayer.trackedData.wins,
+                lootboxcollections: localplayer.trackedData.lootboxcollections
             });
         }
         io.emit('updateTrackedData', pack);
