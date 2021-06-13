@@ -89,13 +89,11 @@ endGame = function(id) {
     }
     for (var i in PLAYER_LIST) {
         PLAYER_LIST[i].ingame = false;
+        PLAYER_LIST[i].score = 0;
     }
     round.inProgress = false;
     gameinProgress = false;
-    setTimeout(function() {
-        CURRENT_MAP = 0;
-        io.emit('map', CURRENT_MAP);
-    }, 1000)
+    CURRENT_MAP = 0;
 }
 // round functions
 startRound = function() {
@@ -126,7 +124,6 @@ startRound = function() {
         // spawn lootboxes
         io.emit('map', CURRENT_MAP);
         for (var i in LOOT_BOXES) {
-            io.emit('deletelootbox', LOOT_BOXES[i].id);
             delete LOOT_BOXES[i];
         }
         var lootspawns = MAPS[CURRENT_MAP].lootspawns;
@@ -209,6 +206,14 @@ endRound = function() {
 TrackedData = function() {
     var self = {
         achievements:achievementsTemplate,
+        locate: function(player, id) {
+            for (var i in player.trackedData.achievements) {
+                if (player.trackedData.achievements[i].id == id) {
+                    return player.trackedData.achievements[i];
+                }
+            }
+            return false;
+        },
         grant: function(player, achievement) {
             achievement.aqquired = true;
             io.emit('achievement_get', {player:player, achievement:achievement.id});
@@ -276,6 +281,7 @@ TrackedData = function() {
         {id:"1random_Lootboxes", name:"What's in Here?", aqquired:false},
         {id:"10random_Lootboxes", name:"Risk Taker", aqquired:false},
         {id:"100random_Lootboxes", name:"Risk Ignorance", aqquired:false},
+        {id:"aqquire_goldenbullet", name:"The Golden Bullet", aqquired:false},
         {id:"all_achievements", name:"Overachiever", aqquired:false},
         {id:"debug_EasterEgg", name:"Debugger", aqquired:false},
         {id:"null_EasterEgg", name:"Hacker", aqquired:false}

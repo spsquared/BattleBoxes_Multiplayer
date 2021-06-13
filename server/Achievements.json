@@ -41,6 +41,7 @@
         {"id":"1random_Lootboxes", "name":"What's in Here?", "aqquired":false},
         {"id":"10random_Lootboxes", "name":"Risk Taker", "aqquired":false},
         {"id":"100random_Lootboxes", "name":"Risk Ignorance", "aqquired":false},
+        {"id":"aqquire_goldenbullet", "name":"The Golden Bullet", "aqquired":false},
         {"id":"all_achievements", "name":"Overachiever", "aqquired":false},
         {"id":"debug_EasterEgg", "name":"Debugger", "aqquired":false},
         {"id":"null_EasterEgg", "name":"Hacker", "aqquired":false}

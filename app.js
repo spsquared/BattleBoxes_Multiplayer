@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.2.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.2.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.2.1\n');
+console.log('\nThis server is running BattleBoxes Server v-1.2.2\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -45,7 +45,6 @@ getMap = function(name) {
             data2[j] = [];
         }
     }
-    data2.pfgrid = new Pathfind.Grid(data2);
     data2.spawns = [];
     for (var i in data1.spawns) {
         data2.spawns[i] = {x:null, y:null};
@@ -71,6 +70,8 @@ getMap('./server/Map4.json');
 getMap('./server/Map5.json');
 // getMap('./server/Map6.json');
 SOCKET_LIST = [];
+TPS = 0;
+TPS_COUNTER = 0;
 var port;
 try {
     database.connect();
@@ -178,10 +179,6 @@ io.on('connection', function(socket) {
     });
     socket.on('timeout', function() {
         log('Player "' + player.name + '" timed out.');
-        socket.disconnect();
-    });
-    socket.on('disconnectclient', function() {
-        socket.emit('disconnected');
         socket.disconnect();
     });
     //login handlers
@@ -473,6 +470,9 @@ io.on('connection', function(socket) {
         if (click.button == 'left' && round.inProgress && player.alive) {
             player.shoot(click.x, click.y);
         }
+        if (click.button == 'right' && round.inProgress && player.alive) {
+            player.secondaryAttack(click.x, click.y);
+        }
     });
     // chat handlers
     var messageRate = 0;
@@ -587,8 +587,12 @@ setInterval(function() {
         }
         setTimeout(function() {endGame(null);}, 1000);
     }
+    TPS_COUNTER++;
 }, 1000/60);
-
+setInterval(async function() {
+    TPS = TPS_COUNTER;
+    TPS_COUNTER = 0;
+}, 1000);
 // 5 minute autosave
 setInterval(function() {
     for (var i in PLAYER_LIST) {
@@ -650,7 +654,8 @@ function queryStop(firstrun) {
 }
 function stop(stoperr) {
     if (stoperr) {
-        error('\nFATAL ERROR:');
+        console.error('\n');
+        error('FATAL ERROR:');
         error(stoperr);
         error('STOP.\n');
     }
@@ -679,6 +684,7 @@ function stop(stoperr) {
                 prompt.close();
                 log('Server stopped.');
                 if (stoperr) {
+                    console.log('\nIf this issue persists, please submit a bug report on GitHub with a screenshot of this log.');
                     console.log('\nPress ENTER to exit.');
                     const stopprompt = readline.createInterface({input: process.stdin, output: process.stdout});
                     stopprompt.on('line', function(input) {
@@ -886,6 +892,9 @@ debug = function() {
                 }
             }
             return false;
+        },
+        TPS: function() {
+            return TPS;
         }
     }
     return self;

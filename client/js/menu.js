@@ -115,7 +115,10 @@ function back() {
     document.getElementById('mainmenuContainer').style.display = 'inline-block';
 }
 function disconnectclient() {
-    socket.emit('disconnectclient', {id: document.getElementById('usrname').value});
+    fadeIn();
+    setTimeout(function() {
+        window.location.reload();
+    }, 250);
 }
 function canceljoin() {
     document.getElementById('menuContainer').style.display = 'block';

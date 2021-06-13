@@ -345,9 +345,11 @@ document.onmousedown = function(event) {
             case 0:
                 socket.emit('click', {button:'left', x:mouseX, y:mouseY});
                 shooting = true;
+                break;
             case 2:
-                socket.emit('click', {button:'right'});
+                socket.emit('click', {button:'right', x:mouseX, y:mouseY});
                 shooting = true;
+                break;
         }
     }
 }
@@ -421,6 +423,7 @@ socket.on('game-joined', function() {
     var waitforload = setInterval(function() {
         if (loaded) {
             document.getElementById('canceljoingame').style.display = 'none';
+            document.getElementById('playAgain').style.display = 'none';
             gameCanvas.style.display = 'block';
             document.getElementById('gameContainer').style.backgroundColor = 'black';
             document.getElementById('credits').style.display = 'none';
@@ -481,130 +484,140 @@ socket.on('gamestart', function(pkg) {
     }
 });
 socket.on('winner', function(id) {
-    var color = PLAYER_LIST[id].color;
-    var name = PLAYER_LIST[id].name;
-    ingame = false;
-    canmove = false;
-    document.getElementById('loadingContainer').style.display = 'none';
-    var v = -10;
-    var x = window.innerWidth;
-    var winOverlay = new Image();
-    var winOverlay2 = new Image();
-    winOverlay.src = './client/img/WinOverlay.png';
-    winOverlay2.src = './client/img/WinOverlay2.png';
-    if (window.innerWidth/window.innerHeight > 16/9) {
-        winOverlay.width = (1920*(window.innerHeight/1080));
-        winOverlay2.width = (1920*(window.innerHeight/1080));
-        winOverlay.height = window.innerHeight;
-        winOverlay2.height = window.innerHeight;
-    } else {
-        winOverlay.width = window.innerWidth;
-        winOverlay2.width = window.innerWidth;
-        winOverlay.height = (1080*(window.innerWidth/1920));
-        winOverlay2.height = (1080*(window.innerWidth/1920));
-    }
-    var slide = setInterval(function() {
-        if (x < 200) {
-            v *= 0.96;
+    if (ingame) {
+        if (consoleAccess) {
+            document.getElementById('adminConsole').style.display = 'none';
         }
-        x += v;
-        game.fillStyle = color;
-        game.fillRect(x, 0, window.innerWidth, window.innerHeight);
-        game.drawImage(winOverlay, x+(window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
-        game.drawImage(winOverlay2, x, 0, winOverlay.width, winOverlay.height);
-        game.fillStyle = '#000000';
-        game.save();
-        game.translate(x+(550*(window.innerWidth/1536)), 400*(window.innerHeight/864));
-        game.rotate(-15.5*(Math.PI/180));
-        game.textAlign = 'center';
-        game.font = (window.innerHeight/12) + 'px Pixel';
-        game.fillText(name, 0, 0);
-        game.restore();
-        if (x < 0.1) {
-            clearInterval(slide);
+        document.getElementById('ingameMenu').style.display = 'none';
+        document.getElementById('credits').style.display = 'none';
+        document.getElementById('githublink').style.display = 'none';
+        ingameBack();
+        inmenu = false;
+        var color = PLAYER_LIST[id].color;
+        var name = PLAYER_LIST[id].name;
+        ingame = false;
+        canmove = false;
+        document.getElementById('loadingContainer').style.display = 'none';
+        var v = -10;
+        var x = window.innerWidth;
+        var winOverlay = new Image();
+        var winOverlay2 = new Image();
+        winOverlay.src = './client/img/WinOverlay.png';
+        winOverlay2.src = './client/img/WinOverlay2.png';
+        if (window.innerWidth/window.innerHeight > 16/9) {
+            winOverlay.width = (1920*(window.innerHeight/1080));
+            winOverlay2.width = (1920*(window.innerHeight/1080));
+            winOverlay.height = window.innerHeight;
+            winOverlay2.height = window.innerHeight;
+        } else {
+            winOverlay.width = window.innerWidth;
+            winOverlay2.width = window.innerWidth;
+            winOverlay.height = (1080*(window.innerWidth/1920));
+            winOverlay2.height = (1080*(window.innerWidth/1920));
+        }
+        var slide = setInterval(function() {
+            if (x < 200) {
+                v *= 0.96;
+            }
+            x += v;
             game.fillStyle = color;
-            game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
-            game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
+            game.fillRect(x, 0, window.innerWidth, window.innerHeight);
+            game.drawImage(winOverlay, x+(window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
+            game.drawImage(winOverlay2, x, 0, winOverlay.width, winOverlay.height);
             game.fillStyle = '#000000';
             game.save();
-            game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
+            game.translate(x+(550*(window.innerWidth/1536)), 400*(window.innerHeight/864));
             game.rotate(-15.5*(Math.PI/180));
             game.textAlign = 'center';
             game.font = (window.innerHeight/12) + 'px Pixel';
             game.fillText(name, 0, 0);
             game.restore();
-            document.getElementById('credits').style.display = '';
-            document.getElementById('githublink').style.display = '';
-            var currentId = gameid;
-            window.addEventListener('resize', function() {
-                if (gameid == currentId) {
-                    game.fillStyle = color;
-                    game.fillRect(0, 0, window.innerWidth, window.innerHeight);
-                    game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
-                    game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
-                    game.fillStyle = '#000000';
-                    game.save();
-                    game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
-                    game.rotate(-15.5*(Math.PI/180));
-                    game.textAlign = 'center';
-                    game.font = (window.innerHeight/12) + 'px Pixel';
-                    game.fillText(name, 0, 0);
-                    game.restore();
-                }
-            });
-        }
-    }, 5);
-    var fadeAmount = 1;
-    var audiofade = (settings.musicvolume*settings.globalvolume);
-    var fadeInterval = setInterval(function() {
-        fadeAmount -= 0.01;
-        audiofade -= ((settings.musicvolume*settings.globalvolume)/50);
-        if (audiofade < 0) {
-            audiofade = 0;
-        }
-        if (fadeAmount < 0.5) {
-            clearInterval(fadeInterval);
-        }
-        document.getElementById('scoreContainer').style.opacity = fadeAmount;
-        document.getElementById('chatContainer').style.opacity = fadeAmount;
-        music.volume = audiofade;
-    }, 1);
-    setTimeout(function() {
-        music.src = '/client/sound/Endscreen.mp3';
-        music.play();
+            if (x < 0.1) {
+                clearInterval(slide);
+                game.fillStyle = color;
+                game.fillRect(0, 0, window.innerWidth, window.innerHeight);
+                game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
+                game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
+                game.fillStyle = '#000000';
+                game.save();
+                game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
+                game.rotate(-15.5*(Math.PI/180));
+                game.textAlign = 'center';
+                game.font = (window.innerHeight/12) + 'px Pixel';
+                game.fillText(name, 0, 0);
+                game.restore();
+                document.getElementById('credits').style.display = '';
+                document.getElementById('githublink').style.display = '';
+                var currentId = gameid;
+                window.addEventListener('resize', function() {
+                    if (gameid == currentId) {
+                        game.fillStyle = color;
+                        game.fillRect(0, 0, window.innerWidth, window.innerHeight);
+                        game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
+                        game.drawImage(winOverlay2, 0, 0, winOverlay.width, winOverlay.height);
+                        game.fillStyle = '#000000';
+                        game.save();
+                        game.translate(550*(window.innerWidth/1536), 400*(window.innerHeight/864));
+                        game.rotate(-15.5*(Math.PI/180));
+                        game.textAlign = 'center';
+                        game.font = (window.innerHeight/12) + 'px Pixel';
+                        game.fillText(name, 0, 0);
+                        game.restore();
+                    }
+                });
+            }
+        }, 5);
+        var fadeAmount = 1;
+        var audiofade = (settings.musicvolume*settings.globalvolume);
         var fadeInterval = setInterval(function() {
             fadeAmount -= 0.01;
-            audiofade += ((settings.musicvolume*settings.globalvolume)/50);
+            audiofade -= ((settings.musicvolume*settings.globalvolume)/50);
             if (audiofade < 0) {
                 audiofade = 0;
             }
-            if (fadeAmount < 0) {
-                document.getElementById('scoreContainer').style.display = 'none';
+            if (fadeAmount < 0.5) {
                 clearInterval(fadeInterval);
             }
             document.getElementById('scoreContainer').style.opacity = fadeAmount;
             document.getElementById('chatContainer').style.opacity = fadeAmount;
             music.volume = audiofade;
         }, 1);
-    }, 500);
-    setTimeout(function() {
-        document.getElementById('playAgain').style.opacity = 0;
-        document.getElementById('playAgain').style.display = 'inline-block';
-        var fadeAmount = 0;
-        var fadeInterval = setInterval(function() {
-            fadeAmount += 0.01;
-            audiofade += ((settings.musicvolume*settings.globalvolume)/50);
-            if (audiofade < 0) {
-                audiofade = 0;
-            }
-            if (fadeAmount > 1) {
-                clearInterval(fadeInterval);
-            }
-            document.getElementById('playAgain').style.opacity = fadeAmount;
-            music.volume = audiofade;
-        }, 1);
-    }, 3000);
+        setTimeout(function() {
+            music.src = '/client/sound/Endscreen.mp3';
+            music.play();
+            var fadeInterval = setInterval(function() {
+                fadeAmount -= 0.01;
+                audiofade += ((settings.musicvolume*settings.globalvolume)/50);
+                if (audiofade < 0) {
+                    audiofade = 0;
+                }
+                if (fadeAmount < 0) {
+                    document.getElementById('scoreContainer').style.display = 'none';
+                    clearInterval(fadeInterval);
+                }
+                document.getElementById('scoreContainer').style.opacity = fadeAmount;
+                document.getElementById('chatContainer').style.opacity = fadeAmount;
+                music.volume = audiofade;
+            }, 1);
+        }, 500);
+        setTimeout(function() {
+            document.getElementById('playAgain').style.opacity = 0;
+            document.getElementById('playAgain').style.display = 'inline-block';
+            var fadeAmount = 0;
+            var fadeInterval = setInterval(function() {
+                fadeAmount += 0.01;
+                audiofade += ((settings.musicvolume*settings.globalvolume)/50);
+                if (audiofade < 0) {
+                    audiofade = 0;
+                }
+                if (fadeAmount > 1) {
+                    clearInterval(fadeInterval);
+                }
+                document.getElementById('playAgain').style.opacity = fadeAmount;
+                music.volume = audiofade;
+            }, 1);
+        }, 3000);
+    }
 });
 socket.on('gamecut', function() {
     if (ingame) {
@@ -640,12 +653,15 @@ socket.on('roundstart', function(scores) {
             canmove = true;
         }, 3000);
         for (var i in BANNERS) {
-            if (BANNERS[i].top.indexOf('Buff') == 0) {
+            if (BANNERS[i].top.indexOf('Buff:') == 0 || BANNERS[i].top.indexOf('Secondary:') == 0) {
                 delete BANNERS[i];
             }
         }
         for (var i in PLAYER_LIST) {
             PLAYER_LIST[i].alive = true;
+        }
+        for (var i in BULLET_LIST) {
+            delete BULLET_LIST[i];
         }
         for (var i in scores) {
             PLAYER_LIST[scores[i].id].score = scores[i].score;
@@ -727,12 +743,11 @@ socket.on('roundstart', function(scores) {
 socket.on('roundend', function() {
     if (ingame) {
         fadeIn();
-        for (var i in BULLET_LIST) {
-            delete BULLET_LIST[i];
-        }
-        for (var i in LOOT_BOXES) {
-            delete LOOT_BOXES[i];
-        }
+        setTimeout(function() {
+            for (var i in LOOT_BOXES) {
+                delete LOOT_BOXES[i];
+            }
+        }, 500);
     }
 });
 // tracked data handlers
@@ -799,34 +814,49 @@ socket.on('updateTrackedData', function(pkg) {
 socket.on('effect', function(effect) {
     switch (effect) {
         case 'speed':
-            Banner('Buff: SPEED', '10s', '#FFFF00', 10);
+            Banner('Buff: SPEED', '+20% movespeed 10s', '#FFFF00', 10);
             break;
         case 'speed2':
-            Banner('Buff: SPEED 2', '10s', '#FFFF00', 10);
+            Banner('Buff: SPEED 2', '+50% movespeed 10s', '#FFFF00', 10);
             break;
         case 'slowness':
-            Banner('DeBuff: SLOWNESS', '5s', '#FFFFFF', 5);
+            Banner('DeBuff: SLOWNESS', '-25% movespeed 5s', '#FFFFFF', 5);
             break;
         case 'jump':
-            Banner('Buff: JUMP BOOST', '10s', '#FF9900', 10);
+            Banner('Buff: JUMP BOOST', '+20% jump height 10s', '#FF9900', 10);
             break;
         case 'heal':
             Banner('Buff: HEAL', 'You were healed!', '#008000', 5);
             break;
         case 'damage':
-            Banner('DeBuff: Damage', '-2 HP', '#aa00FF', 5);
+            Banner('DeBuff: Damage', '-2 HP', '#AA00FF', 5);
             break;
         case 'shield':
             Banner('Buff: SHIELD', 'Shield Get!', '#0080FF', 5);
             break;
         case 'homing':
-            Banner('Buff: HOMING BULLETS', '10s', '#00FF00', 10);
+            Banner('Buff: HOMING BULLETS', 'Homing bullets 20s', '#00FF00', 10);
             break;
         case 'firerate':
-            Banner('Buff: MACHINE GUN', '10s', '#FF0000', 10);
+            Banner('Buff: MACHINE GUN', 'x2 bullet rate 10s', '#FF0000', 10);
             break;
         case 'firerate2':
-            Banner('Buff: MINIGUN', '10s', '#FF0000', 10);
+            Banner('Buff: MINIGUN', 'x3 bullet rate 10s', '#FF0000', 10);
+            break;
+        case 'goldenbullet':
+            Banner('Buff: GOLDEN BULLET', '1 Shot kill', '#FFDD00', 5);
+            break;
+        case 'superbullets':
+            Banner('Buff: SUPER BULLETS', 'x2 bullet damage', '#FFFFAA', 1000000);
+            break;
+        case 'noclipbullet':
+            Banner('Secondary: LASER BULLETS', 'Bullets can go through walls', '#FF0000', 1000000);
+            break;
+        case 'pathfindbullets':
+            Banner('Secondary: SMART BULLETS', 'Path finding smart bullets', '#00AAFF', 1000000);
+            break;
+        case 'yeet':
+            Banner('Secondary: YEET', 'Yeets players', '#00AA00', 1000000);
             break;
         default:
             Banner('Buff: ERR:INVALIDBUFF', 'NaN\'s\'', '#FFFFFF', 60);
@@ -834,7 +864,7 @@ socket.on('effect', function(effect) {
     }
 });
 socket.on('yeet', function() {
-    Banner('YEET!', 'You just got yeeted!', 'white', 5000);
+    Banner('YEET!', 'You just got yeeted!', '#FFFFFF', 5);
 });
 
 // fps & tps counter

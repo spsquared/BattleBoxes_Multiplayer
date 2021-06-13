@@ -223,9 +223,13 @@ Player = function(socketid) {
     self.Dpressed = false;
     self.noclip = false;
     self.invincible = false;
-    self.Clicked = false;
     self.maxCPS = 10;
     self.lastclick = 0;
+    self.secondary = {
+        id: null,
+        maxCPS: 0,
+        lastclick: 0
+    };
     self.hp = 5;
     self.shield = 0;
     self.score = 0;
@@ -235,11 +239,12 @@ Player = function(socketid) {
         jumpHeight: 1,
         bulletSpeed: 1,
         bulletRate: 1,
+        bulletDamage: 1,
         homingBullets: false
     };
     self.ready = false;
     self.ingame = false;
-    self.trackedData = Object.assign({}, new TrackedData());
+    self.trackedData = new TrackedData();
     var j = 0;
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
@@ -255,6 +260,7 @@ Player = function(socketid) {
             self.collide();
         }
         self.lastclick++;
+        self.secondary.lastclick++;
         if (self.hp < 1 && self.alive) {
             self.death();
         }
@@ -349,13 +355,42 @@ Player = function(socketid) {
             jumpHeight: 1,
             bulletSpeed: 1,
             bulletRate: 1,
+            bulletDamage: 1,
             homingBullets: false
         };
     }
     self.shoot = function(x, y) {
-        if (self.lastclick > ((1000/self.maxCPS)/(1000/60))) {
+        if (self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
             self.lastclick = 0;
-            new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.homingBullets);
+            new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, false);
+            if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+        }
+    }
+    self.secondaryAttack = function(x, y) {
+        if (self.secondary.lastclick > ((1000/self.secondary.maxCPS)/(1000/TPS))) {
+            self.secondary.lastclick = 0;
+            console.log(self.secondary.id);
+            switch (self.secondary.id) {
+                case 'noclipbullets':
+                    new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, true, false);
+                    if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+                    break;
+                case 'pathfindbullets':
+                    new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, true);
+                    if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+                    break;
+                case 'yeet':
+                    for (var i in PLAYER_LIST) {
+                        PLAYER_LIST[i].yspeed = 20;
+                    }
+                    for (var i in BOT_LIST) {
+                        BOT_LIST[i].yspeed = 20;
+                    }
+                    io.emit('yeet');
+                    break;
+                default:
+                    break;
+            }
         }
     }
     self.checkAchievements = function() {
@@ -443,7 +478,7 @@ Player.update = function() {
 }
 
 // bullets
-Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, homing) {
+Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, damageModifier, homing, noclip, pathfind) {
     var self = new Entity();
     self.x = x;
     self.y = y;
@@ -453,9 +488,26 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
     self.halfsize = 4;
     self.parent = parent;
     self.parentisPlayer = isplayer;
+    self.damage = damageModifier;
     self.homing = homing;
+    self.noclip = noclip;
+    self.pathfind = pathfind;
     self.color = color;
     self.valid = true;
+    try {
+        self.pathfinder = new Pathfind.AStarFinder({
+            allowDiagonal: true,
+            dontCrossCorners: true
+        });
+        self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
+        for (var i in MAPS[CURRENT_MAP]) {
+            for (var j in MAPS[CURRENT_MAP][i]) {
+                self.grid.setWalkableAt(j, i, MAPS[CURRENT_MAP][i][j]);
+            }
+        }
+    } catch (err) {
+        error(err);
+    }
     var pack = {
         id: self.id,
         x: self.x,
@@ -467,7 +519,7 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
 
     self.update = function() {
         self.updatePos();
-        self.collide();
+        if (!self.noclip) self.collide();
         if (self.colliding.top || self.colliding.left || self.colliding.right || self.colliding.bottom || self.colliding.center || self.x < -500 || self.x > ((MAPS[CURRENT_MAP].width*40)+500) || self.y < -500 || self.y > ((MAPS[CURRENT_MAP].height*40)+500)) {
             self.valid = false;
             io.emit('deletebullet', self.id);
@@ -479,10 +531,11 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
                 if (Math.abs(self.x - localplayer.x) < 16 && Math.abs(self.y - localplayer.y) < 16 && self.valid && !localplayer.invincible) {
                     self.valid = false;
                     if (localplayer.shield > 0) {
-                        localplayer.shield --;
+                        localplayer.shield -= self.damage;
                     } else {
-                        localplayer.hp--;
+                        localplayer.hp -= self.damage;
                     }
+                    if (self.damage == 100) localplayer.hp = 0;
                     if (localplayer.hp < 1) {
                         if (self.parentisPlayer) {
                             PLAYER_LIST[self.parent].trackedData.kills++;
@@ -501,10 +554,11 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
                 if (Math.abs(self.x - localbot.x) < 16 && Math.abs(self.y - localbot.y) < 16 && self.valid) {
                     self.valid = false;
                     if (localbot.shield > 0) {
-                        localbot.shield --;
+                        localbot.shield -= self.damage;
                     } else {
-                        localbot.hp--;
+                        localbot.hp -= self.damage;
                     }
+                    if (self.damage == 100) localbot.hp = 0;
                     if (localbot.hp < 1) {
                         if (self.parentisPlayer) {
                             console.log('thing')
@@ -520,7 +574,20 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
         }
     }
     self.updatePos = function() {
-        if (self.homing) {
+        if (self.pathfind) {
+            var closestplayer = self.findClosestPlayer();
+            if (closestplayer) {
+                try {
+                    var gridbackup = self.grid.clone();
+                    var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(localplayer.x/40), Math.floor(localplayer.y/40));
+                    var waypoints = Pathfind.Util.smoothenPath(self.grid, path);
+                    self.grid = gridbackup;
+                    console.log(waypoints);
+                } catch (err) {
+                    error(err);
+                }
+            }
+        } else if (self.homing) {
             var closestplayer = self.findClosestPlayer();
             if (closestplayer) {
                 self.angle = Math.atan2(-(self.y-closestplayer.y), -(self.x-closestplayer.x));
@@ -606,7 +673,8 @@ Bot = function(targetOtherBots) {
         jumpHeight: 1,
         bulletSpeed: 1,
         bulletRate: 1,
-        homingBullets: true
+        bulletDamage: 1,
+        homingBullets: false
     };
     var j = 0;
     for (var i in COLORS[1]) {
@@ -692,11 +760,20 @@ Bot = function(targetOtherBots) {
         self.y = y;
         self.alive = true;
         self.hp = 5;
+        self.modifiers = {
+            moveSpeed: 1,
+            jumpHeight: 1,
+            bulletSpeed: 1,
+            bulletRate: 1,
+            bulletDamage: 1,
+            homingBullets: false
+        };
     }
     self.shoot = function() {
-        if (round.inProgress && self.alive && self.validateLineOfSight(closestplayer.x, closestplayer.y) && self.lastclick > ((1000/self.maxCPS)/(1000/60))) {
+        if (round.inProgress && self.alive && self.validateLineOfSight(closestplayer.x, closestplayer.y) && self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
             self.lastclick = 0;
-            new Bullet(closestplayer.x+(Math.floor(Math.random()*21)-10), closestplayer.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color, false, self.modifiers.bulletSpeed, self.modifiers.homingBullets);
+            new Bullet(closestplayer.x+(Math.floor(Math.random()*21)-10), closestplayer.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color, false, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, false);
+            if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
         }
     }
     self.path = function() {
@@ -815,8 +892,15 @@ LootBox = function(x, y) {
     io.emit('newlootbox', pack);
 
     self.update = function() {
+        var players = [];
         for (var i in PLAYER_LIST) {
-            var localplayer = PLAYER_LIST[i];
+            players.push(PLAYER_LIST[i]);
+        }
+        for (var i in BOT_LIST) {
+            players.push(BOT_LIST[i]);
+        }
+        for (var i in players) {
+            var localplayer = players[i];
             if (Math.abs(self.x-localplayer.x) < 36 && Math.abs(self.y-localplayer.y) < 36) {
                 switch (self.effect) {
                     case 'speed':
@@ -865,6 +949,7 @@ LootBox = function(x, y) {
                     case 'homing':
                         localplayer.modifiers.homingBullets = true;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'homing');
+                        setTimeout(function() {if (localplayer.modifiers.homingBullets == true) localplayer.modifiers.homingBullets = false;}, 20000);
                         localplayer.trackedData.lootboxcollections.homing++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;   
@@ -883,9 +968,35 @@ LootBox = function(x, y) {
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'special':
-                        SOCKET_LIST[localplayer.socketid].emit('effect');
+                        var random = Math.random();
+                        if (random <= 0.1) {
+                            localplayer.modifiers.bulletDamage = 100;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'goldenbullet');
+                            var localachievement = localplayer.trackedData.locate(localplayer, 'aqquire_goldenbullet');
+                            if (localachievement) {
+                                if (localachievement.aqquired == false) localplayer.trackedData.grant(localplayer.name, localachievement);
+                            }
+                        } else if (random <= 0.4) {
+                            localplayer.modifiers.bulletDamage = 2;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'superbullets');
+                        } else if (random <= 0.7) {
+                            localplayer.modifiers.bulletSpeed = 1.5;
+                            localplayer.secondary.id = 'noclipbullets';
+                            localplayer.secondary.maxCPS = 1;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'noclipbullet');
+                        } else if (random <= 0.8) {
+                            localplayer.secondary.id = 'pathfindbullets';
+                            localplayer.secondary.maxCPS = 0.5;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'pathfindbullets');
+                        } else {
+                            localplayer.secondary.id = 'yeet';
+                            localplayer.secondary.maxCPS = 0.05;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'yeet');
+                        }
+                        localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     default:
+                        stop('ERROR: INVALID LOOTBOX');
                         break;
                 }
                 localplayer.trackedData.lootboxcollections.total++;
