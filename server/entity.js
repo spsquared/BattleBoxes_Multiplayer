@@ -70,7 +70,7 @@ Entity = function() {
         tempy = py+1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+39) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
+                if (((tempx*40)+38) > (self.x-self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
                     if (self.lastx-self.x > self.y-self.lasty && self.yspeed > 0) {
                         self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                         self.xspeed = 0;
@@ -89,7 +89,7 @@ Entity = function() {
         tempy = py+1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+1) < (self.x+self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
+                if (((tempx*40)+2) < (self.x+self.halfsize) && (tempy*40) < (self.y+self.halfsize)) {
                     if (self.x-self.lastx > self.y-self.lasty && self.yspeed > 0) {
                         self.x += (tempx*40) - (self.x+self.halfsize);
                         self.xspeed = 0;
@@ -146,7 +146,7 @@ Entity = function() {
         tempy = py-1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+39) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
+                if (((tempx*40)+38) > (self.x-self.halfsize) && ((tempy*40)+40) > (self.y-self.halfsize)) {
                     if (self.lastx-self.x > self.lasty-self.y && self.yspeed < 0) {
                         self.x += ((tempx*40)+40) - (self.x-self.halfsize);
                         self.xspeed = 0;
@@ -165,7 +165,7 @@ Entity = function() {
         tempy = py-1;
         if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
             if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (((tempx*40)+1) < (self.x+self.halfsize) && (((tempy*40)+40) > self.y-self.halfsize)) {
+                if (((tempx*40)+2) < (self.x+self.halfsize) && (((tempy*40)+40) > self.y-self.halfsize)) {
                     if (self.x-self.lastx > self.lasty-self.y && self.yspeed < 0) {
                         self.x += (tempx*40) - (self.x+self.halfsize);
                         self.xspeed = 0;
@@ -240,7 +240,14 @@ Player = function(socketid) {
         bulletSpeed: 1,
         bulletRate: 1,
         bulletDamage: 1,
-        homingBullets: false
+        homingBullets: false,
+        effects: {
+            speed: 0,
+            slowness: false,
+            jump: false,
+            firerate: 0,
+            homing: false
+        }
     };
     self.ready = false;
     self.ingame = false;
@@ -357,6 +364,11 @@ Player = function(socketid) {
             bulletRate: 1,
             bulletDamage: 1,
             homingBullets: false
+        };
+        self.secondary = {
+            id: null,
+            maxCPS: 0,
+            lastclick: 0
         };
     }
     self.shoot = function(x, y) {
@@ -674,7 +686,14 @@ Bot = function(targetOtherBots) {
         bulletSpeed: 1,
         bulletRate: 1,
         bulletDamage: 1,
-        homingBullets: false
+        homingBullets: false,
+        effects: {
+            speed: 0,
+            slowness: false,
+            jump: false,
+            firerate: 0,
+            homing: false
+        }
     };
     var j = 0;
     for (var i in COLORS[1]) {
@@ -904,29 +923,55 @@ LootBox = function(x, y) {
             if (Math.abs(self.x-localplayer.x) < 36 && Math.abs(self.y-localplayer.y) < 36) {
                 switch (self.effect) {
                     case 'speed':
-                        localplayer.modifiers.moveSpeed = 1.2;
-                        SOCKET_LIST[localplayer.socketid].emit('effect', 'speed');
-                        setTimeout(function() {if (localplayer.modifiers.moveSpeed == 1.2) localplayer.modifiers.moveSpeed = 1;}, 10000);
+                        if (localplayer.modifiers.effects.speed != 2) {
+                            localplayer.modifiers.moveSpeed = 1.2;
+                            localplayer.modifiers.effects.speed = 1;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'speed');
+                            setTimeout(function() {
+                                if (localplayer.modifiers.effects.speed == 1) {
+                                    localplayer.modifiers.moveSpeed = 1;
+                                    localplayer.modifiers.effects.speed = 0;
+                                }
+                            }, 10000);
+                        }
                         localplayer.trackedData.lootboxcollections.speed++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'speed2':
                         localplayer.modifiers.moveSpeed = 1.5;
+                        localplayer.modifiers.effects.speed = 2;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'speed2');
-                        setTimeout(function() {if (localplayer.modifiers.moveSpeed == 1.5) localplayer.modifiers.moveSpeed = 1;}, 10000);
+                        setTimeout(function() {
+                            if (localplayer.modifiers.effects.speed == 2) {
+                                localplayer.modifiers.moveSpeed = 1;
+                                localplayer.modifiers.effects.speed = 0;
+                            }
+                        }, 10000);
                         localplayer.trackedData.lootboxcollections.speed++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'slowness':
                         localplayer.modifiers.moveSpeed = 0.75;
+                        localplayer.modifiers.effects.slowness = true;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'slowness');
-                        setTimeout(function() {if (localplayer.modifiers.moveSpeed == 0.75) localplayer.modifiers.moveSpeed = 1;}, 5000);
+                        setTimeout(function() {
+                            if (localplayer.modifiers.effects.slowness) {
+                                localplayer.modifiers.moveSpeed = 1;
+                                localplayer.modifiers.effects.slowness = false;
+                            }
+                        }, 5000);
                         localplayer.trackedData.lootboxcollections.unlucky++;
                         break;
                     case 'jump':
                         localplayer.modifiers.jumpHeight = 1.2;
+                        localplayer.modifiers.effects.jump = true;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'jump');
-                        setTimeout(function() {if (localplayer.modifiers.jumpHeight == 1.2) localplayer.modifiers.jumpHeight = 1;}, 10000);
+                        setTimeout(function() {
+                            if (localplayer.modifiers.effects.jump) {
+                                localplayer.modifiers.jumpHeight = 1;
+                                localplayer.modifiers.effects.jump = false;
+                            }
+                        }, 10000);
                         localplayer.trackedData.lootboxcollections.jump++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
@@ -948,22 +993,42 @@ LootBox = function(x, y) {
                         break;
                     case 'homing':
                         localplayer.modifiers.homingBullets = true;
+                        localplayer.modifiers.effects.homing = true;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'homing');
-                        setTimeout(function() {if (localplayer.modifiers.homingBullets == true) localplayer.modifiers.homingBullets = false;}, 20000);
+                        setTimeout(function() {
+                            if (localplayer.modifiers.effects.homing) {
+                                localplayer.modifiers.homingBullets = false;
+                                localplayer.modifiers.effects.homing = false;
+                            }
+                        }, 20000);
                         localplayer.trackedData.lootboxcollections.homing++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;   
                     case 'firerate':
-                        localplayer.modifiers.bulletRate = 2;
-                        SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate');
-                        setTimeout(function() {if (localplayer.modifiers.bulletRate == 2) localplayer.modifiers.bulletRate = 1;}, 10000);
+                        if (localplayer.modifiers.effects.firerate != 2) {
+                            localplayer.modifiers.bulletRate = 1;
+                            localplayer.modifiers.effects.firerate = 1;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate');
+                            setTimeout(function() {
+                                if (localplayer.modifiers.effects.firerate == 1) {
+                                    localplayer.modifiers.bulletRate = 1;
+                                    localplayer.modifiers.effects.firerate = 0;
+                                }
+                            }, 10000);
+                        }
                         localplayer.trackedData.lootboxcollections.firerate++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'firerate2':
                         localplayer.modifiers.bulletRate = 3;
+                        localplayer.modifiers.effects.firerate = 2;
                         SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate2');
-                        setTimeout(function() {if (localplayer.modifiers.bulletRate == 3) localplayer.modifiers.bulletRate = 1;}, 10000);
+                        setTimeout(function() {
+                            if (localplayer.modifiers.effects.firerate == 2) {
+                                localplayer.modifiers.bulletRate = 1;
+                                localplayer.modifiers.effects.firerate = 0;
+                            }
+                        }, 10000);
                         localplayer.trackedData.lootboxcollections.firerate++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;

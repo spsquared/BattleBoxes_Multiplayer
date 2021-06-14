@@ -101,7 +101,7 @@ startRound = function() {
         round.id = Math.random();
         round.number++;
         // change map
-        switch (Math.floor(Math.random()*5)) {
+        switch (Math.floor(Math.random()*7)) {
             case 0:
                 CURRENT_MAP = 1;
                 break;
@@ -117,12 +117,18 @@ startRound = function() {
             case 4:
                 CURRENT_MAP = 5;
                 break;
+            case 5:
+                CURRENT_MAP = 6;
+                break;
+            case 6:
+                CURRENT_MAP = 7;
+                break;
             default:
                 stop('INVALID MAP')
                 break;
         }
-        // spawn lootboxes
         io.emit('map', CURRENT_MAP);
+        // spawn lootboxes
         for (var i in LOOT_BOXES) {
             delete LOOT_BOXES[i];
         }

@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.2.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.3.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.2.2\n');
+console.log('\nThis server is running BattleBoxes Server v-1.3.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -68,7 +68,8 @@ getMap('./server/Map2.json');
 getMap('./server/Map3.json');
 getMap('./server/Map4.json');
 getMap('./server/Map5.json');
-// getMap('./server/Map6.json');
+getMap('./server/Map6.json');
+getMap('./server/Map7.json');
 SOCKET_LIST = [];
 TPS = 0;
 TPS_COUNTER = 0;
