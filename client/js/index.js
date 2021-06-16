@@ -36,23 +36,27 @@ init();
 socket.on('init', function() {
     if (!firstload) {
         socket.emit('disconnected');
-        window.location.reload();
+        fadeIn();
+        setTimeout(function() {
+            window.location.reload();
+        }, 500);
+    } else {
+        firstload = false;
+        // show page
+        document.getElementById('loginContainer').style.display = 'inline-block';
+        document.getElementById('mainmenuContainer').style.display = 'none';
+        document.getElementById('disconnectedContainer').style.display = 'none';
+        document.getElementById('menuContainer').style.display = 'block';
+        // start music
+        music.volume = settings.musicvolume;
+        for (var i in sfx) {
+            sfx[i].volume = settings.sfxvolume;
+        }
+        music.src = '/client/sound/Menu.mp3';
+        // place focus on username
+        document.getElementById('usrname').focus();
+        fadeOut();
     }
-    firstload = false;
-    // show page
-    document.getElementById('loginContainer').style.display = 'inline-block';
-    document.getElementById('mainmenuContainer').style.display = 'none';
-    document.getElementById('disconnectedContainer').style.display = 'none';
-    document.getElementById('menuContainer').style.display = 'block';
-    // start music
-    music.volume = settings.musicvolume;
-    for (var i in sfx) {
-        sfx[i].volume = settings.sfxvolume;
-    }
-    music.src = '/client/sound/Menu.mp3';
-    // place focus on username
-    document.getElementById('usrname').focus();
-    fadeOut();
 });
 function init() {
     // set up page and canvas
@@ -255,11 +259,6 @@ document.getElementById('ingamerenderQuality').oninput = function() {
 }
 
 // connection handlers
-socket.on('connect_error',function(){
-    setTimeout(function(){
-        window.location.reload();
-    },5000);
-});
 socket.on('disconnected', function() {
     ingame = false;
     socket.emit('disconnected');
@@ -269,7 +268,6 @@ socket.on('disconnected', function() {
     clearInterval(waiting);
 });
 socket.on('timeout', function() {
-    disconnectclient();
     document.getElementById('menuContainer').style.display = 'none';
     document.getElementById('gameContainer').style.display = 'none';
     document.getElementById('disconnectedContainer').style.display = 'inline-block';

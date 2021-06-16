@@ -363,7 +363,14 @@ Player = function(socketid) {
             bulletSpeed: 1,
             bulletRate: 1,
             bulletDamage: 1,
-            homingBullets: false
+            homingBullets: false,
+            effects: {
+                speed: 0,
+                slowness: false,
+                jump: false,
+                firerate: 0,
+                homing: false
+            }
         };
         self.secondary = {
             id: null,
@@ -381,7 +388,6 @@ Player = function(socketid) {
     self.secondaryAttack = function(x, y) {
         if (self.secondary.lastclick > ((1000/self.secondary.maxCPS)/(1000/TPS))) {
             self.secondary.lastclick = 0;
-            console.log(self.secondary.id);
             switch (self.secondary.id) {
                 case 'noclipbullets':
                     new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, true, false);
@@ -514,7 +520,9 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
         self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
         for (var i in MAPS[CURRENT_MAP]) {
             for (var j in MAPS[CURRENT_MAP][i]) {
-                self.grid.setWalkableAt(j, i, MAPS[CURRENT_MAP][i][j]);
+                if (MAPS[CURRENT_MAP][i][j] == 1) {
+                    self.grid.setWalkableAt(j, i, false);
+                }
             }
         }
     } catch (err) {
@@ -573,7 +581,6 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
                     if (self.damage == 100) localbot.hp = 0;
                     if (localbot.hp < 1) {
                         if (self.parentisPlayer) {
-                            console.log('thing')
                             PLAYER_LIST[self.parent].trackedData.kills++;
                             TrackedData.update();
                         }
@@ -591,13 +598,14 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
             if (closestplayer) {
                 try {
                     var gridbackup = self.grid.clone();
-                    var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(localplayer.x/40), Math.floor(localplayer.y/40));
-                    var waypoints = Pathfind.Util.smoothenPath(self.grid, path);
+                    var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
+                    // var waypoints = Pathfind.Util.smoothenPath(self.grid, path);
+                    var waypoints = path;
                     self.grid = gridbackup;
-                    console.log(waypoints);
-                } catch (err) {
-                    error(err);
-                }
+                    self.angle = Math.atan2(-(self.y-(waypoints[1][1]*40))+16, -(self.x-(waypoints[1][0]*40))+16);
+                    self.xspeed = Math.cos(self.angle)*20*speedModifier;
+                    self.yspeed = Math.sin(self.angle)*20*speedModifier;
+                } catch (err) {}
             }
         } else if (self.homing) {
             var closestplayer = self.findClosestPlayer();
@@ -785,7 +793,14 @@ Bot = function(targetOtherBots) {
             bulletSpeed: 1,
             bulletRate: 1,
             bulletDamage: 1,
-            homingBullets: false
+            homingBullets: false,
+            effects: {
+                speed: 0,
+                slowness: false,
+                jump: false,
+                firerate: 0,
+                homing: false
+            }
         };
     }
     self.shoot = function() {

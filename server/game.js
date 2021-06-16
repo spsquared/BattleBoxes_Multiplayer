@@ -91,6 +91,9 @@ endGame = function(id) {
         PLAYER_LIST[i].ingame = false;
         PLAYER_LIST[i].score = 0;
     }
+    for (var i in LOOT_BOXES) {
+        delete LOOT_BOXES[i];
+    }
     round.inProgress = false;
     gameinProgress = false;
     CURRENT_MAP = 0;

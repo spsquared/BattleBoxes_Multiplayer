@@ -116,7 +116,7 @@ dist
 .pnp.*
 
 # dev files
-*.code-workspace
+BattleBoxes_Multiplayer.code-workspace
 
 # Server files
 server/PORTS.txt

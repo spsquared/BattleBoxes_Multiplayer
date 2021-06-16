@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.3.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.3.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.3.0\n');
+console.log('\nThis server is running BattleBoxes Server v-1.3.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -168,6 +168,7 @@ io.on('connection', function(socket) {
         }
         if (player.ingame && player.alive) {
             remainingPlayers--;
+            insertChat('"' + player.name + '" left the game.', 'server');
         }
         if (player.name != null) {
             database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, player.trackedData], function(err, res) {if (err) console.log(err);});
@@ -594,6 +595,7 @@ setInterval(async function() {
     TPS = TPS_COUNTER;
     TPS_COUNTER = 0;
 }, 1000);
+
 // 5 minute autosave
 setInterval(function() {
     for (var i in PLAYER_LIST) {

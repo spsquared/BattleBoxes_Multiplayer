@@ -551,6 +551,17 @@ socket.on('winner', function(id) {
                 var currentId = gameid;
                 window.addEventListener('resize', function() {
                     if (gameid == currentId) {
+                        if (window.innerWidth/window.innerHeight > 16/9) {
+                            winOverlay.width = (1920*(window.innerHeight/1080));
+                            winOverlay2.width = (1920*(window.innerHeight/1080));
+                            winOverlay.height = window.innerHeight;
+                            winOverlay2.height = window.innerHeight;
+                        } else {
+                            winOverlay.width = window.innerWidth;
+                            winOverlay2.width = window.innerWidth;
+                            winOverlay.height = (1080*(window.innerWidth/1920));
+                            winOverlay2.height = (1080*(window.innerWidth/1920));
+                        }
                         game.fillStyle = color;
                         game.fillRect(0, 0, window.innerWidth, window.innerHeight);
                         game.drawImage(winOverlay, (window.innerWidth-winOverlay.width), (window.innerHeight-winOverlay.height), winOverlay.width, winOverlay.height);
