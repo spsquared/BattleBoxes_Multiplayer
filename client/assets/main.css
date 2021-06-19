@@ -278,12 +278,8 @@ body:-moz-full-screen {
 }
 #renderQuality {
     width: 444px;
-    cursor: not-allowed;
 }
-/* temp */
-#renderQuality::-webkit-slider-thumb {
-    cursor: not-allowed;
-}
+
 /* delete account button */
 #deleteAccount {
     border-width: 3px;
@@ -513,11 +509,6 @@ body:-moz-full-screen {
 }
 #ingamerenderQuality {
     width: 444px;
-    cursor: not-allowed;
-}
-/* temp */
-#ingamerenderQuality::-webkit-slider-thumb {
-    cursor: not-allowed;
 }
 
 /* version label */
@@ -633,12 +624,24 @@ body:-moz-full-screen {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
+    transition: height 0.5s ease-in-out;
 }
 #adminConsole-top {
     padding-left: 8px;
     padding-top: 4px;
+    height: 28px;
     cursor: move;
     background-color: black;
+}
+#adminConsole-hide {
+    display: inline-block;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: white;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 #adminConsole-log {
     margin-left: 8px;

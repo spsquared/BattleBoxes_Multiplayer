@@ -20,13 +20,18 @@ TRACKED_DATA = {
     }
 };
 ACHIEVEMENTS = [];
-BANNERS = [];
+BANNERS = [
+    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
 var tpsCounter = 0;
 var tps = 0;
-var fpsCounter = 0;
+var fpsCounter = [];
 var fps = 0;
-var ping = 0;
+var fpsCounter2 = 0;
+var fps2 = 0;
 var pingCounter = 0;
+var ping = 0;
 var lastDate = 0;
 var currentDate = 0;
 var player = null;
@@ -58,6 +63,7 @@ socket.on('update', function(pkg) {
         Player.update(pkg.players);
         Bullet.update(pkg.bullets);
         LootBox.update();
+        updateCamera();
         tpsCounter++;
         lastDate = Date.now();
         socket.emit('ping');
@@ -72,6 +78,12 @@ function resetFPS() {
         if (ingame) {
             game.clearRect(0, 0, window.innerWidth, window.innerHeight);
             drawMap();
+            HCBBM();
+            Player.draw();
+            Bullet.draw();
+            LootBox.draw();
+            drawCountdown();
+            drawBanners();
             if (player.debug) {
                 for (var i in DEBUG_INFO) {
                     if (DEBUG_INFO[i].id == player.id) {
@@ -81,14 +93,7 @@ function resetFPS() {
                     }
                 }
             }
-            updateCamera();
-            HCBBM();
-            Player.draw();
-            Bullet.draw();
-            LootBox.draw();
-            drawCountdown();
-            drawBanners();
-            fpsCounter++;
+            fpsCounter2++;
         }
     }, 1000/settings.fps);
 }
@@ -127,7 +132,8 @@ function drawDebug(data, isplayer) {
         // draw debug headers
         game.fillStyle = '#FFFFFF88';
         game.fillRect(4, 4, 380, 52);
-        game.fillRect((window.innerWidth - 200), 4, 196, 70);
+        game.fillRect((window.innerWidth - 320), 4, 316, 32);
+        game.fillRect((window.innerWidth - 120), 36, 116, 32);
         game.fillStyle = '#000000';
         game.font = '16px Pixel';
         game.textAlign = 'left';
@@ -138,9 +144,10 @@ function drawDebug(data, isplayer) {
         game.fillText('Angle:' + (Math.round((Math.atan2(-(player.y-mouseY-16), -(player.x-mouseX))*180)/Math.PI)),176, 48);
         game.font = '24px Pixel';
         game.textAlign = 'right';
-        game.fillText('FPS:' + fps, (window.innerWidth-112), 32);
-        game.fillText('TPS:' + tps, (window.innerWidth-8), 32);
-        game.fillText('Ping:' + ping + 'ms', (window.innerWidth-8), 64);
+        game.fillText('DFPS:' + fps2, (window.innerWidth-208), 30);
+        game.fillText('FPS:' + fps, (window.innerWidth-108), 30);
+        game.fillText('TPS:' + tps, (window.innerWidth-8), 30);
+        game.fillText('Ping:' + ping + 'ms', (window.innerWidth-8), 60);
     }
     // draw collision debug
     game.beginPath();
@@ -201,21 +208,26 @@ socket.on('ping', function() {
     pingCounter = Math.floor(currentDate-lastDate);
 });
 function drawBanners() {
-    for (var i in BANNERS) {
-        BANNERS[i].update();
+    for (var i in BANNERS[0]) {
+        if (BANNERS[0][i]) BANNERS[0][i].update();
     }
 }
 // banner init
 function Banner(topText, bottomText, color, time) {
-    j = 0;
-    for (var i in BANNERS) {
-        j++;
+    var index = 0;
+    for (var i in BANNERS[1]) {
+        if (BANNERS[1][i] == 1 && i <= 32) {
+            index++;
+        } else {
+            break;
+        }
     }
+    BANNERS[1][index] = 1;
     var self = {
         id: Math.random(),
         v: -5,
         x: window.innerWidth,
-        y: (j*64),
+        y: (index*64),
         top: topText,
         bottom: bottomText,
         color: color,
@@ -250,7 +262,8 @@ function Banner(topText, bottomText, color, time) {
                         self.x += self.v;
                         if (self.x >= window.innerWidth) {
                             clearInterval(slideout);
-                            delete BANNERS[self.id];
+                            BANNERS[1][index] = 0;
+                            BANNERS[0][index] = null;
                         }
                     }, 5);
                 }, self.time*1000);
@@ -258,7 +271,7 @@ function Banner(topText, bottomText, color, time) {
         }
     }
 
-    BANNERS[self.id] = self;
+    BANNERS[0][index] = self;
     return self;
 }
 
@@ -804,21 +817,23 @@ socket.on('achievementrevoked', function(pkg) {
 });
 socket.on('updateTrackedData', function(pkg) {
     for (var i in pkg) {
-        if (pkg[i].id == player.id) {
-            TRACKED_DATA.kills = pkg[i].kills;
-            TRACKED_DATA.deaths = pkg[i].deaths;
-            TRACKED_DATA.wins = pkg[i].wins;
-            TRACKED_DATA.lootboxcollections.total = pkg[i].lootboxcollections.total;
-            TRACKED_DATA.lootboxcollections.lucky = pkg[i].lootboxcollections.lucky;
-            TRACKED_DATA.lootboxcollections.unlucky = pkg[i].lootboxcollections.unlucky;
-            TRACKED_DATA.lootboxcollections.speed = pkg[i].lootboxcollections.speed;
-            TRACKED_DATA.lootboxcollections.jump = pkg[i].lootboxcollections.jump;
-            TRACKED_DATA.lootboxcollections.shield = pkg[i].lootboxcollections.shield;
-            TRACKED_DATA.lootboxcollections.homing = pkg[i].lootboxcollections.homing;
-            TRACKED_DATA.lootboxcollections.firerate = pkg[i].lootboxcollections.firerate;
-            TRACKED_DATA.lootboxcollections.random = pkg[i].lootboxcollections.random;
-            updateAchievements();
-        }
+        try {
+            if (pkg[i].id == player.id) {
+                TRACKED_DATA.kills = pkg[i].kills;
+                TRACKED_DATA.deaths = pkg[i].deaths;
+                TRACKED_DATA.wins = pkg[i].wins;
+                TRACKED_DATA.lootboxcollections.total = pkg[i].lootboxcollections.total;
+                TRACKED_DATA.lootboxcollections.lucky = pkg[i].lootboxcollections.lucky;
+                TRACKED_DATA.lootboxcollections.unlucky = pkg[i].lootboxcollections.unlucky;
+                TRACKED_DATA.lootboxcollections.speed = pkg[i].lootboxcollections.speed;
+                TRACKED_DATA.lootboxcollections.jump = pkg[i].lootboxcollections.jump;
+                TRACKED_DATA.lootboxcollections.shield = pkg[i].lootboxcollections.shield;
+                TRACKED_DATA.lootboxcollections.homing = pkg[i].lootboxcollections.homing;
+                TRACKED_DATA.lootboxcollections.firerate = pkg[i].lootboxcollections.firerate;
+                TRACKED_DATA.lootboxcollections.random = pkg[i].lootboxcollections.random;
+                updateAchievements();
+            }
+        } catch {}
     }
 });
 // other handlers
@@ -882,10 +897,19 @@ socket.on('yeet', function() {
 setInterval(function() {
     tps = tpsCounter;
     tpsCounter = 0;
-    fps = fpsCounter;
-    fpsCounter = 0;
+    fps = fpsCounter.length;
+    fpsCounter = [];
     ping = pingCounter;
+    fps2 = fpsCounter2;
+    fpsCounter2 = 0;
 }, 1000);
+function fpsLoop() {
+    window.requestAnimationFrame(function() {
+        fpsCounter.push(0);
+        fpsLoop();
+    });
+}
+fpsLoop();
 
 // waiting for server
 waiting = setInterval(function() {

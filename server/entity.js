@@ -247,6 +247,13 @@ Player = function(socketid) {
             jump: false,
             firerate: 0,
             homing: false
+        },
+        timers: {
+            speed: null,
+            slowness: null,
+            jump: null,
+            firerate: null,
+            homing: null
         }
     };
     self.ready = false;
@@ -256,6 +263,8 @@ Player = function(socketid) {
     for (var i in COLORS[1]) {
         if (COLORS[1][i] == 1) {
             j++;
+        } else {
+            break;
         }
     }
     self.color = COLORS[0][j];
@@ -370,6 +379,13 @@ Player = function(socketid) {
                 jump: false,
                 firerate: 0,
                 homing: false
+            },
+            timers: {
+                speed: null,
+                slowness: null,
+                jump: null,
+                firerate: null,
+                homing: null
             }
         };
         self.secondary = {
@@ -634,12 +650,12 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
         var closestplayer = null;
         var players = [];
         for (var i in PLAYER_LIST) {
-            if (i != self.parent) {
+            if (i != self.parent && PLAYER_LIST[i].alive) {
                 players.push(PLAYER_LIST[i]);
             }
         }
         for (var i in BOT_LIST) {
-            if (BOT_LIST[i].id != self.parent) {
+            if (BOT_LIST[i].id != self.parent && BOT_LIST[i].alive) {
                 players.push(BOT_LIST[i]);
             }
         }
@@ -701,6 +717,13 @@ Bot = function(targetOtherBots) {
             jump: false,
             firerate: 0,
             homing: false
+        },
+        timers: {
+            speed: null,
+            slowness: null,
+            jump: null,
+            firerate: null,
+            homing: null
         }
     };
     var j = 0;
@@ -800,6 +823,13 @@ Bot = function(targetOtherBots) {
                 jump: false,
                 firerate: 0,
                 homing: false
+            },
+            timers: {
+                speed: null,
+                slowness: null,
+                jump: null,
+                firerate: null,
+                homing: null
             }
         };
     }
@@ -938,11 +968,13 @@ LootBox = function(x, y) {
             if (Math.abs(self.x-localplayer.x) < 36 && Math.abs(self.y-localplayer.y) < 36) {
                 switch (self.effect) {
                     case 'speed':
-                        if (localplayer.modifiers.effects.speed != 2) {
+                        if (localplayer.modifiers.effects.speed == 0) {
                             localplayer.modifiers.moveSpeed = 1.2;
                             localplayer.modifiers.effects.speed = 1;
                             SOCKET_LIST[localplayer.socketid].emit('effect', 'speed');
-                            setTimeout(function() {
+                            clearTimeout(localplayer.modifiers.timers.slowness);
+                            clearTimeout(localplayer.modifiers.timers.speed);
+                            localplayer.modifiers.timers.speed = setTimeout(function() {
                                 if (localplayer.modifiers.effects.speed == 1) {
                                     localplayer.modifiers.moveSpeed = 1;
                                     localplayer.modifiers.effects.speed = 0;
@@ -953,40 +985,52 @@ LootBox = function(x, y) {
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'speed2':
-                        localplayer.modifiers.moveSpeed = 1.5;
-                        localplayer.modifiers.effects.speed = 2;
-                        SOCKET_LIST[localplayer.socketid].emit('effect', 'speed2');
-                        setTimeout(function() {
-                            if (localplayer.modifiers.effects.speed == 2) {
-                                localplayer.modifiers.moveSpeed = 1;
-                                localplayer.modifiers.effects.speed = 0;
-                            }
-                        }, 10000);
+                        if (localplayer.modifiers.effects.speed != 2) {
+                            localplayer.modifiers.moveSpeed = 1.5;
+                            localplayer.modifiers.effects.speed = 2;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'speed2');
+                            clearTimeout(localplayer.modifiers.timers.slowness);
+                            clearTimeout(localplayer.modifiers.timers.speed);
+                            localplayer.modifiers.timers.speed = setTimeout(function() {
+                                if (localplayer.modifiers.effects.speed == 2) {
+                                    localplayer.modifiers.moveSpeed = 1;
+                                    localplayer.modifiers.effects.speed = 0;
+                                }
+                            }, 10000);
+                        }
                         localplayer.trackedData.lootboxcollections.speed++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'slowness':
-                        localplayer.modifiers.moveSpeed = 0.75;
-                        localplayer.modifiers.effects.slowness = true;
-                        SOCKET_LIST[localplayer.socketid].emit('effect', 'slowness');
-                        setTimeout(function() {
-                            if (localplayer.modifiers.effects.slowness) {
-                                localplayer.modifiers.moveSpeed = 1;
-                                localplayer.modifiers.effects.slowness = false;
-                            }
-                        }, 5000);
+                        if (!localplayer.modifiers.effects.slowness) {
+                            localplayer.modifiers.moveSpeed = 0.75;
+                            localplayer.modifiers.effects.slowness = true;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'slowness');
+                            clearTimeout(localplayer.modifiers.timers.speed);
+                            clearTimeout(localplayer.modifiers.timers.slowness);
+                            localplayer.modifiers.timers.slowness = clearTimeout(localplayer.modifiers.timers.slowness);
+                            setTimeout(function() {
+                                if (localplayer.modifiers.effects.slowness) {
+                                    localplayer.modifiers.moveSpeed = 1;
+                                    localplayer.modifiers.effects.slowness = false;
+                                }
+                            }, 5000);
+                        }
                         localplayer.trackedData.lootboxcollections.unlucky++;
                         break;
                     case 'jump':
-                        localplayer.modifiers.jumpHeight = 1.2;
-                        localplayer.modifiers.effects.jump = true;
-                        SOCKET_LIST[localplayer.socketid].emit('effect', 'jump');
-                        setTimeout(function() {
-                            if (localplayer.modifiers.effects.jump) {
-                                localplayer.modifiers.jumpHeight = 1;
-                                localplayer.modifiers.effects.jump = false;
-                            }
-                        }, 10000);
+                        if (!localplayer.modifiers.effects.jump) {
+                            localplayer.modifiers.jumpHeight = 1.2;
+                            localplayer.modifiers.effects.jump = true;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'jump');
+                            clearTimeout(localplayer.modifiers.timers.jump);
+                            localplayer.modifiers.timers.jump = setTimeout(function() {
+                                if (localplayer.modifiers.effects.jump) {
+                                    localplayer.modifiers.jumpHeight = 1;
+                                    localplayer.modifiers.effects.jump = false;
+                                }
+                            }, 10000);
+                        }
                         localplayer.trackedData.lootboxcollections.jump++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
@@ -1007,24 +1051,29 @@ LootBox = function(x, y) {
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'homing':
-                        localplayer.modifiers.homingBullets = true;
-                        localplayer.modifiers.effects.homing = true;
-                        SOCKET_LIST[localplayer.socketid].emit('effect', 'homing');
-                        setTimeout(function() {
-                            if (localplayer.modifiers.effects.homing) {
-                                localplayer.modifiers.homingBullets = false;
-                                localplayer.modifiers.effects.homing = false;
-                            }
-                        }, 20000);
+                        if (!localplayer.modifiers.effects.homing) {
+                            localplayer.modifiers.homingBullets = true;
+                            localplayer.modifiers.effects.homing = true;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'homing');
+                            clearTimeout(localplayer.modifiers.timers.homing);
+                            localplayer.modifiers.timers.homing = clearTimeout(localplayer.modifiers.timers.homing);
+                            setTimeout(function() {
+                                if (localplayer.modifiers.effects.homing) {
+                                    localplayer.modifiers.homingBullets = false;
+                                    localplayer.modifiers.effects.homing = false;
+                                }
+                            }, 20000);
+                        }
                         localplayer.trackedData.lootboxcollections.homing++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;   
                     case 'firerate':
-                        if (localplayer.modifiers.effects.firerate != 2) {
+                        if (localplayer.modifiers.effects.firerate == 0) {
                             localplayer.modifiers.bulletRate = 1;
                             localplayer.modifiers.effects.firerate = 1;
                             SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate');
-                            setTimeout(function() {
+                            clearTimeout(localplayer.modifiers.timers.firerate);
+                            localplayer.modifiers.timers.firerate = setTimeout(function() {
                                 if (localplayer.modifiers.effects.firerate == 1) {
                                     localplayer.modifiers.bulletRate = 1;
                                     localplayer.modifiers.effects.firerate = 0;
@@ -1035,15 +1084,18 @@ LootBox = function(x, y) {
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;
                     case 'firerate2':
-                        localplayer.modifiers.bulletRate = 3;
-                        localplayer.modifiers.effects.firerate = 2;
-                        SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate2');
-                        setTimeout(function() {
-                            if (localplayer.modifiers.effects.firerate == 2) {
-                                localplayer.modifiers.bulletRate = 1;
-                                localplayer.modifiers.effects.firerate = 0;
-                            }
-                        }, 10000);
+                        if (localplayer.modifiers.effects.firerate != 2) {
+                            localplayer.modifiers.bulletRate = 3;
+                            localplayer.modifiers.effects.firerate = 2;
+                            SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate2');
+                            clearTimeout(localplayer.modifiers.timers.firerate);
+                            localplayer.modifiers.timers.firerate = setTimeout(function() {
+                                if (localplayer.modifiers.effects.firerate == 2) {
+                                    localplayer.modifiers.bulletRate = 1;
+                                    localplayer.modifiers.effects.firerate = 0;
+                                }
+                            }, 10000);
+                        }
                         localplayer.trackedData.lootboxcollections.firerate++;
                         localplayer.trackedData.lootboxcollections.lucky++;
                         break;

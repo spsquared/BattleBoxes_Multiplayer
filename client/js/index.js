@@ -102,6 +102,7 @@ function init() {
         document.getElementById('sfxVolume').value = settings.sfxvolume*100;
         document.getElementById('ingamesfxVolume').value = settings.sfxvolume*100;
         document.getElementById('fpsSelect').value = settings.fps;
+        document.getElementById('ingamefpsSelect').value = settings.fps;
         document.getElementById('renderQuality').value = settings.renderQuality*100;
         document.getElementById('ingamerenderQuality').value = settings.renderQuality*100;
         updateSettings();
@@ -226,10 +227,10 @@ document.getElementById('fpsSelect').oninput = function() {
     updateSettings();
 }
 document.getElementById('renderQuality').oninput = function() {
-    // settings.renderQuality = (document.getElementById('renderQuality').value/100);
-    // document.getElementById('ingamerenderQuality').value = document.getElementById('renderQuality').value;
-    document.getElementById('renderQuality').value = 150;
-    // updateSettings();
+    settings.renderQuality = (document.getElementById('renderQuality').value/100);
+    document.getElementById('ingamerenderQuality').value = document.getElementById('renderQuality').value;
+    // document.getElementById('renderQuality').value = 150;
+    updateSettings();
 }
 document.getElementById('ingameglobalVolume').oninput = function() {
     settings.globalvolume = (document.getElementById('ingameglobalVolume').value/100);
@@ -252,10 +253,10 @@ document.getElementById('ingamefpsSelect').oninput = function() {
     updateSettings();
 }
 document.getElementById('ingamerenderQuality').oninput = function() {
-    // settings.renderQuality = (document.getElementById('ingamerenderQuality').value/100);
-    // document.getElementById('renderQuality').value = document.getElementById('ingamerenderQuality').value;
-    document.getElementById('ingamerenderQuality').value = 150;
-    // updateSettings();
+    settings.renderQuality = (document.getElementById('ingamerenderQuality').value/100);
+    document.getElementById('renderQuality').value = document.getElementById('ingamerenderQuality').value;
+    // document.getElementById('ingamerenderQuality').value = 150;
+    updateSettings();
 }
 
 // connection handlers
@@ -288,9 +289,18 @@ function updateSettings() {
     document.getElementById('ingameMV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
     document.getElementById('ingameEV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
     document.getElementById('ingameRQ-label').innerHTML = (Math.floor(settings.renderQuality*100) + '%');
-    // gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
-    // gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
-    // game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
+    gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
+    gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
+    game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
+    gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
+    gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
+    game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
+    game.lineWidth = 4;
+    game.imageSmoothingEnabled = false;
+    game.webkitImageSmoothingEnabled = false;
+    game.mozImageSmoothingEnabled = false;
+    game.filter = 'url(#remove-alpha)';
+    game.globalAlpha = 1;
     resetFPS();
     var cookiestring = JSON.stringify(settings)
     var date = new Date();
@@ -423,22 +433,26 @@ function adminConsole() {
         var consoleHistory = [];
         var historyIndex = 0;
         var consolewindow = {
+            hidden: false,
             dragging: false,
             xOffset: 0,
             yOffset: 0,
             x: 0,
-            y: 50
+            y: 50,
+            height: 300
         };
         adminConsole = document.createElement('div');
         adminConsole.style.display = 'none';
         adminConsole.className = 'ui-darkText';
         adminConsole.id = 'adminConsole';
-        adminConsole.innerHTML = '<div class="ui-lightText" id="adminConsole-top">ADMIN CONSOLE</div><div id="adminConsole-log"></div><input class="ui-darkText" id="adminConsole-input" autocomplete="off" spellcheck="false">';
+        adminConsole.innerHTML = '<div class="ui-lightText" id="adminConsole-top">ADMIN CONSOLE<span id="adminConsole-hide"><svg viewport="0 0 16 16" width="16" height="16" xmlns="http://www.w3.org/2000/svg" id="adminConsole-svg"><line x1="2" y1="6" x2="14" y2="6" stroke="black" strokeWidth="4"/></svg></div><div id="adminConsole-log"></div><input class="ui-darkText" id="adminConsole-input" autocomplete="off" spellcheck="false">';
         adminConsole.style.transform = 'translate(0px, 50px)';
         document.getElementById('gameContainer').appendChild(adminConsole);
         consoleBar = document.getElementById('adminConsole-top');
         consoleInput = document.getElementById('adminConsole-input');
         consoleLog = document.getElementById('adminConsole-log');
+        consoleHide = document.getElementById('adminConsole-hide');
+        consoleSVG = document.getElementById('adminConsole-svg');
         function renderConsole() {
             adminConsole.style.display = '';
             if (consolewindow.dragging) {
@@ -453,13 +467,31 @@ function adminConsole() {
         document.addEventListener('mousemove', function(event) {
             if (consolewindow.dragging) {
                 consolewindow.x = Math.min(Math.max(event.pageX-consolewindow.xOffset, 0), window.innerWidth-604);
-                consolewindow.y = Math.min(Math.max(event.pageY-consolewindow.yOffset, 0), window.innerHeight-305);
+                consolewindow.y = Math.min(Math.max(event.pageY-consolewindow.yOffset, 0), window.innerHeight-consolewindow.height-5);
                 renderConsole();
             }
         });
         document.addEventListener('mouseup', function() {
             consolewindow.dragging = false;
         });
+        consoleHide.onmouseup = function() {
+            consolewindow.hidden = !consolewindow.hidden;
+            if (consolewindow.hidden) {
+                consoleLog.style.display = 'none';
+                consoleInput.style.display = 'none';
+                consoleSVG.innerHTML = '<line x1="2" y1="6" x2="14" y2="6" stroke="black" strokeWidth="4"/><line x1="8" y1="0" x2="8" y2="12" stroke="black" strokeWidth="4"/>';
+                adminConsole.style.height = '30px';
+                consolewindow.height = 30;
+            } else {
+                consoleLog.style.display = '';
+                consoleInput.style.display = '';
+                consoleSVG.innerHTML = '<line x1="2" y1="6" x2="14" y2="6" stroke="black" strokeWidth="4"/>';
+                adminConsole.style.height = '300px';
+                consolewindow.height = 300;
+                consolewindow.y = Math.min(Math.max(consolewindow.y-270, 0), window.innerHeight-consolewindow.height-5);
+                renderConsole();
+            }
+        }
         consoleInput.onkeydown = function(event) {
             if (event.key == 'Enter') {
                 socket.emit('consoleInput', consoleInput.value);
