@@ -1,5 +1,6 @@
 // Copyright (C) 2021 Radioactive64
 
+resourcesloaded++;
 PLAYER_LIST = [];
 BULLET_LIST = [];
 LOOT_BOXES = [];
@@ -7,7 +8,7 @@ DEBUG_INFO = [];
 HP_Color = ['#FFFFFF', '#FF0000', '#FF9900', '#FFFF00', '#99FF00', '#00FF00'];
 
 // entity
-Entity = function(id, x, y, color) {
+Entity = function(id, x, y, color, docollisions) {
     var self = {
         x: x,
         y: y,
@@ -15,6 +16,7 @@ Entity = function(id, x, y, color) {
         rely: 0,
         id: id,
         color: color,
+        collide: docollisions,
         debug:false
     };
 

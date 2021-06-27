@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.3.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.4.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.3.2\n');
+console.log('\nThis server is running BattleBoxes Server v-1.4.0\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -147,14 +147,13 @@ async function updateCredentials(username, password) {
 }
 
 // Enable TEST_BOT by removing the double slashes (//)
-//TEST_BOT = new Bot(true);
-//TEST_BOT.respawn(60, 60);
-//TEST_BOX = new LootBox(60, 100);
+TEST_BOT = new Bot(true);
+TEST_BOT.respawn(60, 60);
 
 // client connection
 io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
-    socket.emit('init')
+    socket.emit('init');
     socket.id = Math.random();
     var player = new Player(socket.id);
     SOCKET_LIST[socket.id] = socket;
@@ -691,7 +690,7 @@ function stop(stoperr) {
                     console.log('\nPress ENTER to exit.');
                     const stopprompt = readline.createInterface({input: process.stdin, output: process.stdout});
                     stopprompt.on('line', function(input) {
-                        process.exit();
+                        process.abort();
                     });
                 } else {
                     process.exit();

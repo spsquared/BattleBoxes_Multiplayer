@@ -1,6 +1,6 @@
 // Copyright (C) 2021 Radioactive64
 
-var loaded = false;
+resourcesloaded++;
 MAPS = [];
 CURRENT_MAP = 0;
 TRACKED_DATA = {
@@ -20,10 +20,7 @@ TRACKED_DATA = {
     }
 };
 ACHIEVEMENTS = [];
-BANNERS = [
-    [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
+BANNERS = [];
 var tpsCounter = 0;
 var tps = 0;
 var fpsCounter = [];
@@ -55,6 +52,13 @@ var mapname = {
 var readyforstart = false;
 var drawInterval = null;
 var waitingforserver = false;
+var load = {
+    mapsready: false,
+    progress: 0,
+    total: 0
+}
+var winOverlay = new Image();
+var winOverlay2 = new Image();
 
 // update game
 socket.on('update', function(pkg) {
@@ -83,7 +87,6 @@ function resetFPS() {
             Bullet.draw();
             LootBox.draw();
             drawCountdown();
-            drawBanners();
             if (player.debug) {
                 for (var i in DEBUG_INFO) {
                     if (DEBUG_INFO[i].id == player.id) {
@@ -207,71 +210,38 @@ socket.on('ping', function() {
     currentDate = Date.now();
     pingCounter = Math.floor(currentDate-lastDate);
 });
-function drawBanners() {
-    for (var i in BANNERS[0]) {
-        if (BANNERS[0][i]) BANNERS[0][i].update();
-    }
-}
+
 // banner init
 function Banner(topText, bottomText, color, time) {
-    var index = 0;
-    for (var i in BANNERS[1]) {
-        if (BANNERS[1][i] == 1 && i <= 32) {
-            index++;
-        } else {
-            break;
-        }
-    }
-    BANNERS[1][index] = 1;
     var self = {
-        id: Math.random(),
-        v: -5,
-        x: window.innerWidth,
-        y: (index*64),
-        top: topText,
-        bottom: bottomText,
-        color: color,
-        time: time,
-        todelete: false
+        temporary: (topText.indexOf('Buff:') != -1 || topText.indexOf('Secondary:') != -1),
+        HTML: document.createElement('div')
     };
-
-    var slidein = setInterval(function() {
-        self.v += 0.031;
-        self.x += self.v;
-    }, 5);
-    self.update = function() {
-        game.fillStyle = '#000000';
-        game.fillRect(self.x, self.y, 400, 60);
-        game.fillStyle = '#FFFFFF';
-        game.fillStyle = self.color;
-        game.fillRect(self.x+4, self.y+4, 392, 52);
-        game.fillStyle = '#000000';
-        game.textAlign = 'left';
-        game.font = '20px Pixel';
-        game.fillText(self.top, self.x+8, self.y+28, 384);
-        game.font = '16px Pixel';
-        game.fillText(self.bottom, self.x+8, self.y+50, 384);
-        if (self.x < (window.innerWidth-400)) {
-            self.x = (window.innerWidth-400);
-            if (!self.todelete) {
-                self.todelete = true;
-                clearInterval(slidein);
-                setTimeout(function() {
-                    var slideout = setInterval(function() {
-                        self.v += 0.031;
-                        self.x += self.v;
-                        if (self.x >= window.innerWidth) {
-                            clearInterval(slideout);
-                            BANNERS[1][index] = 0;
-                            BANNERS[0][index] = null;
-                        }
-                    }, 5);
-                }, self.time*1000);
-            }
-        }
+    self.HTML.className = 'banner ui-darkText';
+    self.HTML.innerHTML = '<div class="banner-textTop">' + topText + '</div><div class="banner-textBottom">' + bottomText + '</div>';
+    if (color == 'rainbow-pulse') {
+        self.HTML.style.animation = 'rainbow-pulse 10s infinite';
+        self.HTML.style.animationTimingFunction = 'ease-in-out';
+    } else if (color == 'red-pulse') {
+        self.HTML.style.animation = 'red-pulse 2s infinite';
+        self.HTML.style.animation = 'red-pulse 2s infinite';
+    } else {
+        self.HTML.style.backgroundColor = color;
     }
+    document.getElementById('bannerContainer').appendChild(self.HTML);
+    // self.HTML.style.transition = 'transform 1s ease-out';
+    // self.HTML.style.transform = 'translateX(-400px)';
+    setTimeout(function() {
+        try {
+            self.HTML.style.transitionTimingFunction = 'ease-in';
+            self.HTML.style.transform = 'translateX(400px)';
+            setTimeout(function() {
+                self.HTML.remove();
+            }, 1250);
+        } catch (err) {}
+    }, (time*1000)+1000);
 
-    BANNERS[0][index] = self;
+    BANNERS.push(self);
     return self;
 }
 
@@ -325,6 +295,7 @@ document.onkeyup = function(event) {
                 document.getElementById('githublink').style.display = '';
                 inmenu = true;
                 socket.emit('keyPress', {key:'W', state:false});
+                socket.emit('keyPress', {key:'S', state:false});
                 socket.emit('keyPress', {key:'A', state:false});
                 socket.emit('keyPress', {key:'D', state:false});
             }
@@ -369,6 +340,12 @@ document.onmousedown = function(event) {
 document.onmouseup = function() {
     shooting = false;
 }
+window.onblur = function() {
+    socket.emit('keyPress', {key:'W', state:false});
+    socket.emit('keyPress', {key:'S', state:false});
+    socket.emit('keyPress', {key:'A', state:false});
+    socket.emit('keyPress', {key:'D', state:false});
+}
 
 // game functions
 function fadeIn() {
@@ -376,10 +353,9 @@ function fadeIn() {
     var fadeAmount = 0;
     var audiofade = (settings.musicvolume*settings.globalvolume);
     document.getElementById('loadingContainer').style.display = 'block';
-    document.getElementById('fade').style.display = 'block';
     var fadeInterval = setInterval(function() {
-        fadeAmount += 0.01;
-        audiofade -= ((settings.musicvolume*settings.globalvolume)/100);
+        fadeAmount += 0.04;
+        audiofade -= ((settings.musicvolume*settings.globalvolume)/25);
         if (audiofade < 0) {
             audiofade = 0;
         }
@@ -387,75 +363,138 @@ function fadeIn() {
             clearInterval(fadeInterval);
             document.getElementById('loading').style.display = 'inline-block';
         }
-        document.getElementById('fade').style.opacity = fadeAmount;
+        document.getElementById('loadingContainer').style.opacity = fadeAmount;
         music.volume = audiofade;
-    }, 1);
+    }, 20);
 }
 function fadeOut() {
     var fadeAmount = 1;
     var audiofade = 0;
     document.getElementById('loading').style.display = 'none';
     var fadeInterval = setInterval(function() {
-        fadeAmount -= 0.01;
-        audiofade += ((settings.musicvolume*settings.globalvolume)/100);
+        fadeAmount -= 0.04;
+        audiofade += ((settings.musicvolume*settings.globalvolume)/25);
         if (fadeAmount < 0) {
             clearInterval(fadeInterval);
             document.getElementById('loadingContainer').style.display = 'none';
-            document.getElementById('fade').style.display = 'none';
         }
-        document.getElementById('fade').style.opacity = fadeAmount;
+        document.getElementById('loadingContainer').style.opacity = fadeAmount;
         music.volume = audiofade;
-    }, 1);
+    }, 20);
 }
 function ready() {
     if (!readyforstart) {
         socket.emit('ready');
         var fadeAmount = 1;
         var fadeInterval = setInterval(function() {
-            fadeAmount -= 0.01;
+            fadeAmount -= 0.04;
             document.getElementById('ready').style.opacity = fadeAmount;
             if (fadeAmount < 0.5) {
                 clearInterval(fadeInterval);
             }
-        }, 1); 
+        }, 20); 
         readyforstart = true;
     }
 }
 
 // join/leave handlers
-socket.on('game-joined', function() {
-    for (var i in PLAYER_LIST) {
-        PLAYER_LIST[i].alive = true;
-    }
+socket.on('game-joined', async function() {
     ingame = true;
-    canmove = true;
     document.getElementById('chat').innerHTML = '';
-    for (var i in LOOT_BOXES) {
-        delete LOOT_BOXES[i];
-    }
+    // load
+    var isloaded = false;
+    var readybuttonalreadyloaded = false;
+    load.total++;
+    document.getElementById('loadingBarText').innerText = '0/' + load.total + ' (0%)';
+    document.getElementById('loadingBarInner').style.width = '0%';
+    document.getElementById('loadingBarOuter').style.display = 'block';
     var waitforload = setInterval(function() {
-        if (loaded) {
-            document.getElementById('canceljoingame').style.display = 'none';
-            document.getElementById('playAgain').style.display = 'none';
-            gameCanvas.style.display = 'block';
-            document.getElementById('gameContainer').style.backgroundColor = 'black';
-            document.getElementById('credits').style.display = 'none';
-            document.getElementById('githublink').style.display = 'none';
-            fadeOut();
-            clearInterval(waitforload);
+        if (readybuttonloaded && !readybuttonalreadyloaded) {
+            load.progress++;
+            readybuttonalreadyloaded = true;
         }
+        var percent = Math.floor((load.progress/load.total)*100);
+        document.getElementById('loadingBarText').innerText = load.progress + '/' + load.total + ' (' + percent + '%)';
+        document.getElementById('loadingBarInner').style.width = percent + '%';
+        if (percent == 100 && !isloaded) {
+            isloaded = true;
+            setTimeout(function() {
+                // init
+                document.getElementById('canceljoingame').style.display = 'none';
+                document.getElementById('playAgain').style.display = 'none';
+                gameCanvas.style.display = 'block';
+                document.getElementById('gameContainer').style.backgroundColor = 'black';
+                document.getElementById('credits').style.display = 'none';
+                document.getElementById('githublink').style.display = 'none';
+                for (var i in PLAYER_LIST) {
+                    PLAYER_LIST[i].alive = true;
+                }
+                canmove = true;
+                for (var i in LOOT_BOXES) {
+                    delete LOOT_BOXES[i];
+                }
+                music.src = ('/client/sound/Ingame_' + currentmusic + '.mp3');
+                music.play();
+                fadeOut();
+                document.getElementById('loadingBarOuter').style.display = 'none';
+                clearInterval(waitforload);
+            }, 500);
+        }
+    }, 10);
+    try {
+        var maploader = new OffscreenCanvas(192, 108).getContext('2d');
+    } catch (err) {
+        var maploader = new CanvasRenderingContext2D(192, 108).getContext('2d');
+    }
+    load.progress = 0;
+    async function loadImage(img) {
+        try {
+            await sleep(Math.random()*10);
+            maploader.drawImage(img, 0, 0);
+            load.progress++;
+        } catch (err) {
+            await loadImage(img);
+        }
+    }
+    load.total += 7;
+    setTimeout(async function() {
+        async function loadMaps() {
+            if (load.mapsready) {
+                for (var i in MAPS) {
+                    await loadImage(MAPS[i]);
+                }
+            } else {
+                await loadMaps();
+            }
+        }
+        await loadMaps();
+        var lootboximage = new Image();
+        lootboximage.src = './client/img/LootBox_random.png';
+        await loadImage(lootboximage);
+        lootboximage.src = './client/img/LootBox_speed.png';
+        await loadImage(lootboximage);
+        lootboximage.src = './client/img/LootBox_jump.png';
+        await loadImage(lootboximage);
+        lootboximage.src = './client/img/LootBox_shield.png';
+        await loadImage(lootboximage);
+        lootboximage.src = './client/img/LootBox_heal.png';
+        await loadImage(lootboximage);
+        lootboximage.src = './client/img/LootBox_homing.png';
+        await loadImage(lootboximage);
+        lootboximage.src = './client/img/LootBox_firerate.png';
+        await loadImage(lootboximage);
     }, 100);
 });
-socket.on('gamefull', function() {
+socket.on('gamefull', async function() {
     document.getElementById('serverfull').style.display = 'block';
     document.getElementById('canceljoingame').style.display = 'inline-block';
 });
-socket.on('gamerunning', function() {
+socket.on('gamerunning', async function() {
     document.getElementById('gamelocked').style.display = 'block';
     document.getElementById('canceljoingame').style.display = 'inline-block';
 });
 // map handlers
-socket.on('initmap', function(maps) {
+socket.on('initmap', async function(maps) {
     for (var i in maps) {
         MAPS[i] = new Image(maps[i].width, maps[i].height);
         if (maps[i].id == 0) {
@@ -464,24 +503,11 @@ socket.on('initmap', function(maps) {
             MAPS[i].src = '/client/img/Map' + maps[i].id + '.png';
         }
         MAPS[i].name = maps[i].name;
+        load.total++;
     }
-    try {
-        var maploader = new OffscreenCanvas(192, 108).getContext('2d');
-        for (var i in MAPS) {
-            maploader.drawImage(MAPS[i], 0, 0);
-            game.drawImage(MAPS[i], 0, 0);
-        }
-        loaded = true;
-    } catch (err) {
-        var maploader = new CanvasRenderingContext2D(192, 108).getContext('2d');
-        for (var i in MAPS) {
-            maploader.drawImage(MAPS[i], 0, 0);
-            game.drawImage(MAPS[i], 0, 0);
-        }
-        loaded = true;
-    }
+    load.mapsready = true;
 });
-socket.on('map', function(id) {
+socket.on('map', async function(id) {
     CURRENT_MAP = id;
 
 });
@@ -511,10 +537,8 @@ socket.on('winner', function(id) {
         ingame = false;
         canmove = false;
         document.getElementById('loadingContainer').style.display = 'none';
-        var v = -10;
+        var v = -20;
         var x = window.innerWidth;
-        var winOverlay = new Image();
-        var winOverlay2 = new Image();
         winOverlay.src = './client/img/WinOverlay.png';
         winOverlay2.src = './client/img/WinOverlay2.png';
         if (window.innerWidth/window.innerHeight > 16/9) {
@@ -530,7 +554,7 @@ socket.on('winner', function(id) {
         }
         var slide = setInterval(function() {
             if (x < 200) {
-                v *= 0.96;
+                v *= 0.95;
             }
             x += v;
             game.fillStyle = color;
@@ -590,11 +614,11 @@ socket.on('winner', function(id) {
                     }
                 });
             }
-        }, 5);
+        }, 20);
         var fadeAmount = 1;
         var audiofade = (settings.musicvolume*settings.globalvolume);
         var fadeInterval = setInterval(function() {
-            fadeAmount -= 0.01;
+            fadeAmount -= 0.04;
             audiofade -= ((settings.musicvolume*settings.globalvolume)/50);
             if (audiofade < 0) {
                 audiofade = 0;
@@ -605,12 +629,12 @@ socket.on('winner', function(id) {
             document.getElementById('scoreContainer').style.opacity = fadeAmount;
             document.getElementById('chatContainer').style.opacity = fadeAmount;
             music.volume = audiofade;
-        }, 1);
+        }, 20);
         setTimeout(function() {
             music.src = '/client/sound/Endscreen.mp3';
             music.play();
             var fadeInterval = setInterval(function() {
-                fadeAmount -= 0.01;
+                fadeAmount -= 0.04;
                 audiofade += ((settings.musicvolume*settings.globalvolume)/50);
                 if (audiofade < 0) {
                     audiofade = 0;
@@ -622,14 +646,14 @@ socket.on('winner', function(id) {
                 document.getElementById('scoreContainer').style.opacity = fadeAmount;
                 document.getElementById('chatContainer').style.opacity = fadeAmount;
                 music.volume = audiofade;
-            }, 1);
+            }, 20);
         }, 500);
         setTimeout(function() {
             document.getElementById('playAgain').style.opacity = 0;
             document.getElementById('playAgain').style.display = 'inline-block';
             var fadeAmount = 0;
             var fadeInterval = setInterval(function() {
-                fadeAmount += 0.01;
+                fadeAmount += 0.04;
                 audiofade += ((settings.musicvolume*settings.globalvolume)/50);
                 if (audiofade < 0) {
                     audiofade = 0;
@@ -639,7 +663,7 @@ socket.on('winner', function(id) {
                 }
                 document.getElementById('playAgain').style.opacity = fadeAmount;
                 music.volume = audiofade;
-            }, 1);
+            }, 20);
         }, 3000);
     }
 });
@@ -677,7 +701,8 @@ socket.on('roundstart', function(scores) {
             canmove = true;
         }, 3000);
         for (var i in BANNERS) {
-            if (BANNERS[i].top.indexOf('Buff:') == 0 || BANNERS[i].top.indexOf('Secondary:') == 0) {
+            if (BANNERS[i].temporary) {
+                BANNERS[i].HTML.remove();
                 delete BANNERS[i];
             }
         }
@@ -691,13 +716,12 @@ socket.on('roundstart', function(scores) {
             PLAYER_LIST[scores[i].id].score = scores[i].score;
             document.getElementById('score' + i).innerText = scores[i].score;
         }
-        sfx[0].src = '/client/sound/Countdown.mp3';
-        sfx[0].play();
+        playsound('/client/sound/Countdown.mp3');
         var size = 24;
         var opacity = 1;
         countdowntext.text = '3';
         var count3 = setInterval(function() {
-            opacity -= 0.005;
+            opacity -= 0.02;
             size += 1;
             countdowntext.color = 'rgba(255, 0, 0, ' + opacity + ')';
             countdowntext.size = size;
@@ -705,13 +729,13 @@ socket.on('roundstart', function(scores) {
                 //countdowntext.text = '';
                 clearInterval(count3);
             }
-        }, 1);
+        }, 20);
         setTimeout(function() {
             var size = 24;
             var opacity = 1;
             countdowntext.text = '2';
             var count2 = setInterval(function() {
-                opacity -= 0.005;
+                opacity -= 0.02;
                 size += 1;
                 countdowntext.color = 'rgba(255, 0, 0, ' + opacity + ')';
                 countdowntext.size = size;
@@ -719,14 +743,14 @@ socket.on('roundstart', function(scores) {
                     countdowntext.text = '';
                     clearInterval(count2);
                 }
-            }, 1);
+            }, 20);
         }, 1000);
         setTimeout(function() {
             var size = 24;
             var opacity = 1;
             countdowntext.text = '1';
             var count1 = setInterval(function() {
-                opacity -= 0.005;
+                opacity -= 0.02;
                 size += 1;
                 countdowntext.color = 'rgba(255, 255, 0, ' + opacity + ')';
                 countdowntext.size = size;
@@ -734,14 +758,14 @@ socket.on('roundstart', function(scores) {
                     countdowntext.text = '';
                     clearInterval(count1);
                 }
-            }, 1);
+            }, 20);
         }, 2000);
         setTimeout(function() {
             var size = 24;
             var opacity = 1;
             countdowntext.text = 'GO';
             var countgo = setInterval(function() {
-                opacity -= 0.005;
+                opacity -= 0.02;
                 size += 1;
                 countdowntext.color = 'rgba(0, 150, 0, ' + opacity + ')';
                 countdowntext.size = size;
@@ -749,18 +773,18 @@ socket.on('roundstart', function(scores) {
                     countdowntext.text = '';
                     clearInterval(countgo);
                 }
-            }, 1);
+            }, 20);
         }, 3000);
         setTimeout(function() {
             var opacity = 1;
             var fade = setInterval(function() {
-                opacity -= 0.01;
+                opacity -= 0.04;
                 mapname.color = 'rgba(0, 100, 255, ' + opacity + ')';
                 if (opacity < 0.01) {
                     mapname.text = '';
                     clearInterval(fade);
                 }
-            }, 1);
+            }, 20);
         }, 5000);
     }
 });
@@ -775,7 +799,7 @@ socket.on('roundend', function() {
     }
 });
 // tracked data handlers
-socket.on('inittrackedData', function(pkg) {
+socket.on('inittrackedData', async function(pkg) {
     for (var i in pkg.achievements) {
         var localachievement = pkg.achievements[i];
         for (var j in ACHIEVEMENTS) {
@@ -798,7 +822,7 @@ socket.on('inittrackedData', function(pkg) {
     TRACKED_DATA.lootboxcollections.firerate = pkg.lootboxcollections.firerate;
     TRACKED_DATA.lootboxcollections.random = pkg.lootboxcollections.random;
 });
-socket.on('achievement_get', function(pkg) {
+socket.on('achievement_get', async function(pkg) {
     for (var i in ACHIEVEMENTS) {
         if (ACHIEVEMENTS[i].id == pkg.achievement) {
             Banner(pkg.player + ' Achievement Get!', ACHIEVEMENTS[i].name, ACHIEVEMENTS[i].color, 5);
@@ -807,7 +831,7 @@ socket.on('achievement_get', function(pkg) {
     }
     updateAchievements();
 });
-socket.on('achievementrevoked', function(pkg) {
+socket.on('achievementrevoked', async function(pkg) {
     for (var i in ACHIEVEMENTS) {
         if (ACHIEVEMENTS[i].id == pkg.achievement) {
             ACHIEVEMENTS[i].aqquired = false;
@@ -815,7 +839,7 @@ socket.on('achievementrevoked', function(pkg) {
     }
     updateAchievements();
 });
-socket.on('updateTrackedData', function(pkg) {
+socket.on('updateTrackedData',async  function(pkg) {
     for (var i in pkg) {
         try {
             if (pkg[i].id == player.id) {
@@ -837,7 +861,7 @@ socket.on('updateTrackedData', function(pkg) {
     }
 });
 // other handlers
-socket.on('effect', function(effect) {
+socket.on('effect', async function(effect) {
     switch (effect) {
         case 'speed':
             Banner('Buff: SPEED', '+20% movespeed 10s', '#FFFF00', 10);
@@ -889,12 +913,12 @@ socket.on('effect', function(effect) {
             break;
     }
 });
-socket.on('yeet', function() {
+socket.on('yeet', async function() {
     Banner('YEET!', 'You just got yeeted!', '#FFFFFF', 5);
 });
 
 // fps & tps counter
-setInterval(function() {
+setInterval(async function() {
     tps = tpsCounter;
     tpsCounter = 0;
     fps = fpsCounter.length;
@@ -912,7 +936,7 @@ function fpsLoop() {
 fpsLoop();
 
 // waiting for server
-waiting = setInterval(function() {
+waiting = setInterval(async function() {
     if (ingame) {
         if (connected == 50 && !waiting) {
             waitingforserver = true;

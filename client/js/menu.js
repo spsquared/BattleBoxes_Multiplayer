@@ -1,5 +1,7 @@
 // Copyright (C) 2021 Radioactive64
 
+resourcesloaded++;
+
 // login functions
 function login() {
     if (document.getElementById('usrname').value == '') {
@@ -54,12 +56,21 @@ socket.on('loginConfirmed', function(state) {
     }
     if (state == 'deleted') {
         window.alert('Your account has been successfully deleted');
-        window.location.reload();
+        fadeIn();
+        setTimeout(function() {
+            window.location.reload();
+        }, 500);
     }
     fadeIn();
     setTimeout(function() {
         document.getElementById('loginContainer').style.display = 'none';
         document.getElementById('mainmenuContainer').style.display = 'inline-block';
+        var waitforload = setInterval(function() {
+            if (playbuttonloaded) {
+                fadeOut();
+                clearInterval(waitforload);
+            }
+        }, 10);
         fadeOut();
     }, 500);
 });
@@ -78,8 +89,7 @@ socket.on('loginFailed', function(state) {
 
 // menu functions
 function play() {
-    sfx[0].src = ('/client/sound/Play.mp3');
-    sfx[0].play();
+    playsound('/client/sound/Play.mp3');
     document.getElementById('canceljoingame').style.display = 'none';
     for (var i in PLAYER_LIST) {
         delete PLAYER_LIST[i];
@@ -89,9 +99,7 @@ function play() {
         socket.emit('joingame');
         document.getElementById('menuContainer').style.display = 'none';
         document.getElementById('gameContainer').style.display = 'inline-block';
-        music.src = ('/client/sound/Ingame_' + currentmusic + '.mp3');
-        music.play();
-    }, 1000);
+    }, 750);
 
 }
 function openSettings() {
@@ -187,8 +195,7 @@ function openingameAchievements() {
 }
 function quittoMenu() {
     socket.emit('leavegame');
-    sfx[0].src = ('/client/sound/Leave.mp3');
-    sfx[0].play();
+    playsound('/client/sound/Leave.mp3');
     fadeIn();
     setTimeout(function() {
         document.getElementById('menuContainer').style.display = 'block';
@@ -198,6 +205,7 @@ function quittoMenu() {
         ingame = false;
         inmenu = false;
         readyforstart = false;
+        load.total = 0;
         gameid = Math.random();
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';

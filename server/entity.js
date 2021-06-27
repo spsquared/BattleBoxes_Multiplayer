@@ -53,6 +53,29 @@ Entity = function() {
         var py = Math.floor(self.y/40);
         var tempx;
         var tempy;
+        // center (to reduce glitching)
+        tempx = px;
+        tempy = py;
+        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
+            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                if (self.yspeed <= -10) {
+                    self.y += (tempy*40) - (self.y+self.halfsize);
+                    self.yspeed = 0;
+                    self.colliding.bottom = true;
+                } else if (self.yspeed >= 10) {
+                    self.y += ((tempy*40)+40) - (self.y-self.halfsize);
+                    self.yspeed *= -0.25;
+                    self.colliding.top = true;
+                } else {
+                    self.y += (tempy*40) - (self.y+self.halfsize);
+                    self.yspeed = 0;
+                    self.colliding.bottom = true;
+                }
+                self.colliding.center = true;
+            }
+        }
+        px = Math.floor(self.x/40);
+        py = Math.floor(self.y/40);
         // bottom
         tempx = px;
         tempy = py+1;
@@ -103,6 +126,8 @@ Entity = function() {
                 }
             }
         }
+        px = Math.floor(self.x/40);
+        py = Math.floor(self.y/40);
         // left
         tempx = px-1;
         tempy = py;
@@ -129,6 +154,8 @@ Entity = function() {
                 }
             }
         }
+        px = Math.floor(self.x/40);
+        py = Math.floor(self.y/40);
         // top
         tempx = px;
         tempy = py-1;
@@ -177,27 +204,6 @@ Entity = function() {
                         self.colliding.top = true;
                     }
                 }
-            }
-        }
-        // center (to reduce glitching)
-        tempx = px;
-        tempy = py;
-        if (tempx > -1 && tempx < (MAPS[CURRENT_MAP].width+1) && tempy > -1 && tempy < (MAPS[CURRENT_MAP].height+1)) {
-            if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                if (self.yspeed <= -10) {
-                    self.y += (tempy*40) - (self.y+self.halfsize);
-                    self.yspeed = 0;
-                    self.colliding.bottom = true;
-                } else if (self.yspeed >= 10) {
-                    self.y += ((tempy*40)+40) - (self.y-self.halfsize);
-                    self.yspeed *= -0.25;
-                    self.colliding.top = true;
-                } else {
-                    self.y += (tempy*40) - (self.y+self.halfsize);
-                    self.yspeed = 0;
-                    self.colliding.bottom = true;
-                }
-                self.colliding.center = true;
             }
         }
         self.lastx = self.x;
@@ -277,9 +283,7 @@ Player = function(socketid) {
         }
         self.lastclick++;
         self.secondary.lastclick++;
-        if (self.hp < 1 && self.alive) {
-            self.death();
-        }
+        if (self.hp < 1 && self.alive) self.death();
     }
     self.updatePos = function() {
         if (self.noclip) {
@@ -735,17 +739,38 @@ Bot = function(targetOtherBots) {
     self.color = COLORS[0][j];
     COLORS[1][j] = 1;
     self.name = 'BOT_' + BOT_LIST.length;
-    self.pathfinder = new Pathfind.JumpPointFinder({allowDiagonal:true});
+    try {
+        self.pathfinder = new Pathfind.AStarFinder({
+            allowDiagonal: true,
+            dontCrossCorners: true
+        });
+        self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
+        for (var i in MAPS[CURRENT_MAP]) {
+            for (var j in MAPS[CURRENT_MAP][i]) {
+                if (MAPS[CURRENT_MAP][i][j] == 1) {
+                    self.grid.setWalkableAt(j, i, false);
+                }
+            }
+        }
+        // for (var i = -1; 1 < MAPS[CURRENT_MAP].width; i++) {
+        //     self.grid.setWalkableAt(i, -1, false);
+        // }
+        // for (var i = -1; 1 < MAPS[CURRENT_MAP].height; i++) {
+        //     self.grid.setWalkableAt(-1, i, false);
+        // }
+    } catch (err) {
+        error(err);
+    }
     self.attackBots = targetOtherBots;
+    self.lastpath = 0;
 
     self.update = function() {
         self.collide();
-        self.path();
+        if (self.alive) self.path();
         self.updatePos();
         self.lastclick++;
-        if (self.hp < 1 && self.alive) {
-            self.death();
-        }
+        self.lastpath++;
+        if (self.hp < 1 && self.alive) self.death();
     }
     self.updatePos = function() {
         if (self.Dpressed) {
@@ -832,11 +857,16 @@ Bot = function(targetOtherBots) {
                 homing: null
             }
         };
+        try {
+            self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
+        } catch (err) {
+            error(err);
+        }
     }
-    self.shoot = function() {
-        if (round.inProgress && self.alive && self.validateLineOfSight(closestplayer.x, closestplayer.y) && self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
+    self.shoot = function(player) {
+        if (round.inProgress && self.alive && self.validateLineOfSight(player.x, player.y) && self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
             self.lastclick = 0;
-            new Bullet(closestplayer.x+(Math.floor(Math.random()*21)-10), closestplayer.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color, false, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, false);
+            new Bullet(player.x+(Math.floor(Math.random()*21)-10), player.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color, false, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, false);
             if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
         }
     }
@@ -844,7 +874,7 @@ Bot = function(targetOtherBots) {
         var closestplayer = null;
         var players = [];
         for (var i in PLAYER_LIST) {
-            players.push(PLAYER_LIST[i]);
+            if (PLAYER_LIST[i].ingame) players.push(PLAYER_LIST[i]);
         }
         if (self.attackBots) {
             for (var i in BOT_LIST) {
@@ -853,19 +883,87 @@ Bot = function(targetOtherBots) {
         }
         for (var i in players) {
             if (closestplayer == null || self.getDistance(self.x, self.y, players[i].x, players[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y)) {
-                closestplayer = players[i];
+                if (players[i].id != self.id) closestplayer = players[i];
             }
         }
         if (closestplayer != null) {
             if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 960) {
-                var pathgrid = MAPS[CURRENT_MAP].pfgrid.clone();
-                // self.pathfinder.findPath(closestplayer.x, closestplayer.y, pathgrid);
-                // convert coordinates to movement
+                try {
+                    var gridbackup = self.grid.clone();
+                    var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
+                    var waypoints = Pathfind.Util.compressPath(path);
+                    // var waypoints = path;
+                    self.grid = gridbackup;
+                    if (waypoints[0]) {
+                        self.Wpressed = false;
+                        self.Apressed = false;
+                        self.Dpressed = false;
+                        var px = Math.floor(self.x/40);
+                        var py = Math.floor(self.y/40);
+                        if (waypoints[1][1] < py) {
+                            self.Wpressed = true;
+                        }
+                        if (waypoints[1][0] < px) {
+                            self.Apressed = true;
+                        }
+                        if (waypoints[1][0] > px) {
+                            self.Dpressed = true;
+                        }
+                        // var tempx = px-3;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Apressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px-2;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Apressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px-1;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Apressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px+1;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Dpressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px+2;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Dpressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px+3;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Dpressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        if (self.colliding.left) {
+                            Apressed = true;
+                            Wpressed = true;
+                        }
+                        if (self.colliding.right) {
+                            Dpressed = true;
+                            Wpressed = true;
+                        }
+                    }
+                } catch (err) {
+                    // console.error(err);
+                }
             }
-            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 160) {
-                // stop moving closer
+            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 20) {
+                self.Apressed = false;
+                self.Dpressed = false;
+                self.Wpressed = false;
             }
-            self.shoot();
+            self.shoot(closestplayer);
         }
     }
     self.getDistance = function(x1, y1, x2, y2) {

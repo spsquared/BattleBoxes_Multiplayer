@@ -8,13 +8,18 @@
         <meta id="viewport" name="viewport" content="width=device-width, height=device-height, initial-scale=1.5, maximum-scale=2.0, minimum-scale=1.0, user-scalable=no">
         <meta charset="utf-8">
         <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://meadowguarder.herokuapp.com/ https://raw.githubusercontent.com/definitely-nobody-is-here/BBmulti_Announcements/ 'unsafe-eval' 'unsafe-inline'; script-src 'self' https://cdn.socket.io/socket.io-1.4.5.js https://code.jquery.com/jquery-3.5.0.js 'unsafe-eval' 'unsafe-inline'; script-src-elem 'self' https://cdn.socket.io/socket.io-1.4.5.js https://code.jquery.com/jquery-3.5.0.js 'unsafe-eval' 'unsafe-inline';">
-        <link rel="icon" href="/client/favicon.ico" type="image/png">
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+        <link rel="icon" href="/client/favicon.ico" type="image/x-icon">
+        <script>
+            var resourcesloaded = 0;
+            var playbuttonloaded = false;
+            var readybuttonloaded = false;
+        </script>
+        <script src="/socket.io/socket.io.js" onload="resourcesloaded++;"></script>
+        <script src="https://code.jquery.com/jquery-3.5.0.js" onload="resourcesloaded++;"></script>
         <script>socket = io();</script>
-        <script src="/client/js/index.js" defer></script>
-        <link rel="stylesheet" href="/client/assets/main.css">
-        <link rel="stylesheet" href="/client/assets/game.css">
+        <script src="/client/js/index.js" defer onload="resourcesloaded++;"></script>
+        <link rel="stylesheet" href="/client/assets/main.css" onload="resourcesloaded++;">
+        <link rel="stylesheet" href="/client/assets/game.css" onload="resourcesloaded++;">
     </head>
     <body id="body">
         <noscript>
@@ -36,7 +41,7 @@
             </div>
             <div id="mainmenuContainer">
                 <br><br>
-                <input type="image" src="/client/img/start-button.png" alt="play" id="play" onclick="play();"><br><br>
+                <input type="image" src="/client/img/Play.png" alt="play" id="play" onload="playbuttonloaded = true;" onclick="play();"><br><br>
                 <input type="button" class="ui-largeButton" id="settings" value="SETTINGS" onclick="openSettings();"><br><br>
                 <input type="button" class="ui-largeButton" id="announcements" value="ANNOUNCMENTS" onclick="openAnnouncements();"><br><br>
                 <input type="button" class="ui-largeButton" id="achievements" value="ACHIEVEMENTS" onclick="openAchievements();"><br><br>
@@ -185,8 +190,9 @@
         </div>
         <div id="gameContainer">
             <canvas id="gameCanvas"></canvas>
-            <input type="image" src="/client/img/Ready.png" alt="ready" id="ready" onclick="ready();">
+            <input type="image" src="/client/img/Ready.png" alt="ready" id="ready" onload="readybuttonloaded = true;" onclick="ready();">
             <input type="button" class="ui-largeButton" id="playAgain" value="MAIN MENU" onclick="quittoMenu();">
+            <div id="bannerContainer"></div>
             <div id="chatContainer">
                 <div class="ui-darkText" id="chat"></div>
                 <input class="ui-darkText" id="chatInput" maxlength="64" autocomplete="off" spellcheck="false">
@@ -297,8 +303,6 @@
                     </table>
                     <div id="ingameAchievementsACHIEVEMENTS" class="ui-darkText"></div>
                 </div>
-                
-                </span>
             </div>
         </div>
         <div id="disconnectedContainer">
@@ -307,13 +311,18 @@
         </div>
         <div id="loadingContainer">
             <div id="fade"></div>
-            <img src="client/img/loading.gif" alt="Loading..." id="loading">
+            <img src="client/img/loading.gif" alt="Loading..." id="loading" onload="resourcesloaded++;">
+            <p class="ui-lightText" id="loadingnote">Note: Sometimes page loading does not finish fully. Just reload.</p>
             <p class="ui-lightText" id="waiting">Waiting for server...</p>
             <p class="ui-lightText" id="serverfull">Server is full...</p>
             <p class="ui-lightText" id="gamelocked">Game is in progress, cannot join...</p>
+            <div id="loadingBarOuter">
+                <div id="loadingBarInner"></div>
+                <div class="ui-lightText" id="loadingBarText">0/0 (0%)</div>
+            </div>
             <input type="button" class="ui-largeButton" id="canceljoingame" value="BACK" onclick="canceljoin();"><br><br>
         </div>
-        <h5 id="versionLabel">v1.3.2</h5>
+        <h5 id="versionLabel">v1.4.0</h5>
         <p id="credits" onclick="window.open('/client/credits.html');">Credits (Copyright (C) Radioactive64 2021)</p>
         <p id="githublink" onclick="window.open('https:www.github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer')">GitHub Repository</p>
         <img id="fxOverlay">

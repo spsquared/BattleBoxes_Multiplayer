@@ -117,6 +117,7 @@ dist
 
 # dev files
 BattleBoxes_Multiplayer.code-workspace
+.vscode
 
 # Server files
 server/PORTS.txt

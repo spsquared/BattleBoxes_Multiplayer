@@ -4,15 +4,13 @@ $.ajaxSetup({cache: true, async:false});
 $.getScript('./client/js/game.js');
 $.getScript('./client/js/entity.js');
 $.getScript('./client/js/menu.js');
+var dpr = 1;
 if (window.devicePixelRatio) {
-    var dpr = window.devicePixelRatio;
-} else {
-    var dpr = 1;
+    dpr = window.devicePixelRatio;
 }
 game = document.getElementById('gameCanvas').getContext('2d');
 gameCanvas = document.getElementById('gameCanvas');
 music = new Audio();
-sfx = [new Audio(), new Audio(), new Audio(), new Audio()];
 settings = {
     globalvolume: (document.getElementById('globalVolume').value/100),
     musicvolume: (document.getElementById('musicVolume').value/100),
@@ -30,6 +28,11 @@ camera = {
 };
 gameid = Math.random();
 var firstload = true;
+var documentloaded = false;
+window.onload = function() {
+    resourcesloaded++;
+    documentloaded = true;
+}
 init();
 
 // init
@@ -42,106 +45,119 @@ socket.on('init', function() {
         }, 500);
     } else {
         firstload = false;
-        // show page
-        document.getElementById('loginContainer').style.display = 'inline-block';
-        document.getElementById('mainmenuContainer').style.display = 'none';
-        document.getElementById('disconnectedContainer').style.display = 'none';
-        document.getElementById('menuContainer').style.display = 'block';
-        // start music
-        music.volume = settings.musicvolume;
-        for (var i in sfx) {
-            sfx[i].volume = settings.sfxvolume;
-        }
-        music.src = '/client/sound/Menu.mp3';
-        // place focus on username
-        document.getElementById('usrname').focus();
-        fadeOut();
     }
 });
 function init() {
-    // set up page and canvas
-    try {
-        new OffscreenCanvas(1, 1);
-    } catch (err) {
-        window.alert('This game may run slower on your browser. Please switch to a supported browser.\nChrome 69+\nEdge 79+\nOpera 56+');
-        console.log('This game may run slower on your browser. Please switch to a supported browser.\nChrome 69+\nEdge 79+\nOpera 56+');
-    }
-    document.querySelectorAll("input").forEach(function(item){if (item.type != 'text' && item.type != 'password') {item.addEventListener('focus', function(){this.blur();});}});
-    document.querySelectorAll("button").forEach(function(item){item.addEventListener('focus', function(){this.blur();});});
-    document.getElementById('viewport').width = window.innerWidth;
-    document.getElementById('viewport').height = window.innerHeight;
-    gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
-    gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
-    game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.getElementById('scoreContainer').addEventListener('contextmenu', e => e.preventDefault());
-    game.lineWidth = 4;
-    game.imageSmoothingEnabled = false;
-    game.webkitImageSmoothingEnabled = false;
-    game.mozImageSmoothingEnabled = false;
-    game.globalAlpha = 1;
-    resetFPS();
-    document.getElementById('fade').width = window.innerWidth;
-    document.getElementById('fade').width = window.innerHeight;
-    document.getElementById('loading').style.left = ((window.innerWidth/2)-64) + 'px';
-    document.getElementById('ready').style.left = ((window.innerWidth/2)-100) + 'px';
-    document.getElementById('scoreTable').style.width = ((window.innerWidth*0.75)-12) + 'px';
-    // load cookies
-    try {
-        cookiesettings = JSON.parse(document.cookie.replace('settings=', ''));
-        settings.globalvolume = cookiesettings.globalvolume;
-        settings.musicvolume = cookiesettings.musicvolume;
-        settings.sfxvolume = cookiesettings.sfxvolume;
-        settings.fullscreen = cookiesettings.fullscreen;
-        settings.fps = cookiesettings.fps;
-        settings.renderQuality = cookiesettings.renderQuality;
-        document.getElementById('globalVolume').value = settings.globalvolume*100;
-        document.getElementById('ingameglobalVolume').value = settings.globalvolume*100;
-        document.getElementById('musicVolume').value = settings.musicvolume*100;
-        document.getElementById('ingamemusicVolume').value = settings.musicvolume*100;
-        document.getElementById('sfxVolume').value = settings.sfxvolume*100;
-        document.getElementById('ingamesfxVolume').value = settings.sfxvolume*100;
-        document.getElementById('fpsSelect').value = settings.fps;
-        document.getElementById('ingamefpsSelect').value = settings.fps;
-        document.getElementById('renderQuality').value = settings.renderQuality*100;
-        document.getElementById('ingamerenderQuality').value = settings.renderQuality*100;
-        updateSettings();
-    } catch {}
-    // insert announcements
-    document.getElementById('announcementsPage').width = (window.innerWidth-64);
-    var announcementsEmbed = document.createElement('div');
-    announcementsEmbed.id = 'announcementsEmbed';
-    $.get('https://raw.githubusercontent.com/definitely-nobody-is-here/BBmulti_Announcements/master/Announcements.html', function(file) {
-        announcementsEmbed.innerHTML = file;
-        document.getElementById('announcements-failedLoadimg').style.display = 'none';
-        document.getElementById('announcements-failedLoad').style.display = 'none';
-        document.getElementById('announcementsPage').appendChild(announcementsEmbed);
-    });
-    // insert achievements
-    $.getJSON('./client/assets/AchievementsList.json', function(data) {
-        ACHIEVEMENTS = data.data;
-        for (var i in ACHIEVEMENTS) {
-            var localachievement = ACHIEVEMENTS[i];
-            var achievement = document.createElement('div');
-            var achievement2 = document.createElement('div');
-            achievement.id = localachievement.id;
-            achievement2.id = 'ig' + localachievement.id;
-            achievement.className = 'achievementBlock';
-            achievement2.className = 'achievementBlock';
-            achievement.style.backgroundColor = 'lightgrey';
-            achievement2.style.backgroundColor = 'lightgrey';
-            if (localachievement.hidden) {
-                achievement.style.display = 'none';
+    document.getElementById('loadingBarOuter').style.display = 'block';
+    var isloaded = false;
+    var waitforload = setInterval(function() {
+        var percent = Math.floor((resourcesloaded/10)*100);
+        document.getElementById('loadingBarText').innerText = resourcesloaded + '/10 (' + percent + '%)';
+        document.getElementById('loadingBarInner').style.width = percent + '%';
+        if (percent == 100 && !isloaded && documentloaded) {
+            isloaded = true;
+            try {
+                new OffscreenCanvas(1, 1);
+            } catch (err) {
+                window.alert('This game may run slower on your browser. Please switch to a supported browser.\nChrome 69+\nEdge 79+\nOpera 56+');
+                console.log('This game may run slower on your browser. Please switch to a supported browser.\nChrome 69+\nEdge 79+\nOpera 56+');
             }
-            if (localachievement.hidden) {
-                achievement2.style.display = 'none';
-            }
-            achievement.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
-            achievement2.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
-            document.getElementById('achievementsACHIEVEMENTS').appendChild(achievement);
-            document.getElementById('ingameAchievementsACHIEVEMENTS').appendChild(achievement2);
+            document.getElementById('loadingnote').style.display = 'none';
+            setTimeout(function() {
+                // set up page and canvas
+                document.querySelectorAll("input").forEach(function(item){if (item.type != 'text' && item.type != 'password') {item.addEventListener('focus', function(){this.blur();});}});
+                document.querySelectorAll("button").forEach(function(item){item.addEventListener('focus', function(){this.blur();});});
+                document.getElementById('viewport').width = window.innerWidth;
+                document.getElementById('viewport').height = window.innerHeight;
+                gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
+                gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
+                game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
+                document.addEventListener('contextmenu', e => e.preventDefault());
+                document.getElementById('scoreContainer').addEventListener('contextmenu', e => e.preventDefault());
+                game.lineWidth = 4;
+                game.imageSmoothingEnabled = false;
+                game.webkitImageSmoothingEnabled = false;
+                game.mozImageSmoothingEnabled = false;
+                game.globalAlpha = 1;
+                resetFPS();
+                document.getElementById('fade').width = window.innerWidth;
+                document.getElementById('fade').width = window.innerHeight;
+                document.getElementById('ready').style.left = ((window.innerWidth/2)-100) + 'px';
+                document.getElementById('scoreTable').style.width = ((window.innerWidth*0.75)-12) + 'px';
+                // load cookies
+                try {
+                    cookiesettings = JSON.parse(document.cookie.replace('settings=', ''));
+                    settings.globalvolume = cookiesettings.globalvolume;
+                    settings.musicvolume = cookiesettings.musicvolume;
+                    settings.sfxvolume = cookiesettings.sfxvolume;
+                    settings.fullscreen = cookiesettings.fullscreen;
+                    settings.fps = cookiesettings.fps;
+                    settings.renderQuality = cookiesettings.renderQuality;
+                    document.getElementById('globalVolume').value = settings.globalvolume*100;
+                    document.getElementById('ingameglobalVolume').value = settings.globalvolume*100;
+                    document.getElementById('musicVolume').value = settings.musicvolume*100;
+                    document.getElementById('ingamemusicVolume').value = settings.musicvolume*100;
+                    document.getElementById('sfxVolume').value = settings.sfxvolume*100;
+                    document.getElementById('ingamesfxVolume').value = settings.sfxvolume*100;
+                    document.getElementById('fpsSelect').value = settings.fps;
+                    document.getElementById('ingamefpsSelect').value = settings.fps;
+                    document.getElementById('renderQuality').value = settings.renderQuality*100;
+                    document.getElementById('ingamerenderQuality').value = settings.renderQuality*100;
+                    updateSettings();
+                } catch {}
+                // insert announcements
+                document.getElementById('announcementsPage').width = (window.innerWidth-64);
+                var announcementsEmbed = document.createElement('div');
+                announcementsEmbed.id = 'announcementsEmbed';
+                $.get('https://raw.githubusercontent.com/definitely-nobody-is-here/BBmulti_Announcements/master/Announcements.html', function(file) {
+                    announcementsEmbed.innerHTML = file;
+                    document.getElementById('announcements-failedLoadimg').style.display = 'none';
+                    document.getElementById('announcements-failedLoad').style.display = 'none';
+                    document.getElementById('announcementsPage').appendChild(announcementsEmbed);
+                });
+                // insert achievements
+                $.getJSON('./client/assets/AchievementsList.json', function(data) {
+                    ACHIEVEMENTS = data.data;
+                    for (var i in ACHIEVEMENTS) {
+                        var localachievement = ACHIEVEMENTS[i];
+                        var achievement = document.createElement('div');
+                        var achievement2 = document.createElement('div');
+                        achievement.id = localachievement.id;
+                        achievement2.id = 'ig' + localachievement.id;
+                        achievement.className = 'achievementBlock';
+                        achievement2.className = 'achievementBlock';
+                        achievement.style.backgroundColor = 'lightgrey';
+                        achievement2.style.backgroundColor = 'lightgrey';
+                        if (localachievement.hidden) {
+                            achievement.style.display = 'none';
+                        }
+                        if (localachievement.hidden) {
+                            achievement2.style.display = 'none';
+                        }
+                        achievement.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
+                        achievement2.innerHTML = '<p class="achievementBlock-head">' + localachievement.name + '</p><p>' + localachievement.description + '</p>';
+                        document.getElementById('achievementsACHIEVEMENTS').appendChild(achievement);
+                        document.getElementById('ingameAchievementsACHIEVEMENTS').appendChild(achievement2);
+                    }
+                });
+                // show page
+                document.getElementById('loginContainer').style.display = 'inline-block';
+                document.getElementById('mainmenuContainer').style.display = 'none';
+                document.getElementById('disconnectedContainer').style.display = 'none';
+                document.getElementById('menuContainer').style.display = 'block';
+                // start music
+                music.volume = settings.musicvolume;
+                music.src = '/client/sound/Menu.mp3';
+                // place focus on username
+                document.getElementById('usrname').focus();
+                fadeOut();
+                document.getElementById('loadingBarOuter').style.display = 'none';
+                load.total = 0;
+                load.progress = 0;
+                clearInterval(waitforload);
+            }, 100);
         }
-    });
+    }, 10);
 }
 
 // game init
@@ -276,11 +292,8 @@ socket.on('timeout', function() {
 });
 
 // settings functions
-function updateSettings() {
+async function updateSettings() {
     music.volume = (settings.globalvolume*settings.musicvolume);
-    for (var i in sfx) {
-        sfx[i].volume = (settings.globalvolume*settings.sfxvolume);
-    }
     document.getElementById('GV-label').innerHTML = (Math.floor(settings.globalvolume*100) + '%');
     document.getElementById('MV-label').innerHTML = (Math.floor(settings.musicvolume*100) + '%');
     document.getElementById('EV-label').innerHTML = (Math.floor(settings.sfxvolume*100) + '%');
@@ -309,7 +322,7 @@ function updateSettings() {
 }
 
 // achievements functions
-function updateAchievements() {
+async function updateAchievements() {
     document.getElementById('aSTATS_kills').innerText = TRACKED_DATA.kills;
     document.getElementById('aSTATS_deaths').innerText = TRACKED_DATA.deaths;
     document.getElementById('aSTATS_wins').innerText = TRACKED_DATA.wins;
@@ -334,7 +347,7 @@ function updateAchievements() {
             achievement2.style.animation = 'rainbow-pulse 10s infinite';
             achievement.style.animationTimingFunction = 'ease-in-out';
             achievement2.style.animationTimingFunction = 'ease-in-out';
-        } else if (localachievement.color == 'pulsing-red' && localachievement.aqquired) {
+        } else if (localachievement.color == 'red-pulse' && localachievement.aqquired) {
             achievement.style.animation = 'red-pulse 2s infinite';
             achievement2.style.animation = 'red-pulse 2s infinite';
         } else if (localachievement.aqquired) {
@@ -352,6 +365,9 @@ function updateAchievements() {
 }
 
 // sound
+music.oncanplay = function() {
+    music.play();
+}
 music.addEventListener('ended', function() {
     if (!ingame) {
         music.play();
@@ -361,9 +377,18 @@ music.addEventListener('ended', function() {
             currentmusic = 1;
         }
         music.src = ('/client/sound/Ingame_' + currentmusic + '.mp3');
-        music.play();
     }
 });
+function playsound(src) {
+    var sound = new Audio(src);
+    sound.volume = (settings.globalvolume*settings.sfxvolume);
+    sound.oncanplay = function() {
+        sound.play();
+    }
+    sound.addEventListener('ended', function() {
+        sound.remove();
+    });
+}
 
 // screen resizing
 window.onresize = function() {
@@ -371,6 +396,9 @@ window.onresize = function() {
     document.getElementById('viewport').height = window.innerHeight;
     document.getElementById('viewport').width = window.innerWidth;
     document.getElementById('viewport').height = window.innerHeight;
+    if (window.devicePixelRatio) {
+        dpr = window.devicePixelRatio;
+    }
     gameCanvas.width = (window.innerWidth*settings.renderQuality*dpr);
     gameCanvas.height = (window.innerHeight*settings.renderQuality*dpr);
     game.scale((settings.renderQuality*dpr), (settings.renderQuality*dpr));
@@ -382,7 +410,6 @@ window.onresize = function() {
     game.globalAlpha = 1;
     document.getElementById('fade').width = window.innerWidth;
     document.getElementById('fade').width = window.innerHeight;
-    document.getElementById('loading').style.left = (((window.innerWidth/2)-64) + 'px');
     document.getElementById('ready').style.left = (((window.innerWidth/2)-100) + 'px');
     document.getElementById('scoreTable').style.width = ((window.innerWidth*0.75)-12) + 'px';
     camera.width = window.innerWidth/2;
@@ -405,6 +432,11 @@ function toggleFullscreen() {
         document.getElementById('ingamefullscreen').style.backgroundColor = 'lime';
         settings.fullscreen = true;
     }
+}
+
+// very important sleep function
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // debug

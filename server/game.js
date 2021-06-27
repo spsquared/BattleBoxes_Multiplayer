@@ -32,14 +32,14 @@ insertChat = function(text, textcolor) {
 }
 log = function(text) {
     var time = new Date();
-    var minute = '' + time.getUTCMinutes();
+    var minute = '' + time.getMinutes();
     if(minute.length === 1){
         minute = '' + 0 + minute;
     }
     if(minute === '0'){
         minute = '00';
     }
-    console.log('[' + time.getUTCHours() + ':' + minute + '] ' + text);
+    console.log('[' + time.getHours() + ':' + minute + '] ' + text);
 }
 error = function(text) {
     var time = new Date();
