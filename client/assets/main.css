@@ -621,10 +621,8 @@ body:-moz-full-screen {
     border: 2px black solid;
     background-color: whitesmoke;
     text-align: left;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
     transition: height 0.5s ease-in-out;
+    overflow-y: hidden;
 }
 #adminConsole-top {
     padding-left: 8px;
@@ -645,10 +643,9 @@ body:-moz-full-screen {
 }
 #adminConsole-log {
     margin-left: 8px;
-    margin-right: 8px;
+    overflow-wrap: break-word;
     overflow-y: scroll;
-    max-height: 250px;
-    cursor: text;
+    max-height: 244px;
 }
 #adminConsole-input {
     position: absolute;

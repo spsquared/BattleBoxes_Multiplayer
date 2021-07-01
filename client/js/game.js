@@ -214,7 +214,9 @@ socket.on('ping', function() {
 // banner init
 function Banner(topText, bottomText, color, time) {
     var self = {
+        id: Math.random(),
         temporary: (topText.indexOf('Buff:') != -1 || topText.indexOf('Secondary:') != -1),
+        secondary: topText.indexOf('Secondary:') != -1,
         HTML: document.createElement('div')
     };
     self.HTML.className = 'banner ui-darkText';
@@ -229,19 +231,19 @@ function Banner(topText, bottomText, color, time) {
         self.HTML.style.backgroundColor = color;
     }
     document.getElementById('bannerContainer').appendChild(self.HTML);
-    // self.HTML.style.transition = 'transform 1s ease-out';
-    // self.HTML.style.transform = 'translateX(-400px)';
+    self.HTML.style.transform = 'translateX(-400px)';
     setTimeout(function() {
         try {
             self.HTML.style.transitionTimingFunction = 'ease-in';
             self.HTML.style.transform = 'translateX(400px)';
             setTimeout(function() {
                 self.HTML.remove();
+                delete BANNERS[self.id];
             }, 1250);
         } catch (err) {}
     }, (time*1000)+1000);
 
-    BANNERS.push(self);
+    BANNERS[self.id] = self;
     return self;
 }
 
@@ -401,6 +403,14 @@ function ready() {
 socket.on('game-joined', async function() {
     ingame = true;
     document.getElementById('chat').innerHTML = '';
+    CURRENT_MAP = 0;
+    for (var i in BULLET_LIST) {
+        delete BULLET_LIST[i];
+    }
+    for (var i in BANNERS) {
+        BANNERS[i].HTML.remove();
+        delete BANNERS[i];
+    }
     // load
     var isloaded = false;
     var readybuttonalreadyloaded = false;
@@ -437,6 +447,7 @@ socket.on('game-joined', async function() {
                 music.play();
                 fadeOut();
                 document.getElementById('loadingBarOuter').style.display = 'none';
+                load.total = 0;
                 clearInterval(waitforload);
             }, 500);
         }
@@ -722,11 +733,10 @@ socket.on('roundstart', function(scores) {
         countdowntext.text = '3';
         var count3 = setInterval(function() {
             opacity -= 0.02;
-            size += 1;
+            size += 4;
             countdowntext.color = 'rgba(255, 0, 0, ' + opacity + ')';
             countdowntext.size = size;
             if (opacity < 0.005) {
-                //countdowntext.text = '';
                 clearInterval(count3);
             }
         }, 20);
@@ -736,11 +746,10 @@ socket.on('roundstart', function(scores) {
             countdowntext.text = '2';
             var count2 = setInterval(function() {
                 opacity -= 0.02;
-                size += 1;
+                size += 4;
                 countdowntext.color = 'rgba(255, 0, 0, ' + opacity + ')';
                 countdowntext.size = size;
                 if (opacity < 0.005) {
-                    countdowntext.text = '';
                     clearInterval(count2);
                 }
             }, 20);
@@ -751,11 +760,10 @@ socket.on('roundstart', function(scores) {
             countdowntext.text = '1';
             var count1 = setInterval(function() {
                 opacity -= 0.02;
-                size += 1;
+                size += 4;
                 countdowntext.color = 'rgba(255, 255, 0, ' + opacity + ')';
                 countdowntext.size = size;
                 if (opacity < 0.005) {
-                    countdowntext.text = '';
                     clearInterval(count1);
                 }
             }, 20);
@@ -766,7 +774,7 @@ socket.on('roundstart', function(scores) {
             countdowntext.text = 'GO';
             var countgo = setInterval(function() {
                 opacity -= 0.02;
-                size += 1;
+                size += 4;
                 countdowntext.color = 'rgba(0, 150, 0, ' + opacity + ')';
                 countdowntext.size = size;
                 if (opacity < 0.005) {
@@ -900,12 +908,30 @@ socket.on('effect', async function(effect) {
             Banner('Buff: SUPER BULLETS', 'x2 bullet damage', '#FFFFAA', 1000000);
             break;
         case 'noclipbullet':
+            for (var i in BANNERS) {
+                if (BANNERS[i].secondary) {
+                    BANNERS[i].HTML.remove();
+                    delete BANNERS[i];
+                }
+            }
             Banner('Secondary: LASER BULLETS', 'Bullets can go through walls', '#FF0000', 1000000);
             break;
         case 'pathfindbullets':
+            for (var i in BANNERS) {
+                if (BANNERS[i].secondary) {
+                    BANNERS[i].HTML.remove();
+                    delete BANNERS[i];
+                }
+            }
             Banner('Secondary: SMART BULLETS', 'Path finding smart bullets', '#00AAFF', 1000000);
             break;
         case 'yeet':
+            for (var i in BANNERS) {
+                if (BANNERS[i].secondary) {
+                    BANNERS[i].HTML.remove();
+                    delete BANNERS[i];
+                }
+            }
             Banner('Secondary: YEET', 'Yeets players', '#00AA00', 1000000);
             break;
         default:

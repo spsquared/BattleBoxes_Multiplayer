@@ -26,7 +26,7 @@ insertChat = function(text, textcolor) {
     } else {
         color = textcolor;
     }
-    console.log('[' + time.getUTCHours() + ':' + minute + '] ' + text);
+    console.log('\x1b[36m%s\x1b[0m', '[' + time.getUTCHours() + ':' + minute + '] ' + text);
     var msg = '[' + time.getUTCHours() + ':' + minute + '] ' + text;
     io.emit('insertChat', {msg:msg, color:color});
 }
@@ -41,6 +41,17 @@ log = function(text) {
     }
     console.log('[' + time.getHours() + ':' + minute + '] ' + text);
 }
+logColor = function(text, colorstring) {
+    var time = new Date();
+    var minute = '' + time.getMinutes();
+    if(minute.length === 1){
+        minute = '' + 0 + minute;
+    }
+    if(minute === '0'){
+        minute = '00';
+    }
+    console.log(colorstring + '%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
+}
 error = function(text) {
     var time = new Date();
     var minute = '' + time.getMinutes();
@@ -50,7 +61,7 @@ error = function(text) {
     if(minute === '0'){
         minute = '00';
     }
-    console.error('[' + time.getHours() + ':' + minute + '] ' + text);
+    console.error('\x1b[31m%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
 }
 
 // game functions
@@ -96,6 +107,7 @@ endGame = function(id) {
     }
     round.inProgress = false;
     gameinProgress = false;
+    round.id = Math.random();
     CURRENT_MAP = 0;
 }
 // round functions

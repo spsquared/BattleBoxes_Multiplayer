@@ -509,13 +509,11 @@ function adminConsole() {
         consoleHide.onmouseup = function() {
             consolewindow.hidden = !consolewindow.hidden;
             if (consolewindow.hidden) {
-                consoleLog.style.display = 'none';
                 consoleInput.style.display = 'none';
                 consoleSVG.innerHTML = '<line x1="2" y1="6" x2="14" y2="6" stroke="black" strokeWidth="4"/><line x1="8" y1="0" x2="8" y2="12" stroke="black" strokeWidth="4"/>';
                 adminConsole.style.height = '30px';
                 consolewindow.height = 30;
             } else {
-                consoleLog.style.display = '';
                 consoleInput.style.display = '';
                 consoleSVG.innerHTML = '<line x1="2" y1="6" x2="14" y2="6" stroke="black" strokeWidth="4"/>';
                 adminConsole.style.height = '300px';

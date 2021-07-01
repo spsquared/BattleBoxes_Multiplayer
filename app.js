@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.4.0 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses \n-----------------------------------------------------------------------');
+console.info('\x1b[33m%s\x1b[0m', '-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.4.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses\n-----------------------------------------------------------------------');
 // start server
-console.log('\nThis server is running BattleBoxes Server v-1.4.0\n');
+console.log('\x1b[32m%s\x1b[0m', '\nThis server is running BattleBoxes Server v-1.4.1\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -22,6 +22,7 @@ const spamcheck = require('spam-detection');
 
 require('./server/entity.js');
 require('./server/game.js');
+round.id = Math.random();
 MAPS = [];
 CURRENT_MAP = 0;
 OPS = require('./server/ops.json').ops;
@@ -61,7 +62,7 @@ getMap = function(name) {
 }
 
 // initialize
-log('Starting server...');
+logColor('Starting server...', '\x1b[32m');
 getMap('./server/Lobby.json');
 getMap('./server/Map1.json');
 getMap('./server/Map2.json');
@@ -81,14 +82,14 @@ try {
     error(err);
     error('STOP.\n');
     prompt.close();
-    log('Server stopped.');
+    error('Server stopped.');
     process.abort();
 }
 if (process.env.PORT) {
     port = process.env.PORT;
     server.listen(port);
-    log('Server started, listening to port ' + port + '.');
-    started = true;
+    logColor('Server started, listening to port ' + port + '.', '\x1b[32m');
+    console.log('-----------------------------------------------------------------------\n');
 } else {
     fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) stop(err);
@@ -97,21 +98,21 @@ if (process.env.PORT) {
             reader.nextLine(function(err, line) {
                 if (err) stop(err);
                 if (line >=100) {
-                    console.warn('\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
+                    console.warn('\x1b[31m%s\x1b[0m', '\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
                     database.end();
                     prompt.close();
                     process.abort();
                 }
                 ports = parseInt(line)+1;
-                console.log('There are ' + ports + ' servers running on this host.');
+                logColor('There are ' + ports + ' servers running on this host.', '\x1b[32m');
                 var portsstring = ports.toString();
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
                 var i;
                 port = 1000
                 for (i = 1; i < ports; i++) {port += 100;}
                 server.listen(port);
-                log('Server started, listening to port ' + port + '.');
-                started = true;
+                logColor('Server started, listening to port ' + port + '.', '\x1b[32m');
+                console.log('-----------------------------------------------------------------------\n');
             });
         });
     });
@@ -147,8 +148,8 @@ async function updateCredentials(username, password) {
 }
 
 // Enable TEST_BOT by removing the double slashes (//)
-TEST_BOT = new Bot(true);
-TEST_BOT.respawn(60, 60);
+// TEST_BOT = new Bot(true);
+// TEST_BOT.respawn(60, 60);
 
 // client connection
 io = require('socket.io') (server, {});
@@ -322,7 +323,7 @@ io.on('connection', function(socket) {
         }
     });
     socket.on('signup', async function(cred) {
-        if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.indexOf(' ') > 0 || cred.psword.indexOf(' ') > 0) {
+        if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.indexOf(' ') > 0 || cred.psword.indexOf(' ') > 0 || spamcheck.detect(cred.usrname) == 'spam') {
             socket.emit('disconnected');
         } else {
             var fetchedcreds = await getCredentials(cred.usrname);
@@ -459,10 +460,12 @@ io.on('connection', function(socket) {
         insertChat('"' + player.name + '" left the game.', 'server');
     });
     socket.on('keyPress', function(key) {
-        if (key.key == 'W') player.Wpressed = key.state;
-        if (key.key == 'S') player.Spressed = key.state;
-        if (key.key == 'A') player.Apressed = key.state;
-        if (key.key == 'D') player.Dpressed = key.state;
+        if (player.alive) {
+            if (key.key == 'W') player.Wpressed = key.state;
+            if (key.key == 'S') player.Spressed = key.state;
+            if (key.key == 'A') player.Apressed = key.state;
+            if (key.key == 'D') player.Dpressed = key.state;
+        }
     });
     socket.on('ready', function() {
         player.ready = true;
@@ -533,8 +536,12 @@ io.on('connection', function(socket) {
     socket.on('consoleInput', async function(input) {
         log(player.name + ': ' + input);
         if (SERVER.findOP(player.name)) {
+            var convertedInput = input;
+            while (convertedInput.indexOf('self') != -1) {
+                convertedInput = convertedInput.replace('self', 'SERVER.findUser("' + player.name + '")');
+            }
             try {
-                var command = Function('return (' + input + ')')();
+                var command = Function('return (' + convertedInput + ')')();
                 var msg = await command;
                 if (msg == null) {
                     msg = 'Successfully executed command';
@@ -553,6 +560,7 @@ io.on('connection', function(socket) {
     });
     socket.on('ping', async function() {socket.emit('ping');});
 });
+
 // server-side tps
 setInterval(function() {
     // advance game tick
@@ -633,22 +641,22 @@ function queryStop(firstrun) {
     if (firstrun == true) {
         prompt.question('Are you sure you want to stop the server? y/n\n> ', function(answer) {
             if (answer == 'y') {
-                stop(null);
+                stop();
             } else if (answer == 'n') {
-                console.log('Server stop cancelled.\n> ');
+                console.log('Server stop cancelled.');
             } else {
-                console.warn(answer + ' is not a valid answer.');
+                console.log(answer + ' is not a valid answer.');
                 queryStop(false);
             }
         });
     } else {
         prompt.question('Please enter y or n.\n> ', function(answer) {
             if (answer == 'y') {
-                stop(null);
+                stop();
             } else if (answer == 'n') {
-                console.log('Server stop cancelled.\n> ');
+                console.log('Server stop cancelled.');
             } else {
-                console.warn(answer + ' is not a valid answer.\n> ');
+                console.log(answer + ' is not a valid answer.');
                 queryStop(false);
             }
         });
@@ -661,10 +669,10 @@ function stop(stoperr) {
         error(stoperr);
         error('STOP.\n');
     }
-    log('Closing server...');
+    logColor('Closing server...', '\x1b[32m');
     if (gameinProgress) endGame();
     io.emit('disconnected');
-    log('Saving user data...');
+    logColor('Saving user data...', '\x1b[32m');
     for (var i in PLAYER_LIST) {
         try {
             database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData]);
@@ -672,7 +680,7 @@ function stop(stoperr) {
             error(err);
         }
     }
-    log('Stopping server...');
+    logColor('Stopping server...', '\x1b[32m');
     fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) console.error(err);
         lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -684,10 +692,10 @@ function stop(stoperr) {
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
                 database.end();
                 prompt.close();
-                log('Server stopped.');
+                logColor('Server stopped.', '\x1b[32m');
                 if (stoperr) {
-                    console.log('\nIf this issue persists, please submit a bug report on GitHub with a screenshot of this log.');
-                    console.log('\nPress ENTER to exit.');
+                    console.log('\x1b[31m%s\x1b[0m', '\nIf this issue persists, please submit a bug report on GitHub with a screenshot of this log.');
+                    console.log('\x1b[31m%s\x1b[0m', '\nPress ENTER to exit.');
                     const stopprompt = readline.createInterface({input: process.stdin, output: process.stdout});
                     stopprompt.on('line', function(input) {
                         process.abort();
@@ -896,6 +904,7 @@ debug = function() {
             return false;
         },
         TPS: function() {
+            log(TPS);
             return TPS;
         }
     }

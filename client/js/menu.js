@@ -205,7 +205,6 @@ function quittoMenu() {
         ingame = false;
         inmenu = false;
         readyforstart = false;
-        load.total = 0;
         gameid = Math.random();
         document.getElementById('ready').style.opacity = 1;
         document.getElementById('ready').style.display = 'inline-block';

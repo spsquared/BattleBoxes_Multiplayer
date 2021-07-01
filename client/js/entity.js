@@ -103,8 +103,10 @@ Bullet = function(id, x, y, parent, color) {
 }
 Bullet.update = function(bullets) {
     for (var i in bullets) {
-        var localbullet = BULLET_LIST[bullets[i].id];
-        localbullet.update(bullets[i].x, bullets[i].y);
+        try {
+            var localbullet = BULLET_LIST[bullets[i].id];
+            localbullet.update(bullets[i].x, bullets[i].y);
+        } catch (err) {}
     }
 }
 Bullet.draw = function() {
