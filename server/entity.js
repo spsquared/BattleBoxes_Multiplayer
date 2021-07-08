@@ -1,6 +1,5 @@
 // Copyright (C) 2021 Radioactive64
 
-const Pathfind = require('pathfinding');
 PLAYER_LIST = [];
 BOT_LIST = [];
 BULLET_LIST = [];
@@ -716,6 +715,7 @@ Bot = function(targetOtherBots) {
         color: self.color
     };
     io.emit('newplayer', pack);
+    /*
     try {
         self.pathfinder = new Pathfind.AStarFinder({
             allowDiagonal: true,
@@ -736,6 +736,13 @@ Bot = function(targetOtherBots) {
         //     self.grid.setWalkableAt(-1, i, false);
         // }
     } catch (err) {
+        error(err);
+    }
+    */
+    try {
+        self.pathfinder = new PathFind();
+        self.grid = Object.create(MAPS[CURRENT_MAP]);
+    } catch(err) {
         error(err);
     }
     self.attackBots = targetOtherBots;
@@ -861,7 +868,8 @@ Bot = function(targetOtherBots) {
         }
         if (closestplayer != null) {
             if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 960) {
-                // /*
+                // Old pathfinding
+                /*
                 try {
                     var gridbackup = self.grid.clone();
                     var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
@@ -931,7 +939,7 @@ Bot = function(targetOtherBots) {
                 } catch (err) {
                     // console.error(err);
                 }
-                // */
+                */
             }
             if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 20) {
                 self.Apressed = false;

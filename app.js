@@ -17,9 +17,9 @@ const bcrypt = require('bcrypt');
 const salt = 5;
 const { Client } = require('pg');
 const database = new Client({connectionString: cryptr.decrypt('4dd0a6ee3fedd098427c1ee988bf8bcbc7cb401b422829d0d33545b567424da8aa791317d1edf3ea3b9edf0838a10bdee8845e75da2f29c4f84d13e202e7e29f41167457f4bd0c99c058ffec43c25bd1acbc4dd4e63ccc75350c6886fc6f5bbdcb13f403462f08b465ccd384dfb7963bf46005c5461bb9ab0cf99f71773ee63b3a2d28ac359674cfab687e5b16029fee1ceaacaa022fd6a45e349bb417b7e3bbfe029415fd230e06bad2d04a80a9896f83073a87756f5265a2f5159377c40dedd67e7409ef2d249efde5a55e85fab545659db325f5f26ca16226ad41d442d84d31e04abef22c6af117a8dc041d283cd1b77ac0f0bbb833'), ssl:{rejectUnauthorized:false}});
-const Pathfind = require('pathfinding');
 const spamcheck = require('spam-detection');
 
+require('./server/pathfind.js');
 require('./server/entity.js');
 require('./server/game.js');
 round.id = Math.random();
@@ -33,9 +33,8 @@ app.use('/client',express.static(__dirname + '/client'));
 // init functions
 getMap = function(name) {
     var data1 = require('./' + name);
-    var data2 = [];
+    var data2 = [[]];
     data2.name = data1.name;
-    data2[0] = [];
     data2.width = data1.width;
     data2.height = data1.height;
     var j = 0;

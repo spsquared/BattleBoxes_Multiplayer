@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer#readme",
   "dependencies": {
-    "@tensorflow/tfjs": "^3.7.0",
     "array-flatten": "^1.1.1",
     "bcrypt": "^5.0.1",
     "cryptr": "^6.0.2",
