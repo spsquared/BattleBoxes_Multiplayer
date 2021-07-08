@@ -9,53 +9,6 @@
     font-style: normal;
 }
 
-/* stop image smoothing and other */
-body {
-    image-rendering: optimizeSpeed;
-    image-rendering: optimizeContrast;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -o-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    /* image-rendering: pixelated; */
-    -ms-interpolation-mode: nearest-neighbor;
-    background-color: white;
-}
-img {
-    image-rendering: optimizeSpeed;
-    image-rendering: optimizeContrast;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -o-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    /* image-rendering: pixelated; */
-    -ms-interpolation-mode: nearest-neighbor;
-}
-input {
-    image-rendering: optimizeSpeed;
-    image-rendering: optimizeContrast;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -o-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    /* image-rendering: pixelated; */
-    -ms-interpolation-mode: nearest-neighbor;
-}
-
-/* fullscreen */
-body:fullscreen {
-    background-color: white;
-}
-body:-webkit-full-screen {
-    background-color: white;
-}
-body:-moz-full-screen {
-    background-color: white;
-}
-
 /* ui */
 .ui-darkText {
     font-family: 'Pixel';
@@ -157,6 +110,7 @@ body:-moz-full-screen {
     left: 0px;
     width: 100%;
     height: 100%;
+    background-color: white;
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
@@ -565,6 +519,7 @@ body:-moz-full-screen {
     bottom: 0px;
     left: 0px;
     right: 0px;
+    background-color: white;
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;

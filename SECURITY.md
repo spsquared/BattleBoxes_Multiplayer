@@ -6,6 +6,7 @@ Supported versions are stable and up-to-date versions which will work with the d
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.4.2   | :white_check_mark: |
 | 1.4.1   | :white_check_mark: |
 | 1.4.0   | :x:                |
 | 1.3.2   | :x:                |

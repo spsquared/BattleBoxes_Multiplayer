@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('\x1b[33m%s\x1b[0m', '-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.4.1 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses\n-----------------------------------------------------------------------');
+console.info('\x1b[33m%s\x1b[0m', '-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.4.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses\n-----------------------------------------------------------------------');
 // start server
-console.log('\x1b[32m%s\x1b[0m', '\nThis server is running BattleBoxes Server v-1.4.1\n');
+console.log('\x1b[32m%s\x1b[0m', '\n  This server is running BattleBoxes Server v-1.4.2\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -89,7 +89,7 @@ if (process.env.PORT) {
     port = process.env.PORT;
     server.listen(port);
     logColor('Server started, listening to port ' + port + '.', '\x1b[32m');
-    console.log('-----------------------------------------------------------------------\n');
+    console.log('\n-----------------------------------------------------------------------\n');
 } else {
     fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) stop(err);
@@ -112,7 +112,7 @@ if (process.env.PORT) {
                 for (i = 1; i < ports; i++) {port += 100;}
                 server.listen(port);
                 logColor('Server started, listening to port ' + port + '.', '\x1b[32m');
-                console.log('-----------------------------------------------------------------------\n');
+                console.log('\n-----------------------------------------------------------------------\n');
             });
         });
     });
@@ -150,6 +150,21 @@ async function updateCredentials(username, password) {
 // Enable TEST_BOT by removing the double slashes (//)
 // TEST_BOT = new Bot(true);
 // TEST_BOT.respawn(60, 60);
+bottest = function() {
+    var i = 0;
+    var botcreate = setInterval(function() {
+        var localbot = new Bot(true)
+        localbot.respawn(60,60)
+        i++;
+        if (i > 14) {
+            clearInterval(botcreate)
+        }
+    }, 500)
+    setInterval(function() {
+        SERVER.findUser('Sampleprovider(sp)').invincible = true
+        SERVER.findUser('Sampleprovider(sp)').noclip = true
+    }, 1000)
+}
 
 // client connection
 io = require('socket.io') (server, {});
@@ -185,7 +200,7 @@ io.on('connection', function(socket) {
     });
     //login handlers
     socket.on('login', async function(cred) {
-        if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.indexOf(' ') > 0 || cred.psword.indexOf(' ') > 0) {
+        if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.includes(' ') || cred.psword.includes(' ') > 0) {
             socket.emit('disconnected');
         } else {
             var fetchedcreds = await getCredentials(cred.usrname);
@@ -323,7 +338,7 @@ io.on('connection', function(socket) {
         }
     });
     socket.on('signup', async function(cred) {
-        if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.indexOf(' ') > 0 || cred.psword.indexOf(' ') > 0 || spamcheck.detect(cred.usrname) == 'spam') {
+        if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.includes(' ') || cred.psword.includes(' ') || spamcheck.detect(cred.usrname) == 'spam') {
             socket.emit('disconnected');
         } else {
             var fetchedcreds = await getCredentials(cred.usrname);
@@ -537,13 +552,13 @@ io.on('connection', function(socket) {
         log(player.name + ': ' + input);
         if (SERVER.findOP(player.name)) {
             var convertedInput = input;
-            while (convertedInput.indexOf('self') != -1) {
+            while (convertedInput.includes('self')) {
                 convertedInput = convertedInput.replace('self', 'SERVER.findUser("' + player.name + '")');
             }
             try {
                 var command = Function('return (' + convertedInput + ')')();
                 var msg = await command;
-                if (msg == null) {
+                if (msg == undefined) {
                     msg = 'Successfully executed command';
                 }
                 socket.emit('consoleLog', {color:'green', msg:msg});
@@ -580,6 +595,9 @@ setInterval(function() {
         if (PLAYER_LIST[i].ready) {
             k++;
         }
+    }
+    for (var i in BOT_LIST) {
+        j++;
     }
     if (k > (j-1) && k > 1) {
         startGame();
@@ -881,6 +899,9 @@ debug = function() {
                 log('Yeeted all players!');
                 return 'Yeeted all players!';
             }
+        },
+        toggleDebugLog: function() {
+            
         },
         findUser: function(username) {
             for (var i in PLAYER_LIST) {

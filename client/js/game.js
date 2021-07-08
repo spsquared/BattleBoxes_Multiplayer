@@ -70,7 +70,6 @@ socket.on('update', function(pkg) {
         updateCamera();
         tpsCounter++;
         lastDate = Date.now();
-        socket.emit('ping');
         connected = 0;
     }
 });
@@ -215,8 +214,8 @@ socket.on('ping', function() {
 function Banner(topText, bottomText, color, time) {
     var self = {
         id: Math.random(),
-        temporary: (topText.indexOf('Buff:') != -1 || topText.indexOf('Secondary:') != -1),
-        secondary: topText.indexOf('Secondary:') != -1,
+        temporary: (topText.includes('Buff:') || topText.includes('Secondary:')),
+        secondary: topText.includes('Secondary:'),
         HTML: document.createElement('div')
     };
     self.HTML.className = 'banner ui-darkText';
@@ -680,26 +679,28 @@ socket.on('winner', function(id) {
 });
 socket.on('gamecut', function() {
     if (ingame) {
-        document.getElementById('menuContainer').style.display = 'block';
-        document.getElementById('gameContainer').style.display = 'none';
-        music.src = ('/client/sound/Menu.mp3');
-        music.play();
-        ingame = false;
-        inmenu = false;
-        readyforstart = false;
-        gameid = Math.random();
-        document.getElementById('ready').style.opacity = 1;
-        document.getElementById('ready').style.display = 'inline-block';
-        document.getElementById('scoreContainer').style.display = 'none';
-        if (consoleAccess) {
-            document.getElementById('adminConsole').style.display = 'none';
-        }
-        document.getElementById('ingameMenu').style.display = 'none';
-        document.getElementById('credits').style.display = 'none';
-        document.getElementById('githublink').style.display = 'none';
-        ingameBack();
-        inmenu = false;
-        fadeOut();
+        fadeIn();
+        setTimeout(function() {
+            document.getElementById('menuContainer').style.display = 'block';
+            document.getElementById('gameContainer').style.display = 'none';
+            music.src = ('/client/sound/Menu.mp3');
+            ingame = false;
+            inmenu = false;
+            readyforstart = false;
+            gameid = Math.random();
+            document.getElementById('ready').style.opacity = 1;
+            document.getElementById('ready').style.display = 'inline-block';
+            document.getElementById('scoreContainer').style.display = 'none';
+            if (consoleAccess) {
+                document.getElementById('adminConsole').style.display = 'none';
+            }
+            document.getElementById('ingameMenu').style.display = 'none';
+            document.getElementById('credits').style.display = 'none';
+            document.getElementById('githublink').style.display = 'none';
+            ingameBack();
+            inmenu = false;
+            fadeOut();
+        }, 500);
     }
 });
 // round handlers
@@ -943,7 +944,7 @@ socket.on('yeet', async function() {
     Banner('YEET!', 'You just got yeeted!', '#FFFFFF', 5);
 });
 
-// fps & tps counter
+// fps & tps & ping counter
 setInterval(async function() {
     tps = tpsCounter;
     tpsCounter = 0;
@@ -952,6 +953,7 @@ setInterval(async function() {
     ping = pingCounter;
     fps2 = fpsCounter2;
     fpsCounter2 = 0;
+    socket.emit('ping', Math.random());
 }, 1000);
 function fpsLoop() {
     window.requestAnimationFrame(function() {

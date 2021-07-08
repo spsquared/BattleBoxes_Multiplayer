@@ -418,16 +418,14 @@ window.onresize = function() {
 // fullscreen
 function toggleFullscreen() {
     if (settings.fullscreen) {
-        window.alert('Press "F11" to enter fullscreen mode');
-        // if (document.exitFullscreen()) {document.exitFullscreen();}
-        // if (document.webkitExitFullscreen()) {document.webkitExitFullscreen();}
+        if (document.exitFullscreen()) {document.exitFullscreen();}
+        if (document.webkitExitFullscreen()) {document.webkitExitFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'greenyellow';
         document.getElementById('ingamefullscreen').style.backgroundColor = 'greenyellow';
         settings.fullscreen = false;
     } else {
-        window.alert('Press "F11" to enter fullscreen mode');
-        // if (document.body.requestFullscreen()) {document.body.requestFullscreen();}
-        // if (document.body.webkitRequestFullscreen()) {document.body.webkitRequestFullscreen();}
+        if (document.body.requestFullscreen()) {document.body.requestFullscreen();}
+        if (document.body.webkitRequestFullscreen()) {document.body.webkitRequestFullscreen();}
         document.getElementById('fullscreen').style.backgroundColor = 'lime';
         document.getElementById('ingamefullscreen').style.backgroundColor = 'lime';
         settings.fullscreen = true;

@@ -11,7 +11,13 @@ const achievementsTemplate = Object.assign({}, require('./Achievements.json')).d
 // chat functions
 insertChat = function(text, textcolor) {
     var time = new Date();
-    var minute = '' + time.getUTCMinutes();
+    var utcminute = '' + time.getUTCMinutes();
+    if(utcminute.length === 1){
+        utcminute = '' + 0 + utcminute;
+    }
+    if(utcminute === '0'){
+        utcminute = '00';
+    }var minute = '' + time.getMinutes();
     if(minute.length === 1){
         minute = '' + 0 + minute;
     }
@@ -26,8 +32,8 @@ insertChat = function(text, textcolor) {
     } else {
         color = textcolor;
     }
-    console.log('\x1b[36m%s\x1b[0m', '[' + time.getUTCHours() + ':' + minute + '] ' + text);
-    var msg = '[' + time.getUTCHours() + ':' + minute + '] ' + text;
+    console.log('\x1b[36m%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
+    var msg = '[' + time.getUTCHours() + ':' + utcminute + '] ' + text;
     io.emit('insertChat', {msg:msg, color:color});
 }
 log = function(text) {

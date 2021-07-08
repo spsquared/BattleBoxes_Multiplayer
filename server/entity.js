@@ -412,7 +412,7 @@ Player = function(socketid) {
         var totalachievements = 0;
         for (var i in self.trackedData.achievements) {
             var localachievement = self.trackedData.achievements[i];
-            if (localachievement.id.indexOf('easteregg') != 0) {
+            if (localachievement.id.includes('easteregg')) {
                 totalachievements++;
             }
             if (localachievement.aqquired == true && localachievement.id != 'all_achievements') {
@@ -680,6 +680,11 @@ Bot = function(targetOtherBots) {
     self.Dpressed = false;
     self.maxCPS = 10;
     self.lastclick = 0;
+    self.secondary = {
+        id: null,
+        maxCPS: 0,
+        lastclick: 0
+    };
     self.hp = 5;
     self.score = 0;
     self.alive = true;
@@ -700,7 +705,17 @@ Bot = function(targetOtherBots) {
     }
     self.color = COLORS[0][j];
     COLORS[1][j] = 1;
-    self.name = 'BOT_' + BOT_LIST.length;
+    var k = 0;
+    for (var i in BOT_LIST) {
+        k++;
+    }
+    self.name = 'BOT_' + k;
+    var pack = {
+        id: self.id,
+        name: self.name,
+        color: self.color
+    };
+    io.emit('newplayer', pack);
     try {
         self.pathfinder = new Pathfind.AStarFinder({
             allowDiagonal: true,
@@ -728,7 +743,7 @@ Bot = function(targetOtherBots) {
 
     self.update = function() {
         self.collide();
-        if (self.alive) self.path();
+        if (self.alive && self.lastpath > 250/(1000/TPS)) self.path();
         self.updatePos();
         self.lastclick++;
         self.lastpath++;
@@ -796,7 +811,7 @@ Bot = function(targetOtherBots) {
         self.yspeed = 0;
         self.x = x;
         self.y = y;
-        self.alive = true;
+        // self.alive = true;
         self.hp = 5;
         self.modifiers = {
             moveSpeed: 1,
@@ -806,11 +821,19 @@ Bot = function(targetOtherBots) {
             bulletDamage: 1,
             homingBullets: false
         };
+        self.secondary = {
+            id: null,
+            maxCPS: 0,
+            lastclick: 0
+        };
         try {
             self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
         } catch (err) {
             error(err);
         }
+        setTimeout(function() {
+            self.alive = true;
+        }, 3000);
     }
     self.shoot = function(player) {
         if (round.inProgress && self.alive && self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
@@ -820,6 +843,7 @@ Bot = function(targetOtherBots) {
         }
     }
     self.path = function() {
+        self.lastpath = 0;
         var closestplayer = null;
         var players = [];
         for (var i in PLAYER_LIST) {
@@ -827,7 +851,7 @@ Bot = function(targetOtherBots) {
         }
         if (self.attackBots) {
             for (var i in BOT_LIST) {
-                players.push(BOT_LIST[i]);
+                if (BOT_LIST[i].alive) players.push(BOT_LIST[i]);
             }
         }
         for (var i in players) {
@@ -837,6 +861,7 @@ Bot = function(targetOtherBots) {
         }
         if (closestplayer != null) {
             if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 960) {
+                // /*
                 try {
                     var gridbackup = self.grid.clone();
                     var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
@@ -906,6 +931,7 @@ Bot = function(targetOtherBots) {
                 } catch (err) {
                     // console.error(err);
                 }
+                // */
             }
             if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 20) {
                 self.Apressed = false;
@@ -999,15 +1025,8 @@ LootBox = function(x, y) {
     io.emit('newlootbox', pack);
 
     self.update = function() {
-        var players = [];
         for (var i in PLAYER_LIST) {
-            players.push(PLAYER_LIST[i]);
-        }
-        for (var i in BOT_LIST) {
-            players.push(BOT_LIST[i]);
-        }
-        for (var i in players) {
-            var localplayer = players[i];
+            var localplayer = PLAYER_LIST[i];
             if (Math.abs(self.x-localplayer.x) < 36 && Math.abs(self.y-localplayer.y) < 36) {
                 switch (self.effect) {
                     case 'speed':
@@ -1125,6 +1144,94 @@ LootBox = function(x, y) {
                     localplayer.trackedData.lootboxcollections.random++;
                 }
                 TrackedData.update();
+                io.emit('deletelootbox', self.id);
+                self.valid = false;
+                setTimeout(function() {
+                    if (round.id == self.roundId) {
+                        new LootBox(self.x, self.y);
+                        delete LOOT_BOXES[self.id];
+                    }
+                }, 30000);
+            }
+        }
+        for (var i in BOT_LIST) {
+            var localbot = BOT_LIST[i];
+            if (Math.abs(self.x-localbot.x) < 36 && Math.abs(self.y-localbot.y) < 36) {
+                switch (self.effect) {
+                    case 'speed':
+                        localbot.modifiers.moveSpeed *= 1.2;
+                        setTimeout(function() {
+                            if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (5/6);
+                        }, 10000);
+                        break;
+                    case 'speed2':
+                        localbot.modifiers.moveSpeed *= 1.5;
+                        setTimeout(function() {
+                            if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (2/3);
+                        }, 10000);
+                        break;
+                    case 'slowness':
+                        localbot.modifiers.moveSpeed *= 0.75;
+                        setTimeout(function() {
+                            if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (4/3);
+                        }, 5000);
+                        break;
+                    case 'jump':
+                        localbot.modifiers.jumpHeight *= 1.2;
+                        setTimeout(function() {
+                            if (round.id == self.roundId) localbot.modifiers.jumpHeight *= (5/6);
+                        }, 10000);
+                        break;
+                    case 'heal':
+                        localbot.hp = 5;
+                        break;
+                    case 'damage':
+                        localbot.hp -= 2;
+                        break;
+                    case 'shield':
+                        localbot.shield = 5;
+                        break;
+                    case 'homing':
+                        localbot.modifiers.homingBullets = true;
+                        setTimeout(function() {
+                            if (round.id == self.roundId) localbot.modifiers.homingBullets = false;
+                        }, 20000);
+                        break;   
+                    case 'firerate':
+                        localbot.modifiers.bulletRate *= 2;
+                        setTimeout(function() {
+                            if (round.id == self.roundId) localbot.modifiers.bulletRate *= (1/2);
+                        }, 10000);
+                        break;
+                    case 'firerate2':
+                        localbot.modifiers.bulletRate *= 3;
+                        setTimeout(function() {
+                            if (round.id == self.roundId) localbot.modifiers.bulletRate *= (1/3);
+                        }, 10000);
+                        break;
+                    case 'special':
+                        var random = Math.random();
+                        if (random <= 0.1) {
+                            localbot.modifiers.bulletDamage = 100;
+
+                        } else if (random <= 0.4) {
+                            localbot.modifiers.bulletDamage = 2;
+                        } else if (random <= 0.7) {
+                            localbot.modifiers.bulletSpeed = 1.5;
+                            localbot.secondary.id = 'noclipbullets';
+                            localbot.secondary.maxCPS = 1;
+                        } else if (random <= 0.8) {
+                            localbot.secondary.id = 'pathfindbullets';
+                            localbot.secondary.maxCPS = 0.5;
+                        } else {
+                            localbot.secondary.id = 'yeet';
+                            localbot.secondary.maxCPS = 0.05;
+                        }
+                        break;
+                    default:
+                        stop('ERROR: INVALID LOOTBOX');
+                        break;
+                }
                 io.emit('deletelootbox', self.id);
                 self.valid = false;
                 setTimeout(function() {

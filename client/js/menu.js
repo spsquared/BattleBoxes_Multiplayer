@@ -10,7 +10,7 @@ function login() {
         window.alert('Your username must be 20 or less characters.')
     } else if (document.getElementById('usrname').value == '20 or less characters') {
         socket.emit('disconnectclient');
-    } else if (document.getElementById('usrname').value.indexOf(' ') > 0) {
+    } else if (document.getElementById('usrname').value.includes(' ')) {
         window.alert('Your username cannot contain whitespaces');
     } else {
         socket.emit('login', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
@@ -23,7 +23,7 @@ function signup() {
         window.alert('Your username must be 20 or less characters.')
     } else if (document.getElementById('usrname').value == '20 or less characters') {
         socket.emit('disconnectclient');
-    } else if (document.getElementById('usrname').value.indexOf(' ') > 0) {
+    } else if (document.getElementById('usrname').value.includes(' ')) {
         window.alert('Your username cannot contain whitespaces');
     } else {
         socket.emit('signup', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
