@@ -146,9 +146,10 @@ async function updateCredentials(username, password) {
     database.query('UPDATE users SET password=$2 WHERE username=$1;', [username, password], function(err, res) {if (err) stop(err);});
 }
 
+io = require('socket.io') (server, {});
 // Enable TEST_BOT by removing the double slashes (//)
-// TEST_BOT = new Bot(true);
-// TEST_BOT.respawn(60, 60);
+TEST_BOT = new Bot(true);
+TEST_BOT.respawn(60, 60);
 bottest = function() {
     var i = 0;
     var botcreate = setInterval(function() {
@@ -164,9 +165,7 @@ bottest = function() {
         SERVER.findUser('Sampleprovider(sp)').noclip = true
     }, 1000)
 }
-
 // client connection
-io = require('socket.io') (server, {});
 io.on('connection', function(socket) {
     socket.emit('init');
     socket.id = Math.random();

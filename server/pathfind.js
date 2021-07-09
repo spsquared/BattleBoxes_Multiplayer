@@ -2,137 +2,135 @@
 
 PathFind = function() {
     var self = {
-        grid = [[]],
-        init: function() {
-            for(var i in self.grid) {
-                for(var j in self.grid[x]) {
-                    self.grid[j][x].f = 0;
-                    self.grid[j][x].g = 0;
-                    self.grid[j][x].h = 0;
-                    self.grid[j][x].parent = null;
-                }
+        grid: [[]],
+        openList: [],
+        closedList: []
+    };
+    self.init = function(array) {
+        self.grid = [[]];
+        for(var i in array) {
+            self.grid[i] = [];
+            for(var j in array[i]) {
+                self.grid[i][j] = {
+                    x: j,
+                    y: i,
+                    f: 0,
+                    g: 0,
+                    h: 0,
+                    parent: null,
+                    visited: false,
+                    closed: false,
+                    walkable: true
+                };
+                if (array[i][j] == 1) self.grid[i][j].walkable = false;
             }
-        },
-        search: function(start, end) {
-            self.init();
-        
-            var openList   = [];
-            var closedList = [];
-            openList.push(start);
-        
-            while(openList.length > 0) {
-       
-                // Grab the lowest f(x) to process next
-                var lowInd = 0;
-                for(var i = 0; i<openList.length; i++) {
-                    if(openList[i].f < openList[lowInd].f) { lowInd = i; }
-                }
-                var currentNode = openList[lowInd];
-        
-                // End case -- result has been found, return the traced path
-                if(currentNode.pos == end.pos) {
-                    var curr = currentNode;
-                    var ret = [];
-                    while(curr.parent) {
-                        ret.push(curr);
-                        curr = curr.parent;
-                    }
-                    return ret.reverse();
-                }
-
-                // Close node if cannot access
-
-                // check if there is a node in the closed list:
-                //     with a y value maximum 4 nodes away
-                //     with an x value maximum 3 nodes away
-                //     or a node above in the closed list
-                // If not, close the node.
-                if (false) {
-
-                }
-        
-
-                // Normal case -- move currentNode from open to closed, process each of its neighbors
-                openList.removeGraphNode(currentNode);
-                closedList.push(currentNode);
-                var neighbors = self.neighbors(grid, currentNode);
-        
-                for(var i = 0; i<neighbors.length;i++) {
-                    var neighbor = neighbors[i];
-                    if(closedList.findGraphNode(neighbor) || neighbor.isWall()) {
-                        // not a valid node to process, skip to next neighbor
-                        continue;
-                    }
-            
-                    // g score is the shortest distance from start to current node, we need to check if
-                    //   the path we have arrived at this neighbor is the shortest one we have seen yet
-                    var gScore = currentNode.g + 1; // 1 is the distance from a node to it's neighbor
-                    var gScoreIsBest = false;
-            
-            
-                    if(!openList.findGraphNode(neighbor)) {
-                        // This the the first time we have arrived at this node, it must be the best
-                        // Also, we need to take the h (heuristic) score since we haven't done so yet
-            
-                        gScoreIsBest = true;
-                        neighbor.h = self.heuristic(neighbor.pos, end.pos);
-                        openList.push(neighbor);
-                    }
-                    else if(gScore < neighbor.g) {
-                        // We have already seen the node, but last time it had a worse g (distance from start)
-                        gScoreIsBest = true;
-                    }
-            
-                    if(gScoreIsBest) {
-                        // Found an optimal (so far) path to this node.   Store info on how we got here and
-                        //  just how good it really is...
-                        neighbor.parent = currentNode;
-                        neighbor.g = gScore;
-                        neighbor.f = neighbor.g + neighbor.h;
-                    }
-                }
-            }
-        
-            // No result was found -- empty array signifies failure to find path
-            return [];
-        },
-        heuristic: function(pos0, pos1) {
-            // This is the Manhattan distance
-            var d1 = Math.abs (pos1.x - pos0.x);
-            var d2 = Math.abs (pos1.y - pos0.y);
-            return d1 + d2;
-        },
-        neighbors: function(grid, node) {
-            var ret = [];
-            var x = node.pos.x;
-            var y = node.pos.y;
-        
-            if(grid[x-1] && grid[x-1][y]) {
-                ret.push(grid[x-1][y]);
-            }
-            if(grid[x+1] && grid[x+1][y]) {
-                ret.push(grid[x+1][y]);
-            }
-            if(grid[x][y-1] && grid[x][y-1]) {
-                ret.push(grid[x][y-1]);
-            }
-            if(grid[x][y+1] && grid[x][y+1]) {
-                ret.push(grid[x][y+1]);
-            }
-            if(grid[x-1] && grid[x-1][y-1] && grid[x][y-1]) {
-                ret.push(grid[x-1][y-1]);
-            }
-            if(grid[x+1] && grid[x+1][y-1] && grid[x][y-1]) {
-                ret.push(grid[x+1][y-1]);
-            }
-            if(grid[x-1] && grid[x-1][y+1] && grid[x][y+1]) {
-                ret.push(grid[x-1][y+1]);
-            }
-            if(grid[x+1] && grid[x+1][y+1] && grid[x][y+1]) {
-                ret.push(grid[x+1][y+1]);
-            }
-            return ret;
         }
+    };
+    self.reset = function() {
+        for (var i in self.grid) {
+            for (var j in self.grid[i]) {
+                self.grid[i][j].f = 0;
+                self.grid[i][j].g = 0;
+                self.grid[i][j].h = 0;
+                self.grid[i][j].parent = null;
+                self.grid[i][j].visited = false;
+                self.grid[i][j].closed = false;
+            }
+        }
+    }
+    self.path = function(x1, y1, x2, y2) {
+        self.reset();
+        self.openList = [];
+        self.openList.push(self.grid[y1][x1]);
+
+        while (self.openList.length > 0) {
+            var lowest = 0;
+            for (var i in self.openList) {
+                if (self.openList[i].f < self.openList[lowest].f) lowest = i;
+            }
+            var currentNode = self.openList[lowest];
+
+            // Close node if cannot access
+
+            // check if there is a node in the closed list:
+            //     with a y value maximum 4 nodes away
+            //     with an x value maximum 3 nodes away
+            //     or a node above in the closed list
+            // If not, close the node.
+            if (false) {
+
+            }
+            if(currentNode.x == x2 && currentNode.y == y2) {
+                var curr = currentNode;
+                var path = [];
+                while (curr.parent) {
+                    path.push(curr);
+                    curr = curr.parent;
+                }
+
+                return path.reverse();
+            }
+
+            var removeIndex = self.openList.indexOf(currentNode);
+            self.openList.splice(removeIndex, 1);
+            currentNode.closed = true;
+            
+            var neighbors = self.findNeighbors(currentNode.x, currentNode.y);
+            for (var i in neighbors) {
+                var neighbor = neighbors[i];
+                
+                if (!neighbor.closed && neighbor.walkable) {
+                // if (neighbor.closed) {
+                    continue;
+                }
+
+                var gScore = currentNode.g+1;
+                var bestG = false;
+                if (!neighbor.visited) {
+                    bestG = true;
+                    neighbor.h = self.heuristic(neighbor.x, neighbor.y, x2, y2);
+                    neighbor.visited = true;
+                    self.openList.push(neighbor);
+                } else if (gScore < neighbor.g) {
+                    bestG = true;
+                }
+                if (bestG) {
+                    neighbor.parent = currentNode;
+                    neighbor.g = gScore;
+                    neighbor.f = neighbor.g + neighbor.h;
+                }
+            }
+        }
+        return [];
+    };
+    self.heuristic = function(x1, y1, x2, y2) {
+        // This is the Manhattan distance
+        var d1 = Math.abs(x2 - x1);
+        var d2 = Math.abs(y2 - y1);
+        return d1 + d2;
+    };
+    self.findNeighbors = function(x, y) {
+        var ret = [];
+        var x = x;
+        var y = y;
+
+        // left
+        if (self.grid[x-1]) if (self.grid[x-1][y]) ret.push(self.grid[x-1][y]);
+        // right
+        if (self.grid[x+1]) if (self.grid[x+1][y]) ret.push(self.grid[x+1][y]);
+        // up
+        if (self.grid[x]) if (self.grid[x][y-1]) ret.push(self.grid[x][y-1]);
+        // down
+        if (self.grid[x]) if (self.grid[x][y+1]) ret.push(self.grid[x][y+1]);
+        // upleft
+        if (self.grid[x-1]) if (self.grid[x-1][y-1]) ret.push(self.grid[x-1][y-1]);
+        // upright
+        if (self.grid[x+1]) if (self.grid[x+1][y-1]) ret.push(self.grid[x+1][y-1]);
+        // downleft
+        if (self.grid[x-1]) if (self.grid[x-1][y+1]) ret.push(self.grid[x-1][y+1]);
+        // downright
+        if (self.grid[x+1]) if (self.grid[x+1][y+1]) ret.push(self.grid[x+1][y+1]);
+        return ret;
     };
 
     return self;

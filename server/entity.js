@@ -1,5 +1,6 @@
 // Copyright (C) 2021 Radioactive64
 
+const PF = require('pathfinding');
 PLAYER_LIST = [];
 BOT_LIST = [];
 BULLET_LIST = [];
@@ -508,11 +509,11 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
     self.color = color;
     self.valid = true;
     try {
-        self.pathfinder = new Pathfind.AStarFinder({
+        self.pathfinder = new PF.AStarFinder({
             allowDiagonal: true,
             dontCrossCorners: true
         });
-        self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
+        self.grid = new PF.Grid(Object.create(MAPS[CURRENT_MAP]));
         for (var i in MAPS[CURRENT_MAP]) {
             for (var j in MAPS[CURRENT_MAP][i]) {
                 if (MAPS[CURRENT_MAP][i][j] == 1) {
@@ -594,7 +595,6 @@ Bullet = function(mousex, mousey, x, y, parent, color, isplayer, speedModifier, 
                 try {
                     var gridbackup = self.grid.clone();
                     var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
-                    // var waypoints = Pathfind.Util.smoothenPath(self.grid, path);
                     var waypoints = path;
                     self.grid = gridbackup;
                     self.angle = Math.atan2(-(self.y-(waypoints[1][1]*40))+16, -(self.x-(waypoints[1][0]*40))+16);
@@ -715,33 +715,9 @@ Bot = function(targetOtherBots) {
         color: self.color
     };
     io.emit('newplayer', pack);
-    /*
-    try {
-        self.pathfinder = new Pathfind.AStarFinder({
-            allowDiagonal: true,
-            dontCrossCorners: true
-        });
-        self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
-        for (var i in MAPS[CURRENT_MAP]) {
-            for (var j in MAPS[CURRENT_MAP][i]) {
-                if (MAPS[CURRENT_MAP][i][j] == 1) {
-                    self.grid.setWalkableAt(j, i, false);
-                }
-            }
-        }
-        // for (var i = -1; 1 < MAPS[CURRENT_MAP].width; i++) {
-        //     self.grid.setWalkableAt(i, -1, false);
-        // }
-        // for (var i = -1; 1 < MAPS[CURRENT_MAP].height; i++) {
-        //     self.grid.setWalkableAt(-1, i, false);
-        // }
-    } catch (err) {
-        error(err);
-    }
-    */
     try {
         self.pathfinder = new PathFind();
-        self.grid = Object.create(MAPS[CURRENT_MAP]);
+        // self.pathfinder.init(MAPS[CURRENT_MAP]);
     } catch(err) {
         error(err);
     }
@@ -750,7 +726,7 @@ Bot = function(targetOtherBots) {
 
     self.update = function() {
         self.collide();
-        if (self.alive && self.lastpath > 250/(1000/TPS)) self.path();
+        if (self.alive && self.lastpath > 5000/(1000/TPS)) self.path();
         self.updatePos();
         self.lastclick++;
         self.lastpath++;
@@ -818,7 +794,7 @@ Bot = function(targetOtherBots) {
         self.yspeed = 0;
         self.x = x;
         self.y = y;
-        // self.alive = true;
+        self.alive = true;
         self.hp = 5;
         self.modifiers = {
             moveSpeed: 1,
@@ -834,7 +810,7 @@ Bot = function(targetOtherBots) {
             lastclick: 0
         };
         try {
-            self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
+            self.pathfinder.init(MAPS[CURRENT_MAP]);
         } catch (err) {
             error(err);
         }
@@ -866,8 +842,40 @@ Bot = function(targetOtherBots) {
                 if (players[i].id != self.id) closestplayer = players[i];
             }
         }
-        if (closestplayer != null) {
+        if (closestplayer) {
             if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 960) {
+                try {
+                    var path = self.pathfinder.path(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40));
+                    console.log(path)
+                    var waypoints = path;
+                    if (waypoints[0]) {
+                        self.Wpressed = false;
+                        self.Apressed = false;
+                        self.Dpressed = false;
+                        var px = Math.floor(self.x/40);
+                        var py = Math.floor(self.y/40);
+                        if (waypoints[1].y < py) {
+                            self.Wpressed = true;
+                        }
+                        if (waypoints[1].x < px) {
+                            self.Apressed = true;
+                        }
+                        if (waypoints[1].x > px) {
+                            self.Dpressed = true;
+                        }
+                        
+                        if (self.colliding.left) {
+                            Apressed = true;
+                            Wpressed = true;
+                        }
+                        if (self.colliding.right) {
+                            Dpressed = true;
+                            Wpressed = true;
+                        }
+                    }
+                } catch (err) {
+                    console.error(err)
+                }
                 // Old pathfinding
                 /*
                 try {

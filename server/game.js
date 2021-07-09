@@ -6,7 +6,7 @@ round = {
     number:0
 };
 gameinProgress = false;
-const achievementsTemplate = Object.assign({}, require('./Achievements.json')).data;
+const achievementsTemplate = JSON.parse(JSON.stringify(require('./Achievements.json').data));
 
 // chat functions
 insertChat = function(text, textcolor) {
@@ -312,7 +312,7 @@ TrackedData = function() {
         {id:"all_achievements", name:"Overachiever", aqquired:false},
         {id:"debug_EasterEgg", name:"Debugger", aqquired:false},
         {id:"null_EasterEgg", name:"Hacker", aqquired:false}
-    ]
+    ];
     return self;
 }
 TrackedData.update = function() {
