@@ -6,7 +6,7 @@ round = {
     number:0
 };
 gameinProgress = false;
-const achievementsTemplate = JSON.parse(JSON.stringify(require('./Achievements.json').data));
+const achievementsTemplate = JSON.parse(JSON.stringify(require('./Achievements.json'))).data;
 
 // chat functions
 insertChat = function(text, textcolor) {

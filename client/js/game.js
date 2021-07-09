@@ -151,6 +151,7 @@ function drawDebug(data, isplayer) {
         game.fillText('TPS:' + tps, (window.innerWidth-8), 30);
         game.fillText('Ping:' + ping + 'ms', (window.innerWidth-8), 60);
     }
+
     // draw collision debug
     game.beginPath();
     var tempx = ((Math.floor(data.x/40)*40)-camera.x);
@@ -194,6 +195,19 @@ function drawDebug(data, isplayer) {
     game.lineTo(tempx+40, tempy+41);
     game.closePath();
     game.stroke();
+
+    // draw bot path
+    if (data.debug.path) if (data.debug.path[0]) {
+        var path = data.debug.path;
+        game.beginPath();
+        game.strokeStyle = '#0000FF';
+        game.strokeWidth = '2px';
+        game.moveTo(path[0].x*40-camera.x+20, path[0].y*40-camera.y+20);
+        for (var i in path) {
+            game.lineTo(path[i].x*40-camera.x+20, path[i].y*40-camera.y+20);
+        }
+        game.stroke();
+    }
 }
 function drawCountdown() {
     game.textAlign = 'center';

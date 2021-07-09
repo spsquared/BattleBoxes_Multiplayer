@@ -378,7 +378,7 @@ Player = function(socketid) {
         if (self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
             self.lastclick = 0;
             new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, false);
-            if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+            if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage = 1;
         }
     }
     self.secondaryAttack = function(x, y) {
@@ -387,11 +387,11 @@ Player = function(socketid) {
             switch (self.secondary.id) {
                 case 'noclipbullets':
                     new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, true, false);
-                    if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+                    if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage = 1;
                     break;
                 case 'pathfindbullets':
                     new Bullet(x, y, self.x, self.y, self.id, self.color, true, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, true);
-                    if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+                    if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage = 1;
                     break;
                 case 'yeet':
                     for (var i in PLAYER_LIST) {
@@ -723,10 +723,11 @@ Bot = function(targetOtherBots) {
     }
     self.attackBots = targetOtherBots;
     self.lastpath = 0;
+    self.debugPath = [];
 
     self.update = function() {
         self.collide();
-        if (self.alive && self.lastpath > 5000/(1000/TPS)) self.path();
+        if (self.alive && self.lastpath > 100/(1000/TPS)) self.path();
         self.updatePos();
         self.lastclick++;
         self.lastpath++;
@@ -822,7 +823,7 @@ Bot = function(targetOtherBots) {
         if (round.inProgress && self.alive && self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
             self.lastclick = 0;
             new Bullet(player.x+(Math.floor(Math.random()*21)-10), player.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color, false, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, false);
-            if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+            if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage = 1;
         }
     }
     self.path = function() {
@@ -842,16 +843,18 @@ Bot = function(targetOtherBots) {
                 if (players[i].id != self.id) closestplayer = players[i];
             }
         }
+        self.Wpressed = false;
+        self.Apressed = false;
+        self.Dpressed = false;
+        self.debugPath = [];
         if (closestplayer) {
-            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 960) {
+            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 1920) {
                 try {
                     var path = self.pathfinder.path(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40));
-                    console.log(path)
+                    // console.log(path)
+                    self.debugPath = path;
                     var waypoints = path;
-                    if (waypoints[0]) {
-                        self.Wpressed = false;
-                        self.Apressed = false;
-                        self.Dpressed = false;
+                    if (waypoints[1]) {
                         var px = Math.floor(self.x/40);
                         var py = Math.floor(self.y/40);
                         if (waypoints[1].y < py) {
@@ -949,11 +952,11 @@ Bot = function(targetOtherBots) {
                 }
                 */
             }
-            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 20) {
-                self.Apressed = false;
-                self.Dpressed = false;
-                self.Wpressed = false;
-            }
+            // if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 10) {
+            //     self.Apressed = false;
+            //     self.Dpressed = false;
+            //     self.Wpressed = false;
+            // }
             self.shoot(closestplayer);
         }
     }
@@ -995,7 +998,23 @@ Bot.update = function() {
     for (var i in BOT_LIST) {
         var localbot = BOT_LIST[i];
         localbot.update();
-        pack.push({id:localbot.id, x:localbot.x, y:localbot.y, hp:localbot.hp, debug:{xspeed:localbot.xspeed, yspeed:localbot.yspeed, colliding:{left:localbot.colliding.left, right:localbot.colliding.right, bottom:localbot.colliding.bottom, top:localbot.colliding.top}}});
+        pack.push({
+            id: localbot.id,
+            x: localbot.x,
+            y: localbot.y,
+            hp: localbot.hp,
+            debug: {
+                xspeed: localbot.xspeed,
+                yspeed: localbot.yspeed,
+                colliding: {
+                    left: localbot.colliding.left,
+                    right: localbot.colliding.right,
+                    bottom: localbot.colliding.bottom,
+                    top: localbot.colliding.top
+                },
+                path: localbot.debugPath
+            }
+        });
     }
     return pack;
 }
