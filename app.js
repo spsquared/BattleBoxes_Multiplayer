@@ -547,7 +547,7 @@ io.on('connection', function(socket) {
         }
     });
     socket.on('consoleInput', async function(input) {
-        log(player.name + ': ' + input);
+        logColor(player.name + ': ' + input, '\x1b[33m');
         if (SERVER.findOP(player.name)) {
             var convertedInput = input;
             while (convertedInput.includes('self')) {
@@ -560,7 +560,7 @@ io.on('connection', function(socket) {
                     msg = 'Successfully executed command';
                 }
                 socket.emit('consoleLog', {color:'green', msg:msg});
-                log(msg);
+                logColor(msg, '\x1b[33m');
             } catch (err) {
                 socket.emit('consoleLog', {color:'red', msg:'Error: "' + input + '" is not a valid input.\n' + err});
                 error('ERROR: "' + input + '" is not a valid input.');
@@ -568,7 +568,7 @@ io.on('connection', function(socket) {
             }
         } else {
             socket.emit('consoleLog', {color:'red', msg:'ERROR: NO PERMISSION.'});
-            error('ERROR: NO PERMISSION.');
+            logColor('ERROR: NO PERMISSION.', '\x1b[33m');
         }
     });
     socket.on('ping', async function() {socket.emit('ping');});

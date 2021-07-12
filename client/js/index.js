@@ -315,9 +315,9 @@ async function updateSettings() {
     game.filter = 'url(#remove-alpha)';
     game.globalAlpha = 1;
     resetFPS();
-    var cookiestring = JSON.stringify(settings)
+    var cookiestring = JSON.stringify(settings);
     var date = new Date();
-    date.setUTCFullYear(date.getUTCFullYear()+10, date.getUTCMonth(), date.getUTCDate())
+    date.setUTCFullYear(date.getUTCFullYear()+10, date.getUTCMonth(), date.getUTCDate());
     document.cookie = 'settings=' + cookiestring + '; expires=' + date + ';';
 }
 
@@ -462,6 +462,15 @@ function adminConsole() {
     if (consoleAccess) {
         var consoleHistory = [];
         var historyIndex = 0;
+        try {
+            cookieHistory = JSON.parse(document.cookie.replace('consoleHistory=', ''));
+            consoleHistory = cookieHistory;
+        } catch {
+            var cookiestring = JSON.stringify(consoleHistory);
+            var date = new Date();
+            date.setUTCFullYear(date.getUTCFullYear()+10, date.getUTCMonth(), date.getUTCDate());
+            document.cookie = 'consoleHistory=' + cookiestring + '; expires=' + date + ';';
+        }
         var consolewindow = {
             hidden: false,
             dragging: false,
@@ -524,6 +533,10 @@ function adminConsole() {
             if (event.key == 'Enter') {
                 socket.emit('consoleInput', consoleInput.value);
                 consoleHistory.push(consoleInput.value);
+                var cookiestring = JSON.stringify(consoleHistory);
+                var date = new Date();
+                date.setUTCFullYear(date.getUTCFullYear()+10, date.getUTCMonth(), date.getUTCDate());
+                document.cookie = 'consoleHistory=' + cookiestring + '; expires=' + date + ';';
                 historyIndex = consoleHistory.length;
                 log = document.createElement('div');
                 log.className = 'ui-darkText';

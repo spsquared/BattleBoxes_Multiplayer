@@ -848,7 +848,7 @@ Bot = function(targetOtherBots) {
         self.Dpressed = false;
         self.debugPath = [];
         if (closestplayer) {
-            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 1920) {
+            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 9999) {
                 try {
                     var path = self.pathfinder.path(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40));
                     // console.log(path)

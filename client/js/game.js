@@ -163,7 +163,6 @@ function drawDebug(data, isplayer) {
     }
     game.moveTo(tempx-1, tempy+40);
     game.lineTo(tempx+41, tempy+40);
-    game.closePath();
     game.stroke();
     game.beginPath();
     if (data.debug.colliding.top) {
@@ -173,7 +172,6 @@ function drawDebug(data, isplayer) {
     }
     game.moveTo(tempx-1, tempy);
     game.lineTo(tempx+41, tempy);
-    game.closePath();
     game.stroke();
     game.beginPath();
     if (data.debug.colliding.left) {
@@ -183,7 +181,6 @@ function drawDebug(data, isplayer) {
     }
     game.moveTo(tempx, tempy-1);
     game.lineTo(tempx, tempy+41);
-    game.closePath();
     game.stroke();
     game.beginPath();
     if (data.debug.colliding.right) {
@@ -193,7 +190,6 @@ function drawDebug(data, isplayer) {
     }
     game.moveTo(tempx+40, tempy-1);
     game.lineTo(tempx+40, tempy+41);
-    game.closePath();
     game.stroke();
 
     // draw bot path
@@ -202,9 +198,12 @@ function drawDebug(data, isplayer) {
         game.beginPath();
         game.strokeStyle = '#0000FF';
         game.strokeWidth = '2px';
-        game.moveTo(path[0].x*40-camera.x+20, path[0].y*40-camera.y+20);
         for (var i in path) {
             game.lineTo(path[i].x*40-camera.x+20, path[i].y*40-camera.y+20);
+            game.textAlign = 'center';
+            game.fillStyle = '#0000FF';
+            game.font = '12px Pixel';
+            game.fillText(i, path[i].x*40-camera.x+20, path[i].y*40-camera.y+10);
         }
         game.stroke();
     }
