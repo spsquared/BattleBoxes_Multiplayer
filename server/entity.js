@@ -727,7 +727,7 @@ Bot = function(targetOtherBots) {
 
     self.update = function() {
         self.collide();
-        if (self.alive && self.lastpath > 100/(1000/TPS)) self.path();
+        self.path();
         self.updatePos();
         self.lastclick++;
         self.lastpath++;
@@ -827,137 +827,139 @@ Bot = function(targetOtherBots) {
         }
     }
     self.path = function() {
-        self.lastpath = 0;
-        var closestplayer = null;
-        var players = [];
-        for (var i in PLAYER_LIST) {
-            if (PLAYER_LIST[i].ingame && PLAYER_LIST[i].alive) players.push(PLAYER_LIST[i]);
-        }
-        if (self.attackBots) {
-            for (var i in BOT_LIST) {
-                if (BOT_LIST[i].alive) players.push(BOT_LIST[i]);
+        if (self.alive && self.lastpath > 200/(1000/TPS)) {
+            self.lastpath = 0;
+            var closestplayer = null;
+            var players = [];
+            for (var i in PLAYER_LIST) {
+                if (PLAYER_LIST[i].ingame && PLAYER_LIST[i].alive) players.push(PLAYER_LIST[i]);
             }
-        }
-        for (var i in players) {
-            if (closestplayer == null || self.getDistance(self.x, self.y, players[i].x, players[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y)) {
-                if (players[i].id != self.id) closestplayer = players[i];
-            }
-        }
-        self.Wpressed = false;
-        self.Apressed = false;
-        self.Dpressed = false;
-        self.debugPath = [];
-        if (closestplayer) {
-            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 9999) {
-                try {
-                    var path = self.pathfinder.path(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40));
-                    // console.log(path)
-                    self.debugPath = path;
-                    var waypoints = path;
-                    if (waypoints[1]) {
-                        var px = Math.floor(self.x/40);
-                        var py = Math.floor(self.y/40);
-                        if (waypoints[1].y < py) {
-                            self.Wpressed = true;
-                        }
-                        if (waypoints[1].x < px) {
-                            self.Apressed = true;
-                        }
-                        if (waypoints[1].x > px) {
-                            self.Dpressed = true;
-                        }
-                        
-                        if (self.colliding.left) {
-                            Apressed = true;
-                            Wpressed = true;
-                        }
-                        if (self.colliding.right) {
-                            Dpressed = true;
-                            Wpressed = true;
-                        }
-                    }
-                } catch (err) {
-                    console.error(err)
+            if (self.attackBots) {
+                for (var i in BOT_LIST) {
+                    if (BOT_LIST[i].alive) players.push(BOT_LIST[i]);
                 }
-                // Old pathfinding
-                /*
-                try {
-                    var gridbackup = self.grid.clone();
-                    var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
-                    var waypoints = Pathfind.Util.compressPath(path);
-                    // var waypoints = path;
-                    self.grid = gridbackup;
-                    if (waypoints[0]) {
-                        self.Wpressed = false;
-                        self.Apressed = false;
-                        self.Dpressed = false;
-                        var px = Math.floor(self.x/40);
-                        var py = Math.floor(self.y/40);
-                        if (waypoints[1][1] < py) {
-                            self.Wpressed = true;
-                        }
-                        if (waypoints[1][0] < px) {
-                            self.Apressed = true;
-                        }
-                        if (waypoints[1][0] > px) {
-                            self.Dpressed = true;
-                        }
-                        // var tempx = px-3;
-                        // var tempy = py;
-                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                        //     self.Apressed = true;
-                        //     self.Wpressed = true;
-                        // }
-                        // var tempx = px-2;
-                        // var tempy = py;
-                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                        //     self.Apressed = true;
-                        //     self.Wpressed = true;
-                        // }
-                        // var tempx = px-1;
-                        // var tempy = py;
-                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                        //     self.Apressed = true;
-                        //     self.Wpressed = true;
-                        // }
-                        // var tempx = px+1;
-                        // var tempy = py;
-                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                        //     self.Dpressed = true;
-                        //     self.Wpressed = true;
-                        // }
-                        // var tempx = px+2;
-                        // var tempy = py;
-                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                        //     self.Dpressed = true;
-                        //     self.Wpressed = true;
-                        // }
-                        // var tempx = px+3;
-                        // var tempy = py;
-                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
-                        //     self.Dpressed = true;
-                        //     self.Wpressed = true;
-                        // }
-                        if (self.colliding.left) {
-                            Apressed = true;
-                            Wpressed = true;
-                        }
-                        if (self.colliding.right) {
-                            Dpressed = true;
-                            Wpressed = true;
-                        }
-                    }
-                } catch (err) {
-                    // console.error(err);
-                }
-                */
             }
-            // if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 10) {
-            //     self.Apressed = false;
-            //     self.Dpressed = false;
-            //     self.Wpressed = false;
-            // }
-            self.shoot(closestplayer);
+            for (var i in players) {
+                if (closestplayer == null || self.getDistance(self.x, self.y, players[i].x, players[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y)) {
+                    if (players[i].id != self.id) closestplayer = players[i];
+                }
+            }
+            self.Wpressed = false;
+            self.Apressed = false;
+            self.Dpressed = false;
+            self.debugPath = [];
+            if (closestplayer) {
+                if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 9999) {
+                    try {
+                        var path = self.pathfinder.path(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40));
+                        // console.log(path)
+                        self.debugPath = path;
+                        var waypoints = path;
+                        if (waypoints[1]) {
+                            var px = Math.floor(self.x/40);
+                            var py = Math.floor(self.y/40);
+                            if (waypoints[1].y < py) {
+                                self.Wpressed = true;
+                            }
+                            if (waypoints[1].x < px) {
+                                self.Apressed = true;
+                            }
+                            if (waypoints[1].x > px) {
+                                self.Dpressed = true;
+                            }
+                            
+                            if (self.colliding.left) {
+                                Apressed = true;
+                                Wpressed = true;
+                            }
+                            if (self.colliding.right) {
+                                Dpressed = true;
+                                Wpressed = true;
+                            }
+                        }
+                    } catch (err) {
+                        console.error(err)
+                    }
+                    // Old pathfinding
+                    /*
+                    try {
+                        var gridbackup = self.grid.clone();
+                        var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
+                        var waypoints = Pathfind.Util.compressPath(path);
+                        // var waypoints = path;
+                        self.grid = gridbackup;
+                        if (waypoints[0]) {
+                            self.Wpressed = false;
+                            self.Apressed = false;
+                            self.Dpressed = false;
+                            var px = Math.floor(self.x/40);
+                            var py = Math.floor(self.y/40);
+                            if (waypoints[1][1] < py) {
+                                self.Wpressed = true;
+                            }
+                            if (waypoints[1][0] < px) {
+                                self.Apressed = true;
+                            }
+                            if (waypoints[1][0] > px) {
+                                self.Dpressed = true;
+                            }
+                            // var tempx = px-3;
+                            // var tempy = py;
+                            // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                            //     self.Apressed = true;
+                            //     self.Wpressed = true;
+                            // }
+                            // var tempx = px-2;
+                            // var tempy = py;
+                            // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                            //     self.Apressed = true;
+                            //     self.Wpressed = true;
+                            // }
+                            // var tempx = px-1;
+                            // var tempy = py;
+                            // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                            //     self.Apressed = true;
+                            //     self.Wpressed = true;
+                            // }
+                            // var tempx = px+1;
+                            // var tempy = py;
+                            // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                            //     self.Dpressed = true;
+                            //     self.Wpressed = true;
+                            // }
+                            // var tempx = px+2;
+                            // var tempy = py;
+                            // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                            //     self.Dpressed = true;
+                            //     self.Wpressed = true;
+                            // }
+                            // var tempx = px+3;
+                            // var tempy = py;
+                            // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                            //     self.Dpressed = true;
+                            //     self.Wpressed = true;
+                            // }
+                            if (self.colliding.left) {
+                                Apressed = true;
+                                Wpressed = true;
+                            }
+                            if (self.colliding.right) {
+                                Dpressed = true;
+                                Wpressed = true;
+                            }
+                        }
+                    } catch (err) {
+                        // console.error(err);
+                    }
+                    */
+                }
+                if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 20) {
+                    self.Apressed = false;
+                    self.Dpressed = false;
+                    self.Wpressed = false;
+                }
+                self.shoot(closestplayer);
+            }
         }
     }
     self.getDistance = function(x1, y1, x2, y2) {

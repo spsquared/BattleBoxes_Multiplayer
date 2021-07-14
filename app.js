@@ -731,8 +731,11 @@ debug = function() {
             log: async function() {
                 error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
                 return 'YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!';
-                // database.query('SELECT username FROM users', function(err, res) {if (err) stop(err); log(res.rows);});
-                // return res.rows;
+                // var data = await database.query('SELECT username FROM users');
+                // for (var i in data.rows) {
+                //     log(JSON.stringify(data.rows[i]));
+                // }
+                // return data.rows;
             },
             remove: async function(username) {
                 error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
