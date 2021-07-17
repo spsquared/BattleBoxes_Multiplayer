@@ -81,10 +81,10 @@ function resetFPS() {
         if (ingame) {
             game.clearRect(0, 0, window.innerWidth, window.innerHeight);
             drawMap();
-            HCBBM();
             Player.draw();
             Bullet.draw();
             LootBox.draw();
+            HCBBM();
             drawCountdown();
             if (player.debug) {
                 for (var i in DEBUG_INFO) {
@@ -577,7 +577,7 @@ socket.on('winner', function(id) {
         }
         var slide = setInterval(function() {
             if (x < 200) {
-                v *= 0.95;
+                v *= 0.91;
             }
             x += v;
             game.fillStyle = color;
