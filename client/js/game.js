@@ -40,6 +40,7 @@ var inmenu = false;
 var inchat = false;
 var canmove = false;
 var connected = 0;
+var deathFadeOpacity = 0;
 var countdowntext = {
     text: '',
     color: '',
@@ -67,7 +68,7 @@ socket.on('update', function(pkg) {
         Player.update(pkg.players);
         Bullet.update(pkg.bullets);
         LootBox.update();
-        updateCamera();
+        Particle.update();
         tpsCounter++;
         lastDate = Date.now();
         connected = 0;
@@ -81,10 +82,14 @@ function resetFPS() {
         if (ingame) {
             game.clearRect(0, 0, window.innerWidth, window.innerHeight);
             drawMap();
-            Player.draw();
-            Bullet.draw();
-            LootBox.draw();
+            updateCamera();
             HCBBM();
+            LootBox.draw();
+            Bullet.draw();
+            Player.draw();
+            Particle.draw();
+            game.fillStyle = 'rgba(255,0,0,' + deathFadeOpacity + ')';
+            game.fillRect(0, 0, window.innerWidth, window.innerHeight);
             drawCountdown();
             if (player.debug) {
                 for (var i in DEBUG_INFO) {
@@ -225,38 +230,66 @@ socket.on('ping', function() {
 
 // banner init
 function Banner(topText, bottomText, color, time) {
-    var self = {
-        id: Math.random(),
-        temporary: (topText.includes('Buff:') || topText.includes('Secondary:')),
-        secondary: topText.includes('Secondary:'),
-        HTML: document.createElement('div')
-    };
-    self.HTML.className = 'banner ui-darkText';
-    self.HTML.innerHTML = '<div class="banner-textTop">' + topText + '</div><div class="banner-textBottom">' + bottomText + '</div>';
-    if (color == 'rainbow-pulse') {
-        self.HTML.style.animation = 'rainbow-pulse 10s infinite';
-        self.HTML.style.animationTimingFunction = 'ease-in-out';
-    } else if (color == 'red-pulse') {
-        self.HTML.style.animation = 'red-pulse 2s infinite';
-        self.HTML.style.animation = 'red-pulse 2s infinite';
+    var banner = null;
+    if (topText.includes('Secondary:')) {
+        for (var i in BANNERS) {
+            if (BANNERS[i].secondary) {
+                BANNERS[i].HTML.remove();
+                delete BANNERS[i];
+            }
+        }
     } else {
-        self.HTML.style.backgroundColor = color;
-    }
-    document.getElementById('bannerContainer').appendChild(self.HTML);
-    self.HTML.style.transform = 'translateX(-400px)';
-    setTimeout(function() {
-        try {
-            self.HTML.style.transitionTimingFunction = 'ease-in';
-            self.HTML.style.transform = 'translateX(400px)';
+        for (var i in BANNERS) {
+            if (BANNERS[i].type == topText) banner = BANNERS[i];
+        }
+        if (banner) {
+            document.getElementById(banner.id).innerText = bottomText.replace('::time', time + 's');
+        } else {
+            var self = {
+                id: Math.random(),
+                type: topText,
+                temporary: (topText.includes('Buff:') || topText.includes('Secondary:')),
+                secondary: topText.includes('Secondary:'),
+                HTML: document.createElement('div'),
+                time: time,
+                timer: null
+            };
+            self.HTML.className = 'banner ui-darkText';
+            self.HTML.innerHTML = '<div class="banner-textTop">' + topText + '</div><div id=' + self.id + ' class="banner-textBottom">' + bottomText.replace('::time', time + 's') + '</div>';
+            if (color == 'rainbow-pulse') {
+                self.HTML.style.animation = 'rainbow-pulse 10s infinite';
+                self.HTML.style.animationTimingFunction = 'ease-in-out';
+            } else if (color == 'red-pulse') {
+                self.HTML.style.animation = 'red-pulse 2s infinite';
+                self.HTML.style.animation = 'red-pulse 2s infinite';
+            } else {
+                self.HTML.style.backgroundColor = color;
+            }
+            document.getElementById('bannerContainer').appendChild(self.HTML);
+            self.HTML.style.transform = 'translateX(-400px)';
+            self.timer = setInterval(function() {
+                self.time--;
+                if (self.time < 0) self.time = 0;
+                try {
+                    document.getElementById(self.id).innerText = bottomText.replace('::time', self.time + 's');
+                } catch {}
+            }, 1000);
             setTimeout(function() {
-                self.HTML.remove();
-                delete BANNERS[self.id];
-            }, 1250);
-        } catch (err) {}
-    }, (time*1000)+1000);
-
-    BANNERS[self.id] = self;
-    return self;
+                try {
+                    self.HTML.style.transitionTimingFunction = 'ease-in';
+                    self.HTML.style.transform = 'translateX(400px)';
+                    clearInterval(self.timer);
+                    setTimeout(function() {
+                        self.HTML.remove();
+                        delete BANNERS[self.id];
+                    }, 1250);
+                } catch (err) {}
+            }, (time*1000)+1000);
+        
+            BANNERS[self.id] = self;
+            return self;
+        }
+    }
 }
 
 // input sending
@@ -556,6 +589,8 @@ socket.on('winner', function(id) {
         ingameBack();
         inmenu = false;
         var color = PLAYER_LIST[id].color;
+        if (color == '#FFFFFF00') color = '#FFFFFF';
+        if (color == '#000000') color = '#FFFFFF';
         var name = PLAYER_LIST[id].name;
         ingame = false;
         canmove = false;
@@ -886,16 +921,16 @@ socket.on('updateTrackedData',async  function(pkg) {
 socket.on('effect', async function(effect) {
     switch (effect) {
         case 'speed':
-            Banner('Buff: SPEED', '+20% movespeed 10s', '#FFFF00', 10);
+            Banner('Buff: SPEED', '+20% movespeed ::time', '#FFFF00', 10);
             break;
         case 'speed2':
-            Banner('Buff: SPEED 2', '+50% movespeed 10s', '#FFFF00', 10);
+            Banner('Buff: SPEED 2', '+50% movespeed ::time', '#FFFF00', 10);
             break;
         case 'slowness':
-            Banner('DeBuff: SLOWNESS', '-25% movespeed 5s', '#FFFFFF', 5);
+            Banner('DeBuff: SLOWNESS', '-25% movespeed ::time', '#FFFFFF', 5);
             break;
         case 'jump':
-            Banner('Buff: JUMP BOOST', '+20% jump height 10s', '#FF9900', 10);
+            Banner('Buff: JUMP BOOST', '+20% jump height ::time', '#FF9900', 10);
             break;
         case 'heal':
             Banner('Buff: HEAL', 'You were healed!', '#008000', 5);
@@ -907,13 +942,13 @@ socket.on('effect', async function(effect) {
             Banner('Buff: SHIELD', 'Shield Get!', '#0080FF', 5);
             break;
         case 'homing':
-            Banner('Buff: HOMING BULLETS', 'Homing bullets 20s', '#00FF00', 10);
+            Banner('Buff: HOMING BULLETS', 'Homing bullets ::time', '#00FF00', 10);
             break;
         case 'firerate':
-            Banner('Buff: MACHINE GUN', 'x2 bullet rate 10s', '#FF0000', 10);
+            Banner('Buff: MACHINE GUN', 'x2 bullet rate ::time', '#FF0000', 10);
             break;
         case 'firerate2':
-            Banner('Buff: MINIGUN', 'x3 bullet rate 10s', '#FF0000', 10);
+            Banner('Buff: MINIGUN', 'x3 bullet rate ::time', '#FF0000', 10);
             break;
         case 'goldenbullet':
             Banner('Buff: GOLDEN BULLET', '1 Shot kill', '#FFDD00', 5);

@@ -156,14 +156,10 @@ bottest = function() {
         var localbot = new Bot(true)
         localbot.respawn(60,60)
         i++;
-        if (i > 14) {
+        if (i > 6) {
             clearInterval(botcreate)
         }
     }, 500)
-    setInterval(function() {
-        SERVER.findUser('Sampleprovider(sp)').invincible = true
-        SERVER.findUser('Sampleprovider(sp)').noclip = true
-    }, 1000)
 }
 // client connection
 io.on('connection', function(socket) {

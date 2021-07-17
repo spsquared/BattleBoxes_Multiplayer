@@ -969,7 +969,7 @@ Bot.update = function() {
 // loot boxes
 LootBox = function(x, y) {
     var self = new Entity();
-    self.halfsize = 20;
+    self.halfsize = 200;
     self.x = x;
     self.y = y;
     self.roundId = round.id;
@@ -1008,123 +1008,124 @@ LootBox = function(x, y) {
 
     self.update = function() {
         for (var i in PLAYER_LIST) {
-            var localplayer = PLAYER_LIST[i];
-            if (Math.abs(self.x-localplayer.x) < 36 && Math.abs(self.y-localplayer.y) < 36) {
+            var playerid = i;
+            if (Math.abs(self.x-PLAYER_LIST[playerid].x) < 36 && Math.abs(self.y-PLAYER_LIST[playerid].y) < 36) {
+                self.roundId = round.id;
                 try {
                     switch (self.effect) {
                         case 'speed':
-                            localplayer.modifiers.moveSpeed *= 1.2;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'speed');
+                            PLAYER_LIST[playerid].modifiers.moveSpeed *= 1.2;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'speed');
                             setTimeout(function() {
-                                if (round.id == self.roundId) localplayer.modifiers.moveSpeed *= (5/6);
+                                if (round.id == self.roundId) PLAYER_LIST[playerid].modifiers.moveSpeed *= (5/6);
                             }, 10000);
-                            localplayer.trackedData.lootboxcollections.speed++;
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.speed++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         case 'speed2':
-                            localplayer.modifiers.moveSpeed *= 1.5;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'speed2');
+                            PLAYER_LIST[playerid].modifiers.moveSpeed *= 1.5;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'speed2');
                             setTimeout(function() {
-                                if (round.id == self.roundId) localplayer.modifiers.moveSpeed *= (2/3);
+                                if (round.id == self.roundId) PLAYER_LIST[playerid].modifiers.moveSpeed *= (2/3);
                             }, 10000);
-                            localplayer.trackedData.lootboxcollections.speed++;
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.speed++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         case 'slowness':
-                            localplayer.modifiers.moveSpeed *= 0.75;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'slowness');
+                            PLAYER_LIST[playerid].modifiers.moveSpeed *= 0.75;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'slowness');
                             setTimeout(function() {
-                                if (round.id == self.roundId) localplayer.modifiers.moveSpeed *= (4/3);
+                                if (round.id == self.roundId) PLAYER_LIST[playerid].modifiers.moveSpeed *= (4/3);
                             }, 5000);
-                            localplayer.trackedData.lootboxcollections.unlucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.unlucky++;
                             break;
                         case 'jump':
-                            localplayer.modifiers.jumpHeight *= 1.2;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'jump');
+                            PLAYER_LIST[playerid].modifiers.jumpHeight *= 1.2;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'jump');
                             setTimeout(function() {
-                                if (round.id == self.roundId) localplayer.modifiers.jumpHeight *= (5/6);
+                                if (round.id == self.roundId) PLAYER_LIST[playerid].modifiers.jumpHeight *= (5/6);
                             }, 10000);
-                            localplayer.trackedData.lootboxcollections.jump++;
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.jump++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         case 'heal':
-                            localplayer.hp = 5;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'heal');
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].hp = 5;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'heal');
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         case 'damage':
-                            localplayer.hp -= 2;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'damage');
-                            localplayer.trackedData.lootboxcollections.unlucky++;
+                            PLAYER_LIST[playerid].hp -= 2;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'damage');
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.unlucky++;
                             break;
                         case 'shield':
-                            localplayer.shield = 5;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'shield');
-                            localplayer.trackedData.lootboxcollections.shield++;
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].shield = 5;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'shield');
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.shield++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         case 'homing':
-                            localplayer.modifiers.homingBullets = true;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'homing');
+                            PLAYER_LIST[playerid].modifiers.homingBullets = true;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'homing');
                             setTimeout(function() {
-                                if (round.id == self.roundId) localplayer.modifiers.homingBullets = false;
+                                if (round.id == self.roundId) PLAYER_LIST[playerid].modifiers.homingBullets = false;
                             }, 20000);
-                            localplayer.trackedData.lootboxcollections.homing++;
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.homing++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;   
                         case 'firerate':
-                            localplayer.modifiers.bulletRate *= 2;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate');
+                            PLAYER_LIST[playerid].modifiers.bulletRate *= 2;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'firerate');
                             setTimeout(function() {
-                                if (round.id == self.roundId) localplayer.modifiers.bulletRate *= (1/2);
+                                if (round.id == self.roundId) PLAYER_LIST[playerid].modifiers.bulletRate *= (1/2);
                             }, 10000);
-                            localplayer.trackedData.lootboxcollections.firerate++;
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.firerate++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         case 'firerate2':
-                            localplayer.modifiers.bulletRate *= 3;
-                            SOCKET_LIST[localplayer.socketid].emit('effect', 'firerate');
+                            PLAYER_LIST[playerid].modifiers.bulletRate *= 3;
+                            SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'firerate');
                             setTimeout(function() {
-                                if (round.id == self.roundId) localplayer.modifiers.bulletRate *= (1/3);
+                                if (round.id == self.roundId) PLAYER_LIST[playerid].modifiers.bulletRate *= (1/3);
                             }, 10000);
-                            localplayer.trackedData.lootboxcollections.firerate++;
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.firerate++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         case 'special':
                             var random = Math.random();
                             if (random <= 0.1) {
-                                localplayer.modifiers.bulletDamage = 100;
-                                SOCKET_LIST[localplayer.socketid].emit('effect', 'goldenbullet');
-                                var localachievement = localplayer.trackedData.locate(localplayer, 'aqquire_goldenbullet');
+                                PLAYER_LIST[playerid].modifiers.bulletDamage = 100;
+                                SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'goldenbullet');
+                                var localachievement = PLAYER_LIST[playerid].trackedData.locate(PLAYER_LIST[playerid], 'aqquire_goldenbullet');
                                 if (localachievement) {
-                                    if (localachievement.aqquired == false) localplayer.trackedData.grant(localplayer.name, localachievement);
+                                    if (localachievement.aqquired == false) PLAYER_LIST[playerid].trackedData.grant(PLAYER_LIST[playerid].name, localachievement);
                                 }
                             } else if (random <= 0.4) {
-                                localplayer.modifiers.bulletDamage = 2;
-                                SOCKET_LIST[localplayer.socketid].emit('effect', 'superbullets');
+                                PLAYER_LIST[playerid].modifiers.bulletDamage = 2;
+                                SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'superbullets');
                             } else if (random <= 0.7) {
-                                localplayer.modifiers.bulletSpeed = 1.5;
-                                localplayer.secondary.id = 'noclipbullets';
-                                localplayer.secondary.maxCPS = 1;
-                                SOCKET_LIST[localplayer.socketid].emit('effect', 'noclipbullet');
+                                PLAYER_LIST[playerid].modifiers.bulletSpeed = 1.5;
+                                PLAYER_LIST[playerid].secondary.id = 'noclipbullets';
+                                PLAYER_LIST[playerid].secondary.maxCPS = 1;
+                                SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'noclipbullet');
                             } else if (random <= 0.8) {
-                                localplayer.secondary.id = 'pathfindbullets';
-                                localplayer.secondary.maxCPS = 0.5;
-                                SOCKET_LIST[localplayer.socketid].emit('effect', 'pathfindbullets');
+                                PLAYER_LIST[playerid].secondary.id = 'pathfindbullets';
+                                PLAYER_LIST[playerid].secondary.maxCPS = 0.5;
+                                SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'pathfindbullets');
                             } else {
-                                localplayer.secondary.id = 'yeet';
-                                localplayer.secondary.maxCPS = 0.05;
-                                SOCKET_LIST[localplayer.socketid].emit('effect', 'yeet');
+                                PLAYER_LIST[playerid].secondary.id = 'yeet';
+                                PLAYER_LIST[playerid].secondary.maxCPS = 0.05;
+                                SOCKET_LIST[PLAYER_LIST[playerid].socketid].emit('effect', 'yeet');
                             }
-                            localplayer.trackedData.lootboxcollections.lucky++;
+                            PLAYER_LIST[playerid].trackedData.lootboxcollections.lucky++;
                             break;
                         default:
                             stop('ERROR: INVALID LOOTBOX');
                             break;
                     }
-                    localplayer.trackedData.lootboxcollections.total++;
+                    PLAYER_LIST[playerid].trackedData.lootboxcollections.total++;
                     if (self.obfuscated) {
-                        localplayer.trackedData.lootboxcollections.random++;
+                        PLAYER_LIST[playerid].trackedData.lootboxcollections.random++;
                     }
                     TrackedData.update();
                     io.emit('deletelootbox', self.id);
@@ -1141,81 +1142,84 @@ LootBox = function(x, y) {
         for (var i in BOT_LIST) {
             var localbot = BOT_LIST[i];
             if (Math.abs(self.x-localbot.x) < 36 && Math.abs(self.y-localbot.y) < 36) {
-                switch (self.effect) {
-                    case 'speed':
-                        localbot.modifiers.moveSpeed *= 1.2;
-                        setTimeout(function() {
-                            if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (5/6);
-                        }, 10000);
-                        break;
-                    case 'speed2':
-                        localbot.modifiers.moveSpeed *= 1.5;
-                        setTimeout(function() {
-                            if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (2/3);
-                        }, 10000);
-                        break;
-                    case 'slowness':
-                        localbot.modifiers.moveSpeed *= 0.75;
-                        setTimeout(function() {
-                            if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (4/3);
-                        }, 5000);
-                        break;
-                    case 'jump':
-                        localbot.modifiers.jumpHeight *= 1.2;
-                        setTimeout(function() {
-                            if (round.id == self.roundId) localbot.modifiers.jumpHeight *= (5/6);
-                        }, 10000);
-                        break;
-                    case 'heal':
-                        localbot.hp = 5;
-                        break;
-                    case 'damage':
-                        localbot.hp -= 2;
-                        break;
-                    case 'shield':
-                        localbot.shield = 5;
-                        break;
-                    case 'homing':
-                        localbot.modifiers.homingBullets = true;
-                        setTimeout(function() {
-                            if (round.id == self.roundId) localbot.modifiers.homingBullets = false;
-                        }, 20000);
-                        break;   
-                    case 'firerate':
-                        localbot.modifiers.bulletRate *= 2;
-                        setTimeout(function() {
-                            if (round.id == self.roundId) localbot.modifiers.bulletRate *= (1/2);
-                        }, 10000);
-                        break;
-                    case 'firerate2':
-                        localbot.modifiers.bulletRate *= 3;
-                        setTimeout(function() {
-                            if (round.id == self.roundId) localbot.modifiers.bulletRate *= (1/3);
-                        }, 10000);
-                        break;
-                    case 'special':
-                        var random = Math.random();
-                        if (random <= 0.1) {
-                            localbot.modifiers.bulletDamage = 100;
+                try {
 
-                        } else if (random <= 0.4) {
-                            localbot.modifiers.bulletDamage = 2;
-                        } else if (random <= 0.7) {
-                            localbot.modifiers.bulletSpeed = 1.5;
-                            localbot.secondary.id = 'noclipbullets';
-                            localbot.secondary.maxCPS = 1;
-                        } else if (random <= 0.8) {
-                            localbot.secondary.id = 'pathfindbullets';
-                            localbot.secondary.maxCPS = 0.5;
-                        } else {
-                            localbot.secondary.id = 'yeet';
-                            localbot.secondary.maxCPS = 0.05;
-                        }
-                        break;
-                    default:
-                        stop('ERROR: INVALID LOOTBOX');
-                        break;
-                }
+                    switch (self.effect) {
+                        case 'speed':
+                            localbot.modifiers.moveSpeed *= 1.2;
+                            setTimeout(function() {
+                                if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (5/6);
+                            }, 10000);
+                            break;
+                        case 'speed2':
+                            localbot.modifiers.moveSpeed *= 1.5;
+                            setTimeout(function() {
+                                if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (2/3);
+                            }, 10000);
+                            break;
+                        case 'slowness':
+                            localbot.modifiers.moveSpeed *= 0.75;
+                            setTimeout(function() {
+                                if (round.id == self.roundId) localbot.modifiers.moveSpeed *= (4/3);
+                            }, 5000);
+                            break;
+                        case 'jump':
+                            localbot.modifiers.jumpHeight *= 1.2;
+                            setTimeout(function() {
+                                if (round.id == self.roundId) localbot.modifiers.jumpHeight *= (5/6);
+                            }, 10000);
+                            break;
+                        case 'heal':
+                            localbot.hp = 5;
+                            break;
+                        case 'damage':
+                            localbot.hp -= 2;
+                            break;
+                        case 'shield':
+                            localbot.shield = 5;
+                            break;
+                        case 'homing':
+                            localbot.modifiers.homingBullets = true;
+                            setTimeout(function() {
+                                if (round.id == self.roundId) localbot.modifiers.homingBullets = false;
+                            }, 20000);
+                            break;   
+                        case 'firerate':
+                            localbot.modifiers.bulletRate *= 2;
+                            setTimeout(function() {
+                                if (round.id == self.roundId) localbot.modifiers.bulletRate *= (1/2);
+                            }, 10000);
+                            break;
+                        case 'firerate2':
+                            localbot.modifiers.bulletRate *= 3;
+                            setTimeout(function() {
+                                if (round.id == self.roundId) localbot.modifiers.bulletRate *= (1/3);
+                            }, 10000);
+                            break;
+                        case 'special':
+                            var random = Math.random();
+                            if (random <= 0.1) {
+                                localbot.modifiers.bulletDamage = 100;
+    
+                            } else if (random <= 0.4) {
+                                localbot.modifiers.bulletDamage = 2;
+                            } else if (random <= 0.7) {
+                                localbot.modifiers.bulletSpeed = 1.5;
+                                localbot.secondary.id = 'noclipbullets';
+                                localbot.secondary.maxCPS = 1;
+                            } else if (random <= 0.8) {
+                                localbot.secondary.id = 'pathfindbullets';
+                                localbot.secondary.maxCPS = 0.5;
+                            } else {
+                                localbot.secondary.id = 'yeet';
+                                localbot.secondary.maxCPS = 0.05;
+                            }
+                            break;
+                        default:
+                            stop('ERROR: INVALID LOOTBOX');
+                            break;
+                    }
+                } catch (err) {stop(err)}
                 io.emit('deletelootbox', self.id);
                 self.valid = false;
                 setTimeout(function() {
