@@ -4,11 +4,12 @@ resourcesloaded++;
 PLAYER_LIST = [];
 BULLET_LIST = [];
 LOOT_BOXES = [];
+PARTICLES = [];
 DEBUG_INFO = [];
 HP_Color = ['#FFFFFF', '#FF0000', '#FF9900', '#FFFF00', '#99FF00', '#00FF00'];
 
 // entity
-Entity = function(id, x, y, color, docollisions) {
+Entity = function(id, x, y, color) {
     var self = {
         x: x,
         y: y,
@@ -16,7 +17,6 @@ Entity = function(id, x, y, color, docollisions) {
         rely: 0,
         id: id,
         color: color,
-        collide: docollisions,
         debug:false
     };
 
@@ -39,11 +39,12 @@ Player = function(id, name, color) {
     self.shield = 0;
     self.score = 0;
     self.alive = true;
-    PLAYER_LIST[self.id] = self;
     
     self.update = function(x, y, hp, shield) {
         self.x = x;
         self.y = y;
+        if (hp < self.hp) new Particle(x, y, 'damage', self.hp-hp);
+        if (hp > self.hp) new Particle(x, y, 'heal', hp-self.hp);
         self.hp = hp;
         self.shield = shield;
         self.relx = -(camera.x - self.x);
@@ -73,6 +74,7 @@ Player = function(id, name, color) {
         }
     }
 
+    PLAYER_LIST[self.id] = self;
     return self;
 }
 Player.update = function(players) {
@@ -92,13 +94,13 @@ Bullet = function(id, x, y, parent, color) {
     var self = new Entity(id, x, y, color);
     self.todelete = false;
     self.parent = parent;
-    BULLET_LIST[self.id] = self;
 
     self.draw = function() {
         game.fillStyle = self.color;
         game.fillRect(self.relx-4, self.rely-4, 8, 8);
     }
 
+    BULLET_LIST[self.id] = self;
     return self;
 }
 Bullet.update = function(bullets) {
@@ -126,7 +128,6 @@ LootBox = function(id, x, y, effect, obfuscated) {
     } else {
         self.img.src = './client/img/LootBox_' + self.effect + '.png';
     }
-    LOOT_BOXES[self.id] = self;
 
     self.update = function() {
         self.relx = -(camera.x - self.x);
@@ -135,6 +136,9 @@ LootBox = function(id, x, y, effect, obfuscated) {
     self.draw = function() {
         game.drawImage(self.img, self.relx-20, self.rely-20, 40, 40);
     }
+
+    LOOT_BOXES[self.id] = self;
+    return self;
 }
 LootBox.update = function() {
     for (var i in LOOT_BOXES) {
@@ -144,6 +148,70 @@ LootBox.update = function() {
 LootBox.draw = function() {
     for (var i in LOOT_BOXES) {
         LOOT_BOXES[i].draw();
+    }
+}
+
+// particles
+Particle = function(x, y, type, value) {
+    var self = new Entity(null, x, y, null);
+    self.id = Math.random();
+    self.xSpeed = Math.random()*20-10;
+    self.ySpeed = -Math.random()*10;
+    self.opacity = 2;
+    if (type == 'damage') {
+        self.type = 'text';
+        self.value = '-' + value;
+        self.color = 'rgba(255,0,0,';
+    }
+    if (type == 'heal') {
+        self.type = 'text';
+        self.value = '+' + value;
+        self.color = 'rgba(0,255,0,';
+    }
+    if (type == 'explosion') {
+        self.type = 'box';
+        self.size = Math.random()*8+8;
+        var code = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(value);
+        self.color = 'rgba(' + parseInt(code[1], 16) + ',' + parseInt(code[2], 16) + ',' + parseInt(code[3], 16) + ',';
+    }
+
+    self.update = function() {
+        self.x += self.xSpeed;
+        self.y += self.ySpeed;
+        self.xSpeed *= 0.9;
+        self.ySpeed += 1;
+        self.relx = -(camera.x - self.x);
+        self.rely = -(camera.y - self.y);
+        self.opacity -= 0.1;
+        if (self.opacity <= 0) delete PARTICLES[self.id];
+    }
+    self.draw = function() {
+        if (self.type == 'text') {
+            game.textAlign = 'center';
+            game.font = '20px Pixel';
+            if (self.opacity > 1) game.fillStyle = self.color + ')';
+            else game.fillStyle = self.color + self.opacity + ')';
+            game.fillText(self.value, self.relx, self.rely);
+        } else if (self.type == 'box') {
+            if (self.opacity > 1) game.fillStyle = self.color + ')';
+            else game.fillStyle = self.color + self.opacity + ')';
+            game.fillRect(self.relx-self.size/2, self.rely-self.size/2, self.size, self.size);
+        } else {
+            console.error('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA WHAT');
+        }
+    }
+
+    PARTICLES[self.id] = self;
+    return self;
+}
+Particle.update = function() {
+    for (var i in PARTICLES) {
+        PARTICLES[i].update();
+    }
+}
+Particle.draw = function() {
+    for (var i in PARTICLES) {
+        PARTICLES[i].draw();
     }
 }
 
@@ -176,5 +244,23 @@ socket.on('deletelootbox', function(id) {
     if (ingame) delete LOOT_BOXES[id];
 });
 socket.on('playerdied', function(id) {
-    if (ingame) PLAYER_LIST[id].alive = false;
+    if (ingame) {
+        PLAYER_LIST[id].alive = false;
+        for (var i = 0; i < Math.random()*10+20; i++) {
+            new Particle(PLAYER_LIST[id].x, PLAYER_LIST[id].y, 'explosion', PLAYER_LIST[id].color);
+        }
+        if (id == player.id) {
+            deathFadeOpacity = 0;
+            var fadein = setInterval(function() {
+                deathFadeOpacity += 0.1;
+                if (deathFadeOpacity >= 0.5) clearInterval(fadein);
+            }, 20);
+            setTimeout(function() {
+                var fadeout = setInterval(function() {
+                    deathFadeOpacity -= 0.1;
+                    if (deathFadeOpacity <= 0) clearInterval(fadeout);
+                }, 20);
+            }, 100);
+        }
+    }
 });

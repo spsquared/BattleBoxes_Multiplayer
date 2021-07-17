@@ -1,9 +1,9 @@
 // Copyright (C) 2021 Radioactive64
 // Go to README.md for more information
 
-console.info('\x1b[33m%s\x1b[0m', '-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.4.2 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses\n-----------------------------------------------------------------------');
+console.info('\x1b[33m%s\x1b[0m', '-----------------------------------------------------------------------\nBattleBoxes Multiplayer Server v-1.4.3 Copyright (C) 2021 Radioactive64\nFull license can be found in LICENSE or at https://www.gnu.org/licenses\n-----------------------------------------------------------------------');
 // start server
-console.log('\x1b[32m%s\x1b[0m', '\n  This server is running BattleBoxes Server v-1.4.2\n');
+console.log('\x1b[32m%s\x1b[0m', '\n  This server is running BattleBoxes Server v-1.4.3\n');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
@@ -156,14 +156,10 @@ bottest = function() {
         var localbot = new Bot(true)
         localbot.respawn(60,60)
         i++;
-        if (i > 14) {
+        if (i > 6) {
             clearInterval(botcreate)
         }
     }, 500)
-    setInterval(function() {
-        SERVER.findUser('Sampleprovider(sp)').invincible = true
-        SERVER.findUser('Sampleprovider(sp)').noclip = true
-    }, 1000)
 }
 
 // client connection
