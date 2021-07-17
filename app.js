@@ -12,11 +12,11 @@ const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
 const Cryptr = require('cryptr');
-const cryptr = new Cryptr('74a3669d-f373-4b26-9ee1-e6d26aa71c0d');
+const cryptr = new Cryptr('61608107-cda2-454f-b827-6beb0b2966ee');
 const bcrypt = require('bcrypt');
-const salt = 5;
+const salt = 10;
 const { Client } = require('pg');
-const database = new Client({connectionString: cryptr.decrypt('4dd0a6ee3fedd098427c1ee988bf8bcbc7cb401b422829d0d33545b567424da8aa791317d1edf3ea3b9edf0838a10bdee8845e75da2f29c4f84d13e202e7e29f41167457f4bd0c99c058ffec43c25bd1acbc4dd4e63ccc75350c6886fc6f5bbdcb13f403462f08b465ccd384dfb7963bf46005c5461bb9ab0cf99f71773ee63b3a2d28ac359674cfab687e5b16029fee1ceaacaa022fd6a45e349bb417b7e3bbfe029415fd230e06bad2d04a80a9896f83073a87756f5265a2f5159377c40dedd67e7409ef2d249efde5a55e85fab545659db325f5f26ca16226ad41d442d84d31e04abef22c6af117a8dc041d283cd1b77ac0f0bbb833'), ssl:{rejectUnauthorized:false}});
+const database = new Client({connectionString: cryptr.decrypt('bc6ad3b4d95b32a1ef26d32da81c293e89872ddb2c38d3a232cadf7170dcb4d65a0b8af2867e3126a1126b95ddc2e1970f66c5f3cbdc2193673666a0a4624a8f66a27966f8725f74e471440a878fb2eb25f01c5f7d941b53880f8f254673d54c7dc6ba1117e19b192dd47e1ae85f46e170ef322c3b3e7a6a3ce8dcf76250cc049f6ccc3d02f1156803d665def5334105297da4dab71c6e02649703527b165322fe2d68c6e8f28654a5e9108c82f0c12951c35014bd7759a589f52f03b14915153880a22ae661314f60d3c0dc5273bf88360f63449b56f15241091f5bd9e67556b1154d860f916c0a343854879671040cff4c9267e84bca'), ssl:{rejectUnauthorized:false}});
 const spamcheck = require('spam-detection');
 
 require('./server/pathfind.js');
