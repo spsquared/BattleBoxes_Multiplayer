@@ -32,7 +32,7 @@ var documentloaded = false;
 window.onload = function() {
     resourcesloaded++;
     documentloaded = true;
-}
+};
 init();
 
 // init
@@ -158,7 +158,7 @@ function init() {
             }, 100);
         }
     }, 10);
-}
+};
 
 // game init
 document.addEventListener('mousedown', function() {
@@ -179,27 +179,27 @@ chatInput.onkeydown = function(event) {
             toBlur = true;
         }
     }
-}
+};
 chatInput.onkeyup = function(event) {
     if (event.key == 'Enter') {
         if (toBlur) {
             chatInput.blur();
         }
     }
-}
+};
 chatInput.onfocus = function() {
     inchat = true;
     canmove = false;
     socket.emit('keyPress', {key:'W', state:false});
     socket.emit('keyPress', {key:'A', state:false});
     socket.emit('keyPress', {key:'D', state:false});
-}
+};
 chatInput.onblur = function() {
     setTimeout(function() {
         inchat = false;
         canmove = true;
     }, 10);
-}
+};
 socket.on('insertChat', function(msg) {
     if (ingame) {
         message = document.createElement('div');
@@ -226,54 +226,54 @@ document.getElementById('globalVolume').oninput = function() {
     settings.globalvolume = (document.getElementById('globalVolume').value/100);
     document.getElementById('ingameglobalVolume').value = document.getElementById('globalVolume').value;
     updateSettings();
-}
+};
 document.getElementById('musicVolume').oninput = function() {
     settings.musicvolume = (document.getElementById('musicVolume').value/100);
     document.getElementById('ingamemusicVolume').value = document.getElementById('musicVolume').value;
     updateSettings();
-}
+};
 document.getElementById('sfxVolume').oninput = function() {
     settings.sfxvolume = (document.getElementById('sfxVolume').value/100);
     document.getElementById('ingamesfxVolume').value = document.getElementById('sfxVolume').value;
     updateSettings();
-}
+};
 document.getElementById('fpsSelect').oninput = function() {
     settings.fps = document.getElementById('fpsSelect').value;
     document.getElementById('ingamefpsSelect').value = document.getElementById('fpsSelect').value;
     updateSettings();
-}
+};
 document.getElementById('renderQuality').oninput = function() {
     settings.renderQuality = (document.getElementById('renderQuality').value/100);
     document.getElementById('ingamerenderQuality').value = document.getElementById('renderQuality').value;
     // document.getElementById('renderQuality').value = 150;
     updateSettings();
-}
+};
 document.getElementById('ingameglobalVolume').oninput = function() {
     settings.globalvolume = (document.getElementById('ingameglobalVolume').value/100);
     document.getElementById('globalVolume').value = document.getElementById('ingameglobalVolume').value;
     updateSettings();
-}
+};
 document.getElementById('ingamemusicVolume').oninput = function() {
     settings.musicvolume = (document.getElementById('ingamemusicVolume').value/100);
     document.getElementById('musicVolume').value = document.getElementById('ingamemusicVolume').value;
     updateSettings();
-}
+};
 document.getElementById('ingamesfxVolume').oninput = function() {
     settings.sfxvolume = (document.getElementById('ingamesfxVolume').value/100);
     document.getElementById('sfxVolume').value = document.getElementById('ingamesfxVolume').value;
     updateSettings();
-}
+};
 document.getElementById('ingamefpsSelect').oninput = function() {
     settings.fps = document.getElementById('ingamefpsSelect').value;
     document.getElementById('fpsSelect').value = document.getElementById('ingamefpsSelect').value;
     updateSettings();
-}
+};
 document.getElementById('ingamerenderQuality').oninput = function() {
     settings.renderQuality = (document.getElementById('ingamerenderQuality').value/100);
     document.getElementById('renderQuality').value = document.getElementById('ingamerenderQuality').value;
     // document.getElementById('ingamerenderQuality').value = 150;
     updateSettings();
-}
+};
 
 // connection handlers
 socket.on('disconnected', function() {
@@ -319,7 +319,7 @@ async function updateSettings() {
     var date = new Date();
     date.setUTCFullYear(date.getUTCFullYear()+10, date.getUTCMonth(), date.getUTCDate());
     document.cookie = 'settings=' + cookiestring + '; expires=' + date + ';';
-}
+};
 
 // achievements functions
 async function updateAchievements() {
@@ -362,12 +362,12 @@ async function updateAchievements() {
             achievement2.style.display = 'block';
         }
     }
-}
+};
 
 // sound
 music.oncanplay = function() {
     music.play();
-}
+};
 music.addEventListener('ended', function() {
     if (!ingame) {
         music.play();
@@ -388,7 +388,7 @@ function playsound(src) {
     sound.addEventListener('ended', function() {
         sound.remove();
     });
-}
+};
 
 // screen resizing
 window.onresize = function() {
@@ -414,7 +414,7 @@ window.onresize = function() {
     document.getElementById('scoreTable').style.width = ((window.innerWidth*0.75)-12) + 'px';
     camera.width = window.innerWidth/2;
     camera.height = window.innerHeight/2;
-}
+};
 // fullscreen
 function toggleFullscreen() {
     if (settings.fullscreen) {
@@ -430,12 +430,12 @@ function toggleFullscreen() {
         document.getElementById('ingamefullscreen').style.backgroundColor = 'lime';
         settings.fullscreen = true;
     }
-}
+};
 
 // very important sleep function
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
+};
 
 // debug
 function debug() {
@@ -450,14 +450,14 @@ function debug() {
     document.getElementById('fxOverlay').style.height = '800px';
     document.getElementById('fxOverlay').src = '/client/img/Debugging.png';
     document.getElementById('fxOverlay').style.display = 'inline-block';
-}
-function HCBBM() {}
+};
+function HCBBM() {};
 
 // console access
 const consoleAccess = new URLSearchParams(window.location.search).get('console');
 if (consoleAccess) {
     adminConsole();
-}
+};
 function adminConsole() {
     if (consoleAccess) {
         var consoleHistory = [];
@@ -577,4 +577,4 @@ function adminConsole() {
     } else {
         console.error('No permission to perform this action!');
     }
-}
+};

@@ -19,7 +19,7 @@
         {"id":"100total_Lootboxes", "name":"Loot Finder", "aqquired":false},
         {"id":"1000total_Lootboxes", "name":"Looty McLootFace", "aqquired":false},
         {"id":"1lucky_Lootboxes", "name":"Lucky Man", "aqquired":false},
-        {"id":"100lucky_Lootboxes", "name":"Lucky pants", "aqquired":false},
+        {"id":"100lucky_Lootboxes", "name":"Lucky Pants", "aqquired":false},
         {"id":"1000lucky_Lootboxes", "name":"Gambler", "aqquired":false},
         {"id":"1unlucky_Lootboxes", "name":"Better Luck Next Time!", "aqquired":false},
         {"id":"100unlucky_Lootboxes", "name":"Gambler that Didn't Quit When they Should Have", "aqquired":false},

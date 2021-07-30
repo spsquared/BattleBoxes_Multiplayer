@@ -35,7 +35,7 @@ insertChat = function(text, textcolor) {
     console.log('\x1b[36m%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
     var msg = '[' + time.getUTCHours() + ':' + utcminute + '] ' + text;
     io.emit('insertChat', {msg:msg, color:color});
-}
+};
 log = function(text) {
     var time = new Date();
     var minute = '' + time.getMinutes();
@@ -46,7 +46,7 @@ log = function(text) {
         minute = '00';
     }
     console.log('[' + time.getHours() + ':' + minute + '] ' + text);
-}
+};
 logColor = function(text, colorstring) {
     var time = new Date();
     var minute = '' + time.getMinutes();
@@ -57,7 +57,7 @@ logColor = function(text, colorstring) {
         minute = '00';
     }
     console.log(colorstring + '%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
-}
+};
 error = function(text) {
     var time = new Date();
     var minute = '' + time.getMinutes();
@@ -68,7 +68,7 @@ error = function(text) {
         minute = '00';
     }
     console.error('\x1b[31m%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
-}
+};
 
 // game functions
 startGame = function() {
@@ -94,7 +94,7 @@ startGame = function() {
         gameinProgress = true;
         startRound();
     }, 1000);
-}
+};
 endGame = function(id) {
     if (id == null) {
         insertChat('Game was cut short.', '#000000');
@@ -115,7 +115,7 @@ endGame = function(id) {
     gameinProgress = false;
     round.id = Math.random();
     CURRENT_MAP = 0;
-}
+};
 // round functions
 startRound = function() {
     if (gameinProgress) {
@@ -191,7 +191,7 @@ startRound = function() {
         insertChat('Round ' + round.number + '!', '#000000');
         round.inProgress = true;
     }
-}
+};
 endRound = function() {
     io.emit('roundend');
     round.inProgress = false;
@@ -227,7 +227,7 @@ endRound = function() {
             startRound();
         }, 1000);
     }
-}
+};
 
 // achievements
 TrackedData = function() {
@@ -314,7 +314,7 @@ TrackedData = function() {
         {id:"null_EasterEgg", name:"Hacker", aqquired:false}
     ];
     return self;
-}
+};
 TrackedData.update = function() {
     var pack = [];
     for (var i in PLAYER_LIST) {
@@ -331,7 +331,7 @@ TrackedData.update = function() {
         }
         io.emit('updateTrackedData', pack);
     }
-}
+};
 
 // debug
 TrackedData.log = function() {
@@ -339,4 +339,4 @@ TrackedData.log = function() {
         var localplayer = PLAYER_LIST[i];
         console.log(localplayer.trackedData);
     }
-}
+};

@@ -3,7 +3,7 @@ BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!
 
 ***
 
-## How to Play
+# How to Play
 
 ### Installation
 I cannot distribute node.js as I do not own any rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system). Then simply double-click on Start.bat or Start.sh and the server is running!
@@ -15,9 +15,10 @@ Once the server is started, you can find your computer's name (available in Wind
 
 ### Gameplay
 Visit the [wiki](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/wiki) for more information.
+
 ***
 
-## Troubleshooting
+# Troubleshooting
 #### My Server Crashed
 In the case that your server crashes, stop all other instances of the game and locate PORTS.txt in "/server/PORTS.txt", and set it to zero. Then go to the [GitHub repository](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) and [submit a bug report](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/new?assignees=&labels=bug&template=bug-report.md&title=BUG+-+%5BSummary+here%5D) with a screenshot of the console if applicable.
 #### I can't Connect to the Server (ERROR_Connection_Refused)
@@ -34,7 +35,7 @@ If you can't resolve your problem after trying these solutions or your problem i
 
 ***
 
-## Changelog
+# Changelog
 
 | Version | Changes                      |
 | ------- | ---------------------------- |
@@ -82,7 +83,7 @@ If you can't resolve your problem after trying these solutions or your problem i
 
 ***
 
-## License
+# License
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -90,7 +91,7 @@ Full license can be found in the LICENSE file.
 
 ***
 
-## Credits
+# Credits
 
 ##### Contributors:
 - [Radioactive64](https://github.com/definitely-nobody-is-here) (hey look me!)

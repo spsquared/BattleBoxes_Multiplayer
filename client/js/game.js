@@ -57,7 +57,7 @@ var load = {
     mapsready: false,
     progress: 0,
     total: 0
-}
+};
 var winOverlay = new Image();
 var winOverlay2 = new Image();
 
@@ -103,10 +103,10 @@ function resetFPS() {
             fpsCounter2++;
         }
     }, 1000/settings.fps);
-}
+};
 function drawMap() {
     game.drawImage(MAPS[CURRENT_MAP], -camera.x, -camera.y, MAPS[CURRENT_MAP].width, MAPS[CURRENT_MAP].height);
-}
+};
 function updateCamera() {
     // collisions to move camera
     if ((camera.x+(camera.width/2)) > (player.x-16)) {
@@ -133,7 +133,7 @@ function updateCamera() {
     if ((camera.y+(camera.height*2)) > MAPS[CURRENT_MAP].height) {
        camera.y = (MAPS[CURRENT_MAP].height-(camera.height*2));
     }
-}
+};
 function drawDebug(data, isplayer) {
     if (isplayer) {
         // draw debug headers
@@ -203,16 +203,47 @@ function drawDebug(data, isplayer) {
         game.beginPath();
         game.strokeStyle = '#0000FF';
         game.strokeWidth = '2px';
+        game.textAlign = 'center';
+        game.fillStyle = '#0000FF';
+        game.font = '12px Pixel';
         for (var i in path) {
             game.lineTo(path[i].x*40-camera.x+20, path[i].y*40-camera.y+20);
-            game.textAlign = 'center';
-            game.fillStyle = '#0000FF';
-            game.font = '12px Pixel';
             game.fillText(i, path[i].x*40-camera.x+20, path[i].y*40-camera.y+10);
         }
         game.stroke();
     }
-}
+    if (data.debug.keys) {
+        game.strokeStyle = '#FF9900';
+        game.strokeWidth = '4px';
+        var tempx = ((Math.floor(data.x/40)*40)-camera.x);
+        var tempy = ((Math.floor(data.y/40)*40)-camera.y);
+        if (data.debug.keys.up) {
+            game.beginPath();
+            game.moveTo(tempx+20, tempy+20);
+            game.lineTo(tempx+20, tempy-20);
+            game.stroke();
+        }
+        if (data.debug.keys.down) {
+            game.beginPath();
+            game.moveTo(tempx+20, tempy+20);
+            game.lineTo(tempx+20, tempy+60);
+            game.stroke();
+        }
+        if (data.debug.keys.left) {
+            game.beginPath();
+            game.moveTo(tempx+20, tempy+20);
+            game.lineTo(tempx-20, tempy+20);
+            game.stroke();
+        }
+        if (data.debug.keys.right) {
+            game.beginPath();
+            game.moveTo(tempx+20, tempy+20);
+            game.lineTo(tempx+60, tempy+20);
+            game.stroke();
+        }
+    }
+
+};
 function drawCountdown() {
     game.textAlign = 'center';
     game.fillStyle = mapname.color;
@@ -222,7 +253,7 @@ function drawCountdown() {
     game.font = countdowntext.size + 'px Pixel';
     game.fillText(countdowntext.text, (window.innerWidth/2), ((window.innerHeight/2)+(countdowntext.size/2)-(window.innerHeight/10)));
     player = PLAYER_LIST[player.id];
-}
+};
 socket.on('ping', function() {
     currentDate = Date.now();
     pingCounter = Math.floor(currentDate-lastDate);
@@ -290,7 +321,7 @@ function Banner(topText, bottomText, color, time) {
             return self;
         }
     }
-}
+};
 
 // input sending
 document.onkeydown = function(event) {
@@ -308,7 +339,7 @@ document.onkeydown = function(event) {
             socket.emit('keyPress', {key:'D', state:true});
         }
     }
-}
+};
 document.onkeyup = function(event) {
     if (ingame) {
         if (event.key == 'w' || event.key == 'W' || event.key == 'ArrowUp') {
@@ -363,11 +394,11 @@ document.onkeyup = function(event) {
             //socket.emit('debug');
         }
     }
-}
+};
 document.onmousemove = function(event) {
     mouseX = camera.x+event.clientX-16;
     mouseY = camera.y+event.clientY-16;
-}
+};
 document.onmousedown = function(event) {
     mouseX = camera.x+event.clientX-16;
     mouseY = camera.y+event.clientY-16;
@@ -383,16 +414,16 @@ document.onmousedown = function(event) {
                 break;
         }
     }
-}
+};
 document.onmouseup = function() {
     shooting = false;
-}
+};
 window.onblur = function() {
     socket.emit('keyPress', {key:'W', state:false});
     socket.emit('keyPress', {key:'S', state:false});
     socket.emit('keyPress', {key:'A', state:false});
     socket.emit('keyPress', {key:'D', state:false});
-}
+};
 
 // game functions
 function fadeIn() {
@@ -413,7 +444,7 @@ function fadeIn() {
         document.getElementById('loadingContainer').style.opacity = fadeAmount;
         music.volume = audiofade;
     }, 20);
-}
+};
 function fadeOut() {
     var fadeAmount = 1;
     var audiofade = 0;
@@ -428,7 +459,7 @@ function fadeOut() {
         document.getElementById('loadingContainer').style.opacity = fadeAmount;
         music.volume = audiofade;
     }, 20);
-}
+};
 function ready() {
     if (!readyforstart) {
         socket.emit('ready');
@@ -442,7 +473,7 @@ function ready() {
         }, 20); 
         readyforstart = true;
     }
-}
+};
 
 // join/leave handlers
 socket.on('game-joined', async function() {
@@ -1008,7 +1039,7 @@ function fpsLoop() {
         fpsCounter.push(0);
         fpsLoop();
     });
-}
+};
 fpsLoop();
 
 // waiting for server
@@ -1029,4 +1060,4 @@ waiting = setInterval(async function() {
 
 function achievementtest() {
     Banner(player.name + ' Achievement Get!', 'Achievements tester', 5);
-}
+};

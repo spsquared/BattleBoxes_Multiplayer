@@ -11,12 +11,15 @@ const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
-const Cryptr = require('cryptr');
-const cryptr = new Cryptr('61608107-cda2-454f-b827-6beb0b2966ee');
+const salt = 5;
 const bcrypt = require('bcrypt');
-const salt = 10;
+const ini = require('ini');
+const Cryptr = require('cryptr');
+const key = ini.parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r'));
+const cryptr = new Cryptr(key.key);
+const connectionString = cryptr.decrypt(key.url);
 const { Client } = require('pg');
-const database = new Client({connectionString: cryptr.decrypt('bc6ad3b4d95b32a1ef26d32da81c293e89872ddb2c38d3a232cadf7170dcb4d65a0b8af2867e3126a1126b95ddc2e1970f66c5f3cbdc2193673666a0a4624a8f66a27966f8725f74e471440a878fb2eb25f01c5f7d941b53880f8f254673d54c7dc6ba1117e19b192dd47e1ae85f46e170ef322c3b3e7a6a3ce8dcf76250cc049f6ccc3d02f1156803d665def5334105297da4dab71c6e02649703527b165322fe2d68c6e8f28654a5e9108c82f0c12951c35014bd7759a589f52f03b14915153880a22ae661314f60d3c0dc5273bf88360f63449b56f15241091f5bd9e67556b1154d860f916c0a343854879671040cff4c9267e84bca'), ssl:{rejectUnauthorized:false}});
+const database = new Client({connectionString: connectionString, ssl:{rejectUnauthorized:false}});
 const spamcheck = require('spam-detection');
 
 require('./server/pathfind.js');
@@ -31,7 +34,7 @@ app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');
 app.use('/client',express.static(__dirname + '/client'));
 
 // init functions
-getMap = function(name) {
+function getMap(name) {
     var data1 = require('./' + name);
     var data2 = [[]];
     data2.name = data1.name;
@@ -58,7 +61,7 @@ getMap = function(name) {
         data2.lootspawns[i].y = (data1.lootspawns[i].y*40)+20;
     }
     MAPS[MAPS.length] = data2;
-}
+};
 
 // initialize
 logColor('Starting server...', '\x1b[32m');
@@ -96,6 +99,12 @@ if (process.env.PORT) {
             if (err) stop(err);
             reader.nextLine(function(err, line) {
                 if (err) stop(err);
+                if (line == 'NaN') {
+                    console.warn('\x1b[31m%s\x1b[0m', '\n--------------------------------------------------------------------------------\nUNCAUGHT ERROR: PORTS.txt IS NaN. PLEASE CONSULT README.md FOR MORE INFORMATION.\n--------------------------------------------------------------------------------\n');
+                    database.end();
+                    prompt.close();
+                    process.abort();
+                }
                 if (line >=100) {
                     console.warn('\x1b[31m%s\x1b[0m', '\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
                     database.end();
@@ -106,9 +115,8 @@ if (process.env.PORT) {
                 logColor('There are ' + ports + ' servers running on this host.', '\x1b[32m');
                 var portsstring = ports.toString();
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
-                var i;
-                port = 1000
-                for (i = 1; i < ports; i++) {port += 100;}
+                port = 1000;
+                for (var i = 1; i < ports; i++) {port += 100;}
                 server.listen(port);
                 logColor('Server started, listening to port ' + port + '.', '\x1b[32m');
                 console.log('\n-----------------------------------------------------------------------\n');
@@ -130,26 +138,34 @@ async function getCredentials(usrname) {
     } catch (err) {
         stop(err);
     }
-}
+};
 async function writeCredentials(username, password, userData) {
     try {
         var encryptedpassword = bcrypt.hashSync(password, salt);
+        database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [username, encryptedpassword, userData], function(err, res) {if (err) stop(err);});
     } catch (err) {
         stop(err);
     }
-    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [username, encryptedpassword, userData], function(err, res) {if (err) stop(err);});
-}
+};
 async function deleteCredentials(username) {
-    database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err);});
-}
+    try {
+        database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err);});
+    } catch (err) {
+        stop(err);
+    }
+};
 async function updateCredentials(username, password) {
-    database.query('UPDATE users SET password=$2 WHERE username=$1;', [username, password], function(err, res) {if (err) stop(err);});
-}
+    try {
+        database.query('UPDATE users SET password=$2 WHERE username=$1;', [username, password], function(err, res) {if (err) stop(err);});
+    } catch (err) {
+        stop(err);
+    }
+};
 
 io = require('socket.io') (server, {});
 // Enable TEST_BOT by removing the double slashes (//)
 TEST_BOT = new Bot(true);
-TEST_BOT.respawn(60, 60);
+TEST_BOT.respawn(60, 100);
 bottest = function() {
     var i = 0;
     var botcreate = setInterval(function() {
@@ -319,7 +335,7 @@ io.on('connection', function(socket) {
                         }
                         socket.emit('inittrackedData', player.trackedData);
                         socket.emit('loginConfirmed', 'login');
-                        log('Player with username "' + player.name + '" logged in.');
+                        log('"' + player.name + '" logged in.');
                     }
                 } else {
                     socket.emit('loginFailed', 'incorrect');
@@ -355,7 +371,7 @@ io.on('connection', function(socket) {
                 }
                 await writeCredentials(cred.usrname, cred.psword, player.trackedData);
                 socket.emit('loginConfirmed', 'signup');
-                log('Player "' + player.name + '" signed up.');
+                log('"' + player.name + '" signed up.');
             }
         }
     });
@@ -387,7 +403,7 @@ io.on('connection', function(socket) {
     });
     // game handlers
     socket.on('joingame', function() {
-        log('Player "' + player.name + '" attempted to join game.');
+        log('"' + player.name + '" attempted to join game.');
         var j = 0;
         for (var i in PLAYER_LIST) {
             if (PLAYER_LIST[i].ingame) {
@@ -673,7 +689,7 @@ function queryStop(firstrun) {
             }
         });
     }
-}
+};
 function stop(stoperr) {
     if (stoperr) {
         console.error('\n');
@@ -718,7 +734,7 @@ function stop(stoperr) {
             });
         });
     });
-}
+};
 
 // debug functions
 debug = function() {
@@ -927,5 +943,5 @@ debug = function() {
         }
     }
     return self;
-}
+};
 SERVER = new debug();

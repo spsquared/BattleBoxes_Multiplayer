@@ -21,6 +21,7 @@
     "bcrypt": "^5.0.1",
     "cryptr": "^6.0.2",
     "express": "^4.17.1",
+    "ini": "^2.0.0",
     "jquery": "^3.6.0",
     "jsonfile": "^6.0.1",
     "line-reader": "^0.4.0",

@@ -18,7 +18,7 @@
         {"id":"100total_Lootboxes", "name":"Loot Finder", "description":"Find 100 lootboxes", "color":"dodgerblue", "aqquired":false, "hidden":false},
         {"id":"1000total_Lootboxes", "name":"Looty McLootFace", "description":"Find 1000 lootboxes", "color":"blue", "aqquired":false, "hidden":false},
         {"id":"1lucky_Lootboxes", "name":"Lucky Man", "description": "Find 1 lucky lootbox", "color":"skyblue", "aqquired":false, "hidden":false},
-        {"id":"100lucky_Lootboxes", "name":"Lucky pants", "description":"Find 100 lucky lootboxes", "color":"dodgerblue", "aqquired":false, "hidden":false},
+        {"id":"100lucky_Lootboxes", "name":"Lucky Pants", "description":"Find 100 lucky lootboxes", "color":"dodgerblue", "aqquired":false, "hidden":false},
         {"id":"1000lucky_Lootboxes", "name":"Gambler", "description":"Find 1000 lucky lootboxes", "color":"blue", "aqquired":false, "hidden":false},
         {"id":"1unlucky_Lootboxes", "name":"Better Luck Next Time!", "description":"Find 1 unlucky lootbox", "color":"dodgerblue", "aqquired":false, "hidden":false},
         {"id":"100unlucky_Lootboxes", "name":"Gambler that Didn't Quit When they Should Have", "description":"Find 10 unlucky lootboxes", "color":"blue", "aqquired":false, "hidden":false},

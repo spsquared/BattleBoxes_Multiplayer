@@ -29,7 +29,7 @@ Entity = function(id, x, y, color) {
     self.draw = function() {};
 
     return self;
-}
+};
 
 // player
 Player = function(id, name, color) {
@@ -76,18 +76,18 @@ Player = function(id, name, color) {
 
     PLAYER_LIST[self.id] = self;
     return self;
-}
+};
 Player.update = function(players) {
     for (var i in players) {
         var localplayer = PLAYER_LIST[players[i].id];
         localplayer.update(players[i].x, players[i].y, players[i].hp, players[i].shield);
     }
-}
+};
 Player.draw = function() {
     for (var i in PLAYER_LIST) {
         PLAYER_LIST[i].draw();
     }
-}
+};
 
 // bullets
 Bullet = function(id, x, y, parent, color) {
@@ -102,7 +102,7 @@ Bullet = function(id, x, y, parent, color) {
 
     BULLET_LIST[self.id] = self;
     return self;
-}
+};
 Bullet.update = function(bullets) {
     for (var i in bullets) {
         try {
@@ -110,12 +110,12 @@ Bullet.update = function(bullets) {
             localbullet.update(bullets[i].x, bullets[i].y);
         } catch (err) {}
     }
-}
+};
 Bullet.draw = function() {
     for (var i in BULLET_LIST) {
         BULLET_LIST[i].draw();
     }
-}
+};
 
 // loot boxes
 LootBox = function(id, x, y, effect, obfuscated) {
@@ -139,17 +139,17 @@ LootBox = function(id, x, y, effect, obfuscated) {
 
     LOOT_BOXES[self.id] = self;
     return self;
-}
+};
 LootBox.update = function() {
     for (var i in LOOT_BOXES) {
         LOOT_BOXES[i].update();
     }
-}
+};
 LootBox.draw = function() {
     for (var i in LOOT_BOXES) {
         LOOT_BOXES[i].draw();
     }
-}
+};
 
 // particles
 Particle = function(x, y, type, value) {
@@ -203,17 +203,17 @@ Particle = function(x, y, type, value) {
 
     PARTICLES[self.id] = self;
     return self;
-}
+};
 Particle.update = function() {
     for (var i in PARTICLES) {
         PARTICLES[i].update();
     }
-}
+};
 Particle.draw = function() {
     for (var i in PARTICLES) {
         PARTICLES[i].draw();
     }
-}
+};
 
 // game handlers
 socket.on('initgame', function(pkg) {

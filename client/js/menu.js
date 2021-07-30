@@ -15,7 +15,7 @@ function login() {
     } else {
         socket.emit('login', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
     }
-}
+};
 function signup() {
     if (document.getElementById('usrname').value == '') {
         window.alert('Please provide a Username.');
@@ -28,7 +28,7 @@ function signup() {
     } else {
         socket.emit('signup', {usrname: document.getElementById('usrname').value,psword: document.getElementById('psword').value});
     }
-}
+};
 function deleteAccount(state) {
     if (state == 1) {
         document.getElementById('deleteAccount').innerHTML = ' ARE YOU SURE? ';
@@ -39,7 +39,7 @@ function deleteAccount(state) {
         answer = window.prompt('Type in your password to confirm:');
         socket.emit('deleteAccount', {usrname:document.getElementById('usrname').value, psword:answer});
     }
-}
+};
 function changePassword() {
     var input1 = window.prompt('Please enter your current password:');
     if (input1 == document.getElementById('psword').value) {
@@ -49,7 +49,7 @@ function changePassword() {
     } else {
         window.alert('Incorrect password.');
     }
-}
+};
 socket.on('loginConfirmed', function(state) {
     if (state == 'signup') {
         window.alert('Successfully signed up.');
@@ -101,33 +101,33 @@ function play() {
         document.getElementById('gameContainer').style.display = 'inline-block';
     }, 750);
 
-}
+};
 function openSettings() {
     document.getElementById('mainmenuContainer').style.display = 'none';
     document.getElementById('settingsContainer').style.display = 'inline-block';
-}
+};
 function openAnnouncements() {
     document.getElementById('mainmenuContainer').style.display = 'none';
     document.getElementById('announcementsContainer').style.display = 'inline-block';
-}
+};
 function openAchievements() {
     updateAchievements();
     navStatistics();
     document.getElementById('mainmenuContainer').style.display = 'none';
     document.getElementById('achievementsContainer').style.display = 'inline-block';
-}
+};
 function back() {
     document.getElementById('settingsContainer').style.display = 'none';
     document.getElementById('announcementsContainer').style.display = 'none';
     document.getElementById('achievementsContainer').style.display = 'none';
     document.getElementById('mainmenuContainer').style.display = 'inline-block';
-}
+};
 function disconnectclient() {
     fadeIn();
     setTimeout(function() {
         window.location.reload();
     }, 250);
-}
+};
 function canceljoin() {
     document.getElementById('menuContainer').style.display = 'block';
     document.getElementById('gameContainer').style.display = 'none';
@@ -137,7 +137,7 @@ function canceljoin() {
     music.src = ('/client/sound/Menu.mp3');
     music.play();
     fadeOut();
-}
+};
 
 // achievements menu functions
 function navStatistics() {
@@ -150,7 +150,7 @@ function navStatistics() {
     document.getElementById('navAchievements').style.borderBottom = '';
     document.getElementById('navMeadowGuarder').style.backgroundColor = '';
     document.getElementById('navMeadowGuarder').style.borderBottom = '';
-}
+};
 function navAchievements() {
     document.getElementById('achievementsSTATISTICS').style.display = 'none';
     document.getElementById('achievementsMEADOWGUARDER').style.display = 'none';
@@ -161,7 +161,7 @@ function navAchievements() {
     document.getElementById('navStatistics').style.borderBottom = '';
     document.getElementById('navMeadowGuarder').style.backgroundColor = '';
     document.getElementById('navMeadowGuarder').style.borderBottom = '';
-}
+};
 function navMeadowGuarder() {
     document.getElementById('achievementsSTATISTICS').style.display = 'none';
     document.getElementById('achievementsACHIEVEMENTS').style.display = 'none';
@@ -172,7 +172,7 @@ function navMeadowGuarder() {
     document.getElementById('navStatistics').style.borderBottom = '';
     document.getElementById('navMeadowGuarder').style.backgroundColor = 'grey';
     document.getElementById('navMeadowGuarder').style.borderBottom = 'grey 4px solid';
-}
+};
 
 // ingame menu functions
 function resume() {
@@ -183,16 +183,16 @@ function resume() {
     document.getElementById('credits').style.display = 'none';
     document.getElementById('githublink').style.display = 'none';
     inmenu = false;
-}
+};
 function openingameSettings() {
     document.getElementById('ingameMainMenuContainer').style.display = 'none';
     document.getElementById('ingameSettingsContainer').style.display = 'inline-block';
-}
+};
 function openingameAchievements() {
     updateAchievements();
     document.getElementById('ingameMainMenuContainer').style.display = 'none';
     document.getElementById('ingameAchievementsContainer').style.display = 'inline-block';
-}
+};
 function quittoMenu() {
     socket.emit('leavegame');
     playsound('/client/sound/Leave.mp3');
@@ -222,9 +222,9 @@ function quittoMenu() {
         ingameBack();
         fadeOut();
     }, 1000);
-}
+};
 function ingameBack() {
     document.getElementById('ingameSettingsContainer').style.display = 'none';
     document.getElementById('ingameAchievementsContainer').style.display = 'none';
     document.getElementById('ingameMainMenuContainer').style.display = 'inline-block';
-}
+};
