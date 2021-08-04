@@ -64,7 +64,7 @@ function getMap(name) {
 };
 
 // initialize
-logColor('Starting server...', '\x1b[32m');
+logColor('Starting server...', '\x1b[32m', 'log');
 getMap('./server/Lobby.json');
 getMap('./server/Map1.json');
 getMap('./server/Map2.json');
@@ -90,7 +90,7 @@ try {
 if (process.env.PORT) {
     port = process.env.PORT;
     server.listen(port);
-    logColor('Server started, listening to port ' + port + '.', '\x1b[32m');
+    logColor('Server started, listening to port ' + port + '.', '\x1b[32m', 'log');
     console.log('\n-----------------------------------------------------------------------\n');
 } else {
     fs.open('./server/PORTS.txt', 'a+', function(err) {
@@ -112,13 +112,13 @@ if (process.env.PORT) {
                     process.abort();
                 }
                 ports = parseInt(line)+1;
-                logColor('There are ' + ports + ' servers running on this host.', '\x1b[32m');
+                logColor('There are ' + ports + ' servers running on this host.', '\x1b[32m', 'log');
                 var portsstring = ports.toString();
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
                 port = 1000;
                 for (var i = 1; i < ports; i++) {port += 100;}
                 server.listen(port);
-                logColor('Server started, listening to port ' + port + '.', '\x1b[32m');
+                logColor('Server started, listening to port ' + port + '.', '\x1b[32m', 'log');
                 console.log('\n-----------------------------------------------------------------------\n');
             });
         });
@@ -640,6 +640,7 @@ setInterval(function() {
 
 // console interface
 prompt.on('line', async function(input) {
+    log('console: ' + input);
     if (input=='stop') {
         queryStop(true);
     } else if (input=='Purple') {
@@ -668,6 +669,7 @@ prompt.on('line', async function(input) {
 function queryStop(firstrun) {
     if (firstrun == true) {
         prompt.question('Are you sure you want to stop the server? y/n\n> ', function(answer) {
+            log('console: ' + answer);
             if (answer == 'y') {
                 stop();
             } else if (answer == 'n') {
@@ -679,6 +681,7 @@ function queryStop(firstrun) {
         });
     } else {
         prompt.question('Please enter y or n.\n> ', function(answer) {
+            log('console: ' + answer);
             if (answer == 'y') {
                 stop();
             } else if (answer == 'n') {
@@ -697,10 +700,10 @@ function stop(stoperr) {
         error(stoperr);
         error('STOP.\n');
     }
-    logColor('Closing server...', '\x1b[32m');
+    logColor('Closing server...', '\x1b[32m', 'log');
     if (gameinProgress) endGame();
     io.emit('disconnected');
-    logColor('Saving user data...', '\x1b[32m');
+    logColor('Saving user data...', '\x1b[32m', 'log');
     for (var i in PLAYER_LIST) {
         try {
             database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData]);
@@ -708,7 +711,7 @@ function stop(stoperr) {
             error(err);
         }
     }
-    logColor('Stopping server...', '\x1b[32m');
+    logColor('Stopping server...', '\x1b[32m', 'log');
     fs.open('./server/PORTS.txt', 'a+', function(err) {
         if (err) console.error(err);
         lineReader.open('./server/PORTS.txt', function (err, reader) {
@@ -720,7 +723,7 @@ function stop(stoperr) {
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
                 database.end();
                 prompt.close();
-                logColor('Server stopped.', '\x1b[32m');
+                logColor('Server stopped.', '\x1b[32m', 'log');
                 if (stoperr) {
                     console.log('\x1b[31m%s\x1b[0m', '\nIf this issue persists, please submit a bug report on GitHub with a screenshot of this log.');
                     console.log('\x1b[31m%s\x1b[0m', '\nPress ENTER to exit.');
