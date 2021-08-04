@@ -1,5 +1,7 @@
 // Copyright (C) 2021 Radioactive64'
 
+const fs = require('fs');
+
 round = {
     inProgress:false,
     id:null,
@@ -15,14 +17,8 @@ insertChat = function(text, textcolor) {
     if(utcminute.length === 1){
         utcminute = '' + 0 + utcminute;
     }
-    if(utcminute === '0'){
+    if(utcminute == '0'){
         utcminute = '00';
-    }var minute = '' + time.getMinutes();
-    if(minute.length === 1){
-        minute = '' + 0 + minute;
-    }
-    if(minute === '0'){
-        minute = '00';
     }
     var color = '#000000';
     if (textcolor == 'server') {
@@ -32,42 +28,35 @@ insertChat = function(text, textcolor) {
     } else {
         color = textcolor;
     }
-    console.log('\x1b[36m%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
+    logColor(text, '\x1b[36m', 'chat');
     var msg = '[' + time.getUTCHours() + ':' + utcminute + '] ' + text;
     io.emit('insertChat', {msg:msg, color:color});
 }
+// logging
 log = function(text) {
-    var time = new Date();
-    var minute = '' + time.getMinutes();
-    if(minute.length === 1){
-        minute = '' + 0 + minute;
-    }
-    if(minute === '0'){
-        minute = '00';
-    }
-    console.log('[' + time.getHours() + ':' + minute + '] ' + text);
+    logColor(text, '', 'log');
 }
-logColor = function(text, colorstring) {
+logColor = function(text, colorstring, type) {
     var time = new Date();
     var minute = '' + time.getMinutes();
-    if(minute.length === 1){
+    if(minute.length == 1){
         minute = '' + 0 + minute;
     }
-    if(minute === '0'){
+    if(minute == '0'){
         minute = '00';
     }
-    console.log(colorstring + '%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
+    console.log('[' + time.getHours() + ':' + minute + '] ' + colorstring + text + '\x1b[0m');
+    appendLog('[' + time.getHours() + ':' + minute + '] ' + text, type);
 }
 error = function(text) {
-    var time = new Date();
-    var minute = '' + time.getMinutes();
-    if(minute.length === 1){
-        minute = '' + 0 + minute;
-    }
-    if(minute === '0'){
-        minute = '00';
-    }
-    console.error('\x1b[31m%s\x1b[0m', '[' + time.getHours() + ':' + minute + '] ' + text);
+    logColor(text, '\x1b[31m', 'error');
+}
+appendLog = function(text, type) {
+    var typestring = '--- ';
+    if (type == 'error') typestring = 'ERR ';
+    if (type == 'log') typestring = 'LOG ';
+    if (type == 'chat') typestring = 'CHT ';
+    fs.appendFileSync('./server/log.txt', typestring + text + '\n', {encoding: 'utf-8'});
 }
 
 // game functions
