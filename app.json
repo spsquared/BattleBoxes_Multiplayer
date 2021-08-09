@@ -1,0 +1,5 @@
+{
+    "name": "BattleBoxes Multiplayer",
+    "description": "BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!",
+    "keywords": ["nodejs", "multiplayer", "platformer"]
+}

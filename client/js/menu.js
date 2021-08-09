@@ -91,8 +91,8 @@ socket.on('loginFailed', function(state) {
 function play() {
     playsound('/client/sound/Play.mp3');
     document.getElementById('canceljoingame').style.display = 'none';
-    for (var i in PLAYER_LIST) {
-        delete PLAYER_LIST[i];
+    for (var i in Player.list) {
+        delete Player.list[i];
     }
     fadeIn();
     setTimeout(function() {

@@ -6,9 +6,14 @@ BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!
 # How to Play
 
 ### Installation
+##### Manual Installation
 I cannot distribute node.js as I do not own any rights to it, but visiting [their website](https://nodejs.org/) you can download the latest (not LTS) and install it, **checking the box "Automatically install necessary tools"**. Wait for the installation to finish, then [download the code](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/archive/master.zip) and unzip it into any folder. Run Config.bat or Config.sh (depending on system). Then simply double-click on Start.bat or Start.sh and the server is running!
 
 To stop the server, type "stop" into the server console.
+For help, type "help" into server console.
+
+##### Heroku Installation
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer)
 
 ### Joining the Game
 Once the server is started, you can find your computer's name (available in Windows>System>About as "Device name"), or simply search [what's my ip](http://google.com/search?q=whats+my+ip) or click the link. The server console will tell you what port to visit and you can type either the ip address or computer name on the client side **connected to the same network as the host** and then followed by a ":" and then the port number. Example: 111.22.33.444:2000 or hostcomputer:1100
@@ -20,7 +25,7 @@ Visit the [wiki](https://github.com/definitely-nobody-is-here/BattleBoxes_Multip
 
 # Troubleshooting
 #### My Server Crashed
-In the case that your server crashes, stop all other instances of the game and locate PORTS.txt in "/server/PORTS.txt", and set it to zero. Then go to the [GitHub repository](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) and [submit a bug report](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/new?assignees=&labels=bug&template=bug-report.md&title=BUG+-+%5BSummary+here%5D) with a screenshot of the console if applicable.
+In the case that your server crashes, stop all other instances of the game and locate PORTS.txt in "/server/PORTS.txt", and set it to zero. Locate the logfile in "/server/log.txt" and open it. Then go to the [GitHub repository](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) and [submit a bug report](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/new?assignees=&labels=bug&template=bug-report.md&title=BUG+-+%5BSummary+here%5D) with a screenshot of the console if applicable and the most recent logs.
 #### I can't Connect to the Server (ERROR_Connection_Refused)
 If you can't connect to the server, verify that:
  - The server is running
@@ -81,6 +86,7 @@ If you can't resolve your problem after trying these solutions or your problem i
 | 1.4.3 | <ul><li>Added particles</li><li>Added death flash and animations</li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/181" target="_blank">Fixed lootbox timers again (Issue #181)</a></li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/180" target="_blank">Fixed transparent win screen (Issue #180)</a></li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/179" target="_blank">Fixed double secondary banners (Issue #179)</a></li><li><a href="https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/178" target="_blank">Fixed entities being drawn 1 tick ahead of map (Issue #179)</a></li><li>Added timers to buff banners</li></ul> |
 | 1.4.4 | <ul><li>Security Update (Old versions are now broken)</li></ul> |
 | 1.4.5 | <ul><li>Added logfile</li></ul> |
+| 1.5.0 | <ul><li>Updated bot AI to custom pathfinding</li><li>Add targeting to bots</li><li>Gave bots ability to wall jump</li><li>Fixed some typos</li><li><a href=https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/182" target="_blank">Improved corner collisions and glitch protection (Issue #182)</a></li><li>Added more security</li><li>Formatted code a bit</li><ul> |
 
 ***
 
@@ -102,6 +108,7 @@ Full license can be found in the LICENSE file.
 ##### Resources:
 - Various articles on the internet
 - [ScriptersWar](https://www.youtube.com/channel/UC8Yp-YagXZ4C5vOduEhcjRw) [tutorial series](https://www.youtube.com/playlist?list=PLcIaPHraYF7k4FbeGIDY-1mZZdjTu9QyL)
+- [bgrins on GitHub](https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/)
 
 ***
 

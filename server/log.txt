@@ -1,0 +1,582 @@
+LOG [12:35] Starting server...
+LOG [12:35] There are 1 servers running on this host.
+LOG [12:35] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:35] Client connection made.
+LOG [12:35] Client connection made.
+LOG [12:35] "Sampleprovider(sp)" logged in.
+LOG [12:35] "player" logged in.
+LOG [12:35] "Sampleprovider(sp)" attempted to join game.
+CHT [12:35] "Sampleprovider(sp)" joined the game.
+LOG [12:35] "player" attempted to join game.
+CHT [12:35] "player" joined the game.
+LOG [12:35] Sampleprovider(sp): SERVER.game.start()
+LOG [12:35] Successfully executed command
+CHT [12:35] Game started!
+CHT [12:35] Round 1!
+CHT [12:38] Player "player" got the achievement "Winner Winner Chicken Dinner"!
+CHT [12:38] Player "player" got the achievement "Overachiever"!
+CHT [12:38] player died.
+CHT [12:38] Player "player" got the achievement "YOU DIED!"!
+CHT [12:38] BOT_0 died.
+CHT [12:38] Round 2!
+CHT [12:38] player died.
+CHT [12:38] Sampleprovider(sp) died.
+CHT [12:38] BOT_0 died.
+CHT [12:38] Round 3!
+CHT [12:38] player died.
+CHT [12:38] BOT_0 died.
+CHT [12:38] Round 4!
+CHT [12:38] Sampleprovider(sp) died.
+CHT [12:38] player died.
+CHT [12:38] Round 5!
+CHT [12:39] player died.
+CHT [12:39] BOT_0 died.
+CHT [12:39] Round 6!
+CHT [12:41] Sampleprovider(sp) died.
+LOG [12:41] Closing server...
+CHT [12:41] Game was cut short.
+LOG [12:41] Saving user data...
+LOG [12:41] Stopping server...
+LOG [12:41] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:41] Starting server...
+LOG [12:41] There are 1 servers running on this host.
+LOG [12:41] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:41] Client connection made.
+LOG [12:41] Client connection made.
+LOG [12:41] Client connection made.
+LOG [12:41] Client connection made.
+LOG [12:41] "Sampleprovider(sp)" logged in.
+LOG [12:41] "Sampleprovider(sp)" attempted to join game.
+CHT [12:41] "Sampleprovider(sp)" joined the game.
+LOG [12:41] Player "" has disconnected.
+LOG [12:41] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:41] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [12:42] Player "" has disconnected.
+LOG [12:42] Player "" has disconnected.
+LOG [12:42] Closing server...
+LOG [12:42] Saving user data...
+LOG [12:42] Stopping server...
+LOG [12:42] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:42] Starting server...
+LOG [12:42] There are 1 servers running on this host.
+LOG [12:42] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:42] Client connection made.
+LOG [12:42] Player "" has disconnected.
+LOG [12:42] Client connection made.
+LOG [12:42] "Sampleprovider(sp)" logged in.
+LOG [12:42] "Sampleprovider(sp)" attempted to join game.
+CHT [12:42] "Sampleprovider(sp)" joined the game.
+LOG [12:42] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:42] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [12:43] Closing server...
+LOG [12:43] Saving user data...
+LOG [12:43] Stopping server...
+LOG [12:43] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:43] Starting server...
+LOG [12:43] There are 1 servers running on this host.
+LOG [12:43] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:43] Client connection made.
+LOG [12:43] Player "" has disconnected.
+LOG [12:43] Client connection made.
+LOG [12:43] "Sampleprovider(sp)" logged in.
+LOG [12:43] "Sampleprovider(sp)" attempted to join game.
+CHT [12:43] "Sampleprovider(sp)" joined the game.
+LOG [12:43] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:43] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [12:45] Closing server...
+LOG [12:45] Saving user data...
+LOG [12:45] Stopping server...
+LOG [12:45] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:45] Starting server...
+LOG [12:45] There are 1 servers running on this host.
+LOG [12:45] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:45] Client connection made.
+LOG [12:45] Player "" has disconnected.
+LOG [12:45] Client connection made.
+LOG [12:45] "Sampleprovider(sp)" logged in.
+LOG [12:46] "Sampleprovider(sp)" attempted to join game.
+CHT [12:46] "Sampleprovider(sp)" joined the game.
+LOG [12:46] Sampleprovider(sp):                      if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx-1] == 1) {                         self.Dpressed = false;                         self.Apressed = true;                         self.Wpressed = true;                     }                     if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx+1] == 1) {                         self.Apressed = false;                         self.Dpressed = true;                         self.Wpressed = true;                     }                     if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx-2] == 1) {                         self.Dpressed = false;                         self.Apressed = true;                         self.Wpressed = true;                     }                     if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx+2] == 1) {                         self.Apressed = false;                         self.Dpressed = true;                         self.Wpressed = true;                     }SERVER.game.tp('BOT_0', self.name)
+ERR [12:46] ERROR: "                     if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx-1] == 1) {                         self.Dpressed = false;                         self.Apressed = true;                         self.Wpressed = true;                     }                     if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx+1] == 1) {                         self.Apressed = false;                         self.Dpressed = true;                         self.Wpressed = true;                     }                     if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx-2] == 1) {                         self.Dpressed = false;                         self.Apressed = true;                         self.Wpressed = true;                     }                     if (MAPS[CURRENT_MAP][self.gridy-1][self.gridx+2] == 1) {                         self.Apressed = false;                         self.Dpressed = true;                         self.Wpressed = true;                     }SERVER.game.tp('BOT_0', self.name)" is not a valid input.
+ERR [12:46] SyntaxError: Unexpected token 'if'
+LOG [12:46] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:46] Teleported "BOT_0" to "Sampleprovider(sp)".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:46] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+ERR [12:47] Current Node's direction is "none".
+LOG [12:50] Closing server...
+LOG [12:50] Saving user data...
+LOG [12:50] Stopping server...
+LOG [12:50] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:50] Starting server...
+LOG [12:50] There are 1 servers running on this host.
+LOG [12:50] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:50] Client connection made.
+LOG [12:50] Player "" has disconnected.
+LOG [12:50] Client connection made.
+LOG [12:50] "Sampleprovider(sp)" logged in.
+LOG [12:50] "Sampleprovider(sp)" attempted to join game.
+CHT [12:50] "Sampleprovider(sp)" joined the game.
+LOG [12:50] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:50] Teleported "BOT_0" to "Sampleprovider(sp)".
+ERR [12:50] Current Node's direction is "none".
+ERR [12:50] Current Node's direction is "none".
+ERR [12:50] Current Node's direction is "none".
+ERR [12:50] Current Node's direction is "none".
+ERR [12:50] Current Node's direction is "none".
+ERR [12:50] Current Node's direction is "none".
+LOG [12:51] Closing server...
+LOG [12:51] Saving user data...
+LOG [12:51] Stopping server...
+LOG [12:51] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:51] Starting server...
+LOG [12:51] There are 1 servers running on this host.
+LOG [12:51] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:51] Client connection made.
+LOG [12:51] Player "" has disconnected.
+LOG [12:51] Client connection made.
+LOG [12:51] "Sampleprovider(sp)" logged in.
+LOG [12:51] "Sampleprovider(sp)" attempted to join game.
+CHT [12:51] "Sampleprovider(sp)" joined the game.
+LOG [12:52] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:52] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [12:57] Closing server...
+LOG [12:57] Saving user data...
+LOG [12:57] Stopping server...
+LOG [12:57] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:57] Starting server...
+LOG [12:57] There are 1 servers running on this host.
+LOG [12:57] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:57] Client connection made.
+LOG [12:57] Player "" has disconnected.
+LOG [12:57] Client connection made.
+LOG [12:57] "Sampleprovider(sp)" logged in.
+LOG [12:57] "Sampleprovider(sp)" attempted to join game.
+CHT [12:57] "Sampleprovider(sp)" joined the game.
+LOG [12:57] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:57] Teleported "BOT_0" to "Sampleprovider(sp)".
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+ERR [12:57] ReferenceError: currentNode is not defined
+LOG [12:57] Closing server...
+LOG [12:57] Saving user data...
+LOG [12:57] Stopping server...
+LOG [12:57] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:57] Starting server...
+LOG [12:57] There are 1 servers running on this host.
+LOG [12:57] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:58] Client connection made.
+LOG [12:58] Player "" has disconnected.
+LOG [12:58] Client connection made.
+LOG [12:58] "Sampleprovider(sp)" logged in.
+LOG [12:58] "Sampleprovider(sp)" attempted to join game.
+CHT [12:58] "Sampleprovider(sp)" joined the game.
+LOG [12:58] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:58] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [12:58] Closing server...
+LOG [12:58] Saving user data...
+LOG [12:58] Stopping server...
+LOG [12:58] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:58] Starting server...
+LOG [12:58] There are 1 servers running on this host.
+LOG [12:58] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:58] Client connection made.
+LOG [12:58] Player "" has disconnected.
+LOG [12:58] Client connection made.
+LOG [12:58] "Sampleprovider(sp)" logged in.
+LOG [12:58] "Sampleprovider(sp)" attempted to join game.
+CHT [12:58] "Sampleprovider(sp)" joined the game.
+LOG [12:58] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:58] Teleported "BOT_0" to "Sampleprovider(sp)".
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+ERR [12:59] TypeError: Cannot read property 'direction' of undefined
+LOG [12:59] Closing server...
+LOG [12:59] Saving user data...
+LOG [12:59] Stopping server...
+LOG [12:59] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [12:59] Starting server...
+LOG [12:59] There are 1 servers running on this host.
+LOG [12:59] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [12:59] Client connection made.
+LOG [12:59] Player "" has disconnected.
+LOG [12:59] Client connection made.
+LOG [12:59] "Sampleprovider(sp)" logged in.
+LOG [12:59] "Sampleprovider(sp)" attempted to join game.
+CHT [12:59] "Sampleprovider(sp)" joined the game.
+LOG [12:59] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [12:59] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:00] Closing server...
+LOG [13:00] Saving user data...
+LOG [13:00] Stopping server...
+LOG [13:00] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [13:00] Starting server...
+LOG [13:00] There are 1 servers running on this host.
+LOG [13:00] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [13:00] Client connection made.
+LOG [13:00] Player "" has disconnected.
+LOG [13:00] Client connection made.
+LOG [13:00] "Sampleprovider(sp)" logged in.
+LOG [13:00] "Sampleprovider(sp)" attempted to join game.
+CHT [13:00] "Sampleprovider(sp)" joined the game.
+LOG [13:01] Sampleprovider(sp): waypoints
+ERR [13:01] ERROR: "waypoints" is not a valid input.
+ERR [13:01] ReferenceError: waypoints is not defined
+LOG [13:01] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:01] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:01] Closing server...
+LOG [13:01] Saving user data...
+LOG [13:01] Stopping server...
+LOG [13:01] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [13:01] Starting server...
+LOG [13:01] There are 1 servers running on this host.
+LOG [13:01] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [13:01] Client connection made.
+LOG [13:01] Player "" has disconnected.
+LOG [13:01] Client connection made.
+LOG [13:01] "Sampleprovider(sp)" logged in.
+LOG [13:01] "Sampleprovider(sp)" attempted to join game.
+CHT [13:01] "Sampleprovider(sp)" joined the game.
+LOG [13:01] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:01] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:02] Closing server...
+LOG [13:02] Saving user data...
+LOG [13:02] Stopping server...
+LOG [13:02] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [13:03] Starting server...
+LOG [13:03] There are 1 servers running on this host.
+LOG [13:03] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [13:03] Client connection made.
+LOG [13:03] Player "" has disconnected.
+LOG [13:03] Client connection made.
+LOG [13:03] "Sampleprovider(sp)" logged in.
+LOG [13:03] "Sampleprovider(sp)" attempted to join game.
+CHT [13:03] "Sampleprovider(sp)" joined the game.
+LOG [13:04] Sampleprovider(sp): subCurrentNodeSERVER.game.tp('BOT_0', self.name)
+ERR [13:04] ERROR: "subCurrentNodeSERVER.game.tp('BOT_0', self.name)" is not a valid input.
+ERR [13:04] ReferenceError: subCurrentNodeSERVER is not defined
+LOG [13:04] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:04] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:04] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:04] Teleported "BOT_0" to "Sampleprovider(sp)".
+CHT [13:05] "Sampleprovider(sp)" left the game.
+LOG [13:05] Player "Sampleprovider(sp)" has disconnected.
+LOG [13:05] Client connection made.
+LOG [13:05] "Sampleprovider(sp)" logged in.
+LOG [13:05] "Sampleprovider(sp)" attempted to join game.
+CHT [13:05] "Sampleprovider(sp)" joined the game.
+LOG [13:06] Closing server...
+LOG [13:06] Saving user data...
+LOG [13:06] Stopping server...
+LOG [13:06] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [13:06] Starting server...
+LOG [13:06] There are 1 servers running on this host.
+LOG [13:06] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [13:06] Client connection made.
+LOG [13:06] Player "" has disconnected.
+LOG [13:06] Client connection made.
+LOG [13:06] "Sampleprovider(sp)" logged in.
+LOG [13:06] "Sampleprovider(sp)" attempted to join game.
+CHT [13:06] "Sampleprovider(sp)" joined the game.
+LOG [13:06] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:06] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:07] Closing server...
+LOG [13:07] Saving user data...
+LOG [13:07] Stopping server...
+LOG [13:07] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [13:07] Starting server...
+LOG [13:07] There are 1 servers running on this host.
+LOG [13:07] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [13:07] Client connection made.
+LOG [13:07] Player "" has disconnected.
+LOG [13:07] Client connection made.
+LOG [13:07] "Sampleprovider(sp)" logged in.
+LOG [13:07] "Sampleprovider(sp)" attempted to join game.
+CHT [13:07] "Sampleprovider(sp)" joined the game.
+LOG [13:07] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:07] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:08] Closing server...
+LOG [13:08] Saving user data...
+LOG [13:08] Stopping server...
+LOG [13:08] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [13:08] Starting server...
+LOG [13:08] There are 1 servers running on this host.
+LOG [13:08] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [13:08] Client connection made.
+LOG [13:08] Player "" has disconnected.
+LOG [13:08] Client connection made.
+LOG [13:08] Player "" has disconnected.
+LOG [13:08] Client connection made.
+LOG [13:08] "Sampleprovider(sp)" logged in.
+LOG [13:08] "Sampleprovider(sp)" attempted to join game.
+CHT [13:08] "Sampleprovider(sp)" joined the game.
+LOG [13:09] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:09] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:14] Closing server...
+LOG [13:14] Saving user data...
+LOG [13:14] Stopping server...
+LOG [13:14] Server stopped.
+--- -----------------------------------------------------------------------
+LOG [13:14] Starting server...
+LOG [13:14] There are 1 servers running on this host.
+LOG [13:14] Server started, listening to port 1000.
+LOG This server is running BattleBoxes Server Experimental Pathfinding Preview
+LOG [13:14] Client connection made.
+LOG [13:14] Player "" has disconnected.
+LOG [13:14] Client connection made.
+LOG [13:14] Player "" has disconnected.
+LOG [13:14] Client connection made.
+LOG [13:14] "Sampleprovider(sp)" logged in.
+LOG [13:14] "Sampleprovider(sp)" attempted to join game.
+CHT [13:14] "Sampleprovider(sp)" joined the game.
+LOG [13:15] Sampleprovider(sp): SERVER.game.tp('BOT_0', self.name)
+LOG [13:15] Teleported "BOT_0" to "Sampleprovider(sp)".
+LOG [13:15] Closing server...
+LOG [13:15] Saving user data...
+LOG [13:15] Stopping server...
+LOG [13:15] Server stopped.
+--- -----------------------------------------------------------------------

@@ -1,10 +1,6 @@
 // Copyright (C) 2021 Radioactive64
 
 resourcesloaded++;
-PLAYER_LIST = [];
-BULLET_LIST = [];
-LOOT_BOXES = [];
-PARTICLES = [];
 DEBUG_INFO = [];
 HP_Color = ['#FFFFFF', '#FF0000', '#FF9900', '#FFFF00', '#99FF00', '#00FF00'];
 
@@ -74,20 +70,21 @@ Player = function(id, name, color) {
         }
     }
 
-    PLAYER_LIST[self.id] = self;
+    Player.list[self.id] = self;
     return self;
 };
 Player.update = function(players) {
     for (var i in players) {
-        var localplayer = PLAYER_LIST[players[i].id];
+        var localplayer = Player.list[players[i].id];
         localplayer.update(players[i].x, players[i].y, players[i].hp, players[i].shield);
     }
 };
 Player.draw = function() {
-    for (var i in PLAYER_LIST) {
-        PLAYER_LIST[i].draw();
+    for (var i in Player.list) {
+        Player.list[i].draw();
     }
 };
+Player.list = [];
 
 // bullets
 Bullet = function(id, x, y, parent, color) {
@@ -100,22 +97,23 @@ Bullet = function(id, x, y, parent, color) {
         game.fillRect(self.relx-4, self.rely-4, 8, 8);
     }
 
-    BULLET_LIST[self.id] = self;
+    Bullet.list[self.id] = self;
     return self;
 };
 Bullet.update = function(bullets) {
     for (var i in bullets) {
         try {
-            var localbullet = BULLET_LIST[bullets[i].id];
+            var localbullet = Bullet.list[bullets[i].id];
             localbullet.update(bullets[i].x, bullets[i].y);
         } catch (err) {}
     }
 };
 Bullet.draw = function() {
-    for (var i in BULLET_LIST) {
-        BULLET_LIST[i].draw();
+    for (var i in Bullet.list) {
+        Bullet.list[i].draw();
     }
 };
+Bullet.list = [];
 
 // loot boxes
 LootBox = function(id, x, y, effect, obfuscated) {
@@ -137,21 +135,22 @@ LootBox = function(id, x, y, effect, obfuscated) {
         game.drawImage(self.img, self.relx-20, self.rely-20, 40, 40);
     }
 
-    LOOT_BOXES[self.id] = self;
+    LootBox.list[self.id] = self;
     return self;
 };
 LootBox.update = function() {
-    for (var i in LOOT_BOXES) {
-        LOOT_BOXES[i].update();
+    for (var i in LootBox.list) {
+        LootBox.list[i].update();
     }
 };
 LootBox.draw = function() {
-    for (var i in LOOT_BOXES) {
-        LOOT_BOXES[i].draw();
+    for (var i in LootBox.list) {
+        LootBox.list[i].draw();
     }
 };
+LootBox.list = [];
 
-// particles
+// Particle.list
 Particle = function(x, y, type, value) {
     var self = new Entity(null, x, y, null);
     self.id = Math.random();
@@ -183,7 +182,7 @@ Particle = function(x, y, type, value) {
         self.relx = -(camera.x - self.x);
         self.rely = -(camera.y - self.y);
         self.opacity -= 0.1;
-        if (self.opacity <= 0) delete PARTICLES[self.id];
+        if (self.opacity <= 0) delete Particle.list[self.id];
     }
     self.draw = function() {
         if (self.type == 'text') {
@@ -201,53 +200,54 @@ Particle = function(x, y, type, value) {
         }
     }
 
-    PARTICLES[self.id] = self;
+    Particle.list[self.id] = self;
     return self;
 };
 Particle.update = function() {
-    for (var i in PARTICLES) {
-        PARTICLES[i].update();
+    for (var i in Particle.list) {
+        Particle.list[i].update();
     }
 };
 Particle.draw = function() {
-    for (var i in PARTICLES) {
-        PARTICLES[i].draw();
+    for (var i in Particle.list) {
+        Particle.list[i].draw();
     }
 };
+Particle.list = [];
 
 // game handlers
 socket.on('initgame', function(pkg) {
-    for (var i in PLAYER_LIST) {
-        delete PLAYER_LIST[i];
+    for (var i in Player.list) {
+        delete Player.list[i];
     }
     for (var i in pkg.players) {
         new Player(pkg.players[i].id, pkg.players[i].name, pkg.players[i].color);
     }
-    player = PLAYER_LIST[pkg.self];
+    player = Player.list[pkg.self];
 });
 socket.on('newplayer', function(pkg) {
     if (ingame) new Player(pkg.id, pkg.name, pkg.color);
 });
 socket.on('deleteplayer', function(id) {
-    if (ingame) delete PLAYER_LIST[id];
+    if (ingame) delete Player.list[id];
 });
 socket.on('newbullet', function(pkg) {
     if (ingame) new Bullet(pkg.id, pkg.x, pkg.y, pkg.parent, pkg.color);
 });
 socket.on('deletebullet', function(id) {
-    if (ingame) delete BULLET_LIST[id];
+    if (ingame) delete Bullet.list[id];
 });
 socket.on('newlootbox', function(pkg) {
     if (ingame) new LootBox(pkg.id, pkg.x, pkg.y, pkg.effect, pkg.obfuscated);
 });
 socket.on('deletelootbox', function(id) {
-    if (ingame) delete LOOT_BOXES[id];
+    if (ingame) delete LootBox.list[id];
 });
 socket.on('playerdied', function(id) {
     if (ingame) {
-        PLAYER_LIST[id].alive = false;
+        Player.list[id].alive = false;
         for (var i = 0; i < Math.random()*10+20; i++) {
-            new Particle(PLAYER_LIST[id].x, PLAYER_LIST[id].y, 'explosion', PLAYER_LIST[id].color);
+            new Particle(Player.list[id].x, Player.list[id].y, 'explosion', Player.list[id].color);
         }
         if (id == player.id) {
             deathFadeOpacity = 0;

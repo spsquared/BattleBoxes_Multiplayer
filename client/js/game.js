@@ -212,6 +212,20 @@ function drawDebug(data, isplayer) {
         }
         game.stroke();
     }
+    if (data.debug.path2) if (data.debug.path2[0]) {
+        var path = data.debug.path2;
+        game.beginPath();
+        game.strokeStyle = '#0000FF';
+        game.strokeWidth = '2px';
+        game.textAlign = 'center';
+        game.fillStyle = '#0000FF';
+        game.font = '12px Pixel';
+        for (var i in path) {
+            game.lineTo(path[i].x*40-camera.x+20, path[i].y*40-camera.y+20);
+            game.fillText(i, path[i].x*40-camera.x+20, path[i].y*40-camera.y+10);
+        }
+        game.stroke();
+    }
     if (data.debug.keys) {
         game.strokeStyle = '#FF9900';
         game.strokeWidth = '4px';
@@ -252,7 +266,7 @@ function drawCountdown() {
     game.fillStyle = countdowntext.color;
     game.font = countdowntext.size + 'px Pixel';
     game.fillText(countdowntext.text, (window.innerWidth/2), ((window.innerHeight/2)+(countdowntext.size/2)-(window.innerHeight/10)));
-    player = PLAYER_LIST[player.id];
+    player = Player.list[player.id];
 };
 socket.on('ping', function() {
     currentDate = Date.now();
@@ -386,7 +400,7 @@ document.onkeyup = function(event) {
         }
         if (event.code == 'Backslash') {
             player.debug = !player.debug;
-            if (PLAYER_LIST[player.id].debug) {
+            if (Player.list[player.id].debug) {
                 document.getElementById('versionLabel').style.top = '28px';
             } else {
                 document.getElementById('versionLabel').style.top = '0px';
@@ -480,8 +494,8 @@ socket.on('game-joined', async function() {
     ingame = true;
     document.getElementById('chat').innerHTML = '';
     CURRENT_MAP = 0;
-    for (var i in BULLET_LIST) {
-        delete BULLET_LIST[i];
+    for (var i in Bullet.list) {
+        delete Bullet.list[i];
     }
     for (var i in BANNERS) {
         BANNERS[i].HTML.remove();
@@ -512,12 +526,12 @@ socket.on('game-joined', async function() {
                 document.getElementById('gameContainer').style.backgroundColor = 'black';
                 document.getElementById('credits').style.display = 'none';
                 document.getElementById('githublink').style.display = 'none';
-                for (var i in PLAYER_LIST) {
-                    PLAYER_LIST[i].alive = true;
+                for (var i in Player.list) {
+                    Player.list[i].alive = true;
                 }
                 canmove = true;
-                for (var i in LOOT_BOXES) {
-                    delete LOOT_BOXES[i];
+                for (var i in LootBox.list) {
+                    delete LootBox.list[i];
                 }
                 music.src = ('/client/sound/Ingame_' + currentmusic + '.mp3');
                 music.play();
@@ -619,10 +633,10 @@ socket.on('winner', function(id) {
         document.getElementById('githublink').style.display = 'none';
         ingameBack();
         inmenu = false;
-        var color = PLAYER_LIST[id].color;
+        var color = Player.list[id].color;
         if (color == '#FFFFFF00') color = '#FFFFFF';
         if (color == '#000000') color = '#FFFFFF';
-        var name = PLAYER_LIST[id].name;
+        var name = Player.list[id].name;
         ingame = false;
         canmove = false;
         document.getElementById('loadingContainer').style.display = 'none';
@@ -797,14 +811,14 @@ socket.on('roundstart', function(scores) {
                 delete BANNERS[i];
             }
         }
-        for (var i in PLAYER_LIST) {
-            PLAYER_LIST[i].alive = true;
+        for (var i in Player.list) {
+            Player.list[i].alive = true;
         }
-        for (var i in BULLET_LIST) {
-            delete BULLET_LIST[i];
+        for (var i in Bullet.list) {
+            delete Bullet.list[i];
         }
         for (var i in scores) {
-            PLAYER_LIST[scores[i].id].score = scores[i].score;
+            Player.list[scores[i].id].score = scores[i].score;
             document.getElementById('score' + i).innerText = scores[i].score;
         }
         playsound('/client/sound/Countdown.mp3');
@@ -880,8 +894,8 @@ socket.on('roundend', function() {
     if (ingame) {
         fadeIn();
         setTimeout(function() {
-            for (var i in LOOT_BOXES) {
-                delete LOOT_BOXES[i];
+            for (var i in LootBox.list) {
+                delete LootBox.list[i];
             }
         }, 500);
     }

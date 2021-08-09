@@ -70,7 +70,7 @@ PathFind = function() {
                     var path = [];
                     while (curr.parent) {
                         path.push(curr);
-                        curr = curr.parent;
+                        curr = self.closedList[curr.parent];
                     }
                     return path.reverse();
                 }
@@ -83,7 +83,11 @@ PathFind = function() {
                 var neighbors = self.findNeighbors(currentNode.x, currentNode.y);
                 for (var i in neighbors) {
                     var neighbor = neighbors[i];
-    
+                    
+                    if (neighbor.closed || !neighbor.walkable) {
+                        continue;
+                    }
+
                     var nodeAccessable = false;
                     for (var i in self.collisionList) {
                         var tempnode = self.collisionList[i];
@@ -95,7 +99,7 @@ PathFind = function() {
                         nodeAccessable = true;
                     }
                     
-                    if (neighbor.closed || !neighbor.walkable || !nodeAccessable) {
+                    if (!nodeAccessable) {
                         continue;
                     }
     
@@ -128,7 +132,7 @@ PathFind = function() {
                         if (closest.side1) neighbor.e -= 1;
                         if (closest.above) neighbor.e += 4;
                         if (closest.below) neighbor.e -= 2;
-                        neighbor.parent = currentNode;
+                        neighbor.parent = self.closedList.indexOf(currentNode);
                         neighbor.g = gScore;
                         neighbor.h = self.heuristic(neighbor.x, neighbor.y, x2, y2);
                         neighbor.f = neighbor.g + neighbor.h + neighbor.e;
@@ -160,44 +164,44 @@ PathFind = function() {
         } catch {}
         // up
         try {
-            if (self.grid[y-1][x].walkable) {
-                self.grid[y-1][x].direction = 'up';
-                neighbors.push(self.grid[y-1][x]);
+            if (self.grid[y+1][x].walkable) {
+                self.grid[y+1][x].direction = 'up';
+                neighbors.push(self.grid[y+1][x]);
             }
         } catch {}
         // down
         try {
-            if (self.grid[y+1][x].walkable) {
-                self.grid[y+1][x].direction = 'down';
-                neighbors.push(self.grid[y+1][x]);
+            if (self.grid[y-1][x].walkable) {
+                self.grid[y-1][x].direction = 'down';
+                neighbors.push(self.grid[y-1][x]);
             }
         } catch {}
         // upleft
         try {
-            if (self.grid[y-1][x-1].walkable && self.grid[y-1][x].walkable && self.grid[y][x-1].walkable) {
-                self.grid[y-1][x].direction = 'up';
-                neighbors.push(self.grid[y-1][x-1]);
+            if (self.grid[y+1][x-1].walkable && self.grid[y+1][x].walkable && self.grid[y][x-1].walkable) {
+                self.grid[y+1][x-1].direction = 'up';
+                neighbors.push(self.grid[y+1][x-1]);
             }
         } catch {}
         // upright
         try {
-            if (self.grid[y-1][x+1].walkable && self.grid[y-1][x].walkable && self.grid[y][x+1].walkable) {
-                self.grid[y-1][x+1].direction = 'up';
-                neighbors.push(self.grid[y-1][x+1]);
+            if (self.grid[y+1][x+1].walkable && self.grid[y+1][x].walkable && self.grid[y][x+1].walkable) {
+                self.grid[y+1][x+1].direction = 'up';
+                neighbors.push(self.grid[y+1][x+1]);
             }
         } catch {}
         // downleft
         try {
-            if (self.grid[y+1][x-1].walkable && self.grid[y+1][x].walkable && self.grid[y][x-1].walkable) {
-                self.grid[y+1][x-1].direction = 'down';
-                neighbors.push(self.grid[y+1][x-1]);
+            if (self.grid[y-1][x-1].walkable && self.grid[y-1][x].walkable && self.grid[y][x-1].walkable) {
+                self.grid[y-1][x].direction = 'down';
+                neighbors.push(self.grid[y-1][x-1]);
             }
         } catch {}
         // downright
         try {
-            if (self.grid[y+1][x+1].walkable && self.grid[y+1][x].walkable && self.grid[y][x+1].walkable) {
-                self.grid[y+1][x+1].direction = 'down';
-                neighbors.push(self.grid[y+1][x+1]);
+            if (self.grid[y-1][x+1].walkable && self.grid[y-1][x].walkable && self.grid[y][x+1].walkable) {
+                self.grid[y-1][x+1].direction = 'down';
+                neighbors.push(self.grid[y-1][x+1]);
             }
         } catch {}
         return neighbors;
@@ -206,10 +210,10 @@ PathFind = function() {
     return self;
 };
 
-function BinaryHeap(scoreFunction) {
+function BinaryHeap() {
     this.content = [];
-    this.scoreFunction = scoreFunction;
-}
+    this.scoreFunction = function(node) {return node.f};
+};
 
 BinaryHeap.prototype = {
     push: function (element) {

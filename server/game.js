@@ -31,11 +31,11 @@ insertChat = function(text, textcolor) {
     logColor(text, '\x1b[36m', 'chat');
     var msg = '[' + time.getUTCHours() + ':' + utcminute + '] ' + text;
     io.emit('insertChat', {msg:msg, color:color});
-}
+};
 // logging
 log = function(text) {
     logColor(text, '', 'log');
-}
+};
 logColor = function(text, colorstring, type) {
     var time = new Date();
     var minute = '' + time.getMinutes();
@@ -47,32 +47,32 @@ logColor = function(text, colorstring, type) {
     }
     console.log('[' + time.getHours() + ':' + minute + '] ' + colorstring + text + '\x1b[0m');
     appendLog('[' + time.getHours() + ':' + minute + '] ' + text, type);
-}
+};
 error = function(text) {
     logColor(text, '\x1b[31m', 'error');
-}
+};
 appendLog = function(text, type) {
     var typestring = '--- ';
     if (type == 'error') typestring = 'ERR ';
     if (type == 'log') typestring = 'LOG ';
     if (type == 'chat') typestring = 'CHT ';
     fs.appendFileSync('./server/log.txt', typestring + text + '\n', {encoding: 'utf-8'});
-}
+};
 
 // game functions
 startGame = function() {
     endRound();
     var pack = [];
-    for (var i in PLAYER_LIST) {
-        var localplayer = PLAYER_LIST[i];
+    for (var i in Player.list) {
+        var localplayer = Player.list[i];
         if (localplayer.ingame) {
             localplayer.score = 0;
             localplayer.invincible = false;
             pack.push(localplayer.name);
         }
     }
-    for (var i in BOT_LIST) {
-        var localbot = BOT_LIST[i];
+    for (var i in Bot.list) {
+        var localbot = Bot.list[i];
         localbot.score = 0;
         pack.push(localbot.name);
     }
@@ -89,16 +89,16 @@ endGame = function(id) {
         insertChat('Game was cut short.', '#000000');
         io.emit('gamecut');
     } else {
-        insertChat(PLAYER_LIST[id].name + ' Wins!', PLAYER_LIST[id].color);
+        insertChat(Player.list[id].name + ' Wins!', Player.list[id].color);
         io.emit('winner', id);
         TrackedData.update();
     }
-    for (var i in PLAYER_LIST) {
-        PLAYER_LIST[i].ingame = false;
-        PLAYER_LIST[i].score = 0;
+    for (var i in Player.list) {
+        Player.list[i].ingame = false;
+        Player.list[i].score = 0;
     }
-    for (var i in LOOT_BOXES) {
-        delete LOOT_BOXES[i];
+    for (var i in LootBox.list) {
+        delete LootBox.list[i];
     }
     round.inProgress = false;
     gameinProgress = false;
@@ -139,8 +139,8 @@ startRound = function() {
         }
         io.emit('map', CURRENT_MAP);
         // spawn lootboxes
-        for (var i in LOOT_BOXES) {
-            delete LOOT_BOXES[i];
+        for (var i in LootBox.list) {
+            delete LootBox.list[i];
         }
         var lootspawns = MAPS[CURRENT_MAP].lootspawns;
         for (var i in lootspawns) {
@@ -150,8 +150,8 @@ startRound = function() {
         var j = 0;
         var pack = [];
         var pack2 = [];
-        for (var i in PLAYER_LIST) {
-            localplayer = PLAYER_LIST[i];
+        for (var i in Player.list) {
+            localplayer = Player.list[i];
             if (localplayer.ingame) {
                 localplayer.respawn(MAPS[CURRENT_MAP].spawns[j].x, MAPS[CURRENT_MAP].spawns[j].y);
                 pack.push({id:localplayer.id, x:localplayer.x, y:localplayer.y, hp:localplayer.hp, debug:{xspeed:localplayer.xspeed, yspeed:localplayer.yspeed, colliding:{left:localplayer.colliding.left, right:localplayer.colliding.right, bottom:localplayer.colliding.bottom, top:localplayer.colliding.top}}});
@@ -159,20 +159,20 @@ startRound = function() {
                 j++;
             }
         }
-        for (var i in BOT_LIST) {
-            localbot = BOT_LIST[i];
+        for (var i in Bot.list) {
+            localbot = Bot.list[i];
             localbot.respawn(MAPS[CURRENT_MAP].spawns[j].x, MAPS[CURRENT_MAP].spawns[j].y);
             pack.push({id:localbot.id, x:localbot.x, y:localbot.y, hp:localbot.hp, debug:{xspeed:localbot.xspeed, yspeed:localbot.yspeed, colliding:{left:localbot.colliding.left, right:localbot.colliding.right, bottom:localbot.colliding.bottom, top:localbot.colliding.top}}});
             pack2.push({id:localbot.id, score:localbot.score});
             j++;
         }
         remainingPlayers = 0;
-        for (var i in PLAYER_LIST) {
-            if (PLAYER_LIST[i].ingame) {
+        for (var i in Player.list) {
+            if (Player.list[i].ingame) {
                 remainingPlayers++;
             }
         }
-        for (var i in BOT_LIST) {
+        for (var i in Bot.list) {
             remainingPlayers++;
         }
         io.emit('update', pack);
@@ -186,11 +186,11 @@ endRound = function() {
     round.inProgress = false;
     var nextround = true;
     var ingamePlayers = [];
-    for (var i in PLAYER_LIST) {
-        ingamePlayers.push({isplayer:true, data:PLAYER_LIST[i]});
+    for (var i in Player.list) {
+        ingamePlayers.push({isplayer:true, data:Player.list[i]});
     }
-    for (var i in BOT_LIST) {
-        ingamePlayers.push({isplayer:false, data:BOT_LIST[i]});
+    for (var i in Bot.list) {
+        ingamePlayers.push({isplayer:false, data:Bot.list[i]});
     }
     for (var i in ingamePlayers) {
         var localplayer = ingamePlayers[i].data;
@@ -205,11 +205,11 @@ endRound = function() {
             }
         }
     }
-    for (var i in BULLET_LIST) {
-        delete BULLET_LIST[i];
+    for (var i in Bullet.list) {
+        delete Bullet.list[i];
     }
-    for (var i in LOOT_BOXES) {
-        delete LOOT_BOXES[i];
+    for (var i in LootBox.list) {
+        delete LootBox.list[i];
     }
     if (remainingPlayers != 0 && nextround && gameinProgress) {
         setTimeout(function () {
@@ -306,8 +306,8 @@ TrackedData = function() {
 };
 TrackedData.update = function() {
     var pack = [];
-    for (var i in PLAYER_LIST) {
-        var localplayer = PLAYER_LIST[i];
+    for (var i in Player.list) {
+        var localplayer = Player.list[i];
         if (localplayer.ingame) {
             localplayer.checkAchievements();
             pack.push({
@@ -324,8 +324,8 @@ TrackedData.update = function() {
 
 // debug
 TrackedData.log = function() {
-    for (var i in PLAYER_LIST) {
-        var localplayer = PLAYER_LIST[i];
+    for (var i in Player.list) {
+        var localplayer = Player.list[i];
         console.log(localplayer.trackedData);
     }
 };

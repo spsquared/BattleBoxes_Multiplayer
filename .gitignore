@@ -121,6 +121,7 @@ BattleBoxes_Multiplayer.code-workspace
 
 # Server files
 server/PORTS.txt
+server/log.txt
 
 # Google Drive
 *desktop.ini
