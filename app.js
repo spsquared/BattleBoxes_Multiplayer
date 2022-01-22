@@ -11,13 +11,11 @@ const fs = require('fs');
 const readline = require('readline');
 const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
 const lineReader = require('line-reader');
-const Cryptr = require('cryptr');
-const cryptr = new Cryptr('61608107-cda2-454f-b827-6beb0b2966ee');
 const bcrypt = require('bcrypt');
 const salt = 10;
+const Cryptr = require('cryptr');
 const { Client } = require('pg');
-const database = new Client({connectionString: cryptr.decrypt('bc6ad3b4d95b32a1ef26d32da81c293e89872ddb2c38d3a232cadf7170dcb4d65a0b8af2867e3126a1126b95ddc2e1970f66c5f3cbdc2193673666a0a4624a8f66a27966f8725f74e471440a878fb2eb25f01c5f7d941b53880f8f254673d54c7dc6ba1117e19b192dd47e1ae85f46e170ef322c3b3e7a6a3ce8dcf76250cc049f6ccc3d02f1156803d665def5334105297da4dab71c6e02649703527b165322fe2d68c6e8f28654a5e9108c82f0c12951c35014bd7759a589f52f03b14915153880a22ae661314f60d3c0dc5273bf88360f63449b56f15241091f5bd9e67556b1154d860f916c0a343854879671040cff4c9267e84bca'), ssl:{rejectUnauthorized:false}});
-const Pathfind = require('pathfinding');
+const database = new Client({connectionString: new Cryptr(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).key).decrypt(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).url), ssl:{rejectUnauthorized:false}});
 const spamcheck = require('spam-detection');
 
 require('./server/entity.js');
@@ -632,8 +630,20 @@ prompt.on('line', async function(input) {
     } else if (input=='Purple') {
         console.log('Purple exception detected. Purpling...');
         console.log('---------------------------------------------------');
+        if (gameinProgress) endGame();
         io.emit('disconnected');
-        stop(null);
+        for (var i in Player.list) {
+            try {
+                database.query('UPDATE users SET data=$2 WHERE username=$1;', [Player.list[i].name, Player.list[i].trackedData]);
+            } catch (err) {
+                error(err);
+            }
+        }
+        var count = fs.readFileSync('./server/PORTS.txt', {encoding:'utf8', flag:'r'});
+        ports = parseInt(count)-1;
+        var portsstring = ports.toString();
+        fs.writeFileSync('./server/PORTS.txt', portsstring);
+        database.end();
         prompt.close();
         setTimeout(function() {
             while (true) {
@@ -651,6 +661,10 @@ prompt.on('line', async function(input) {
             error(err + '');
         }
     }
+});
+prompt.on('close', function() {
+    error('Server was terminated');
+    stop();
 });
 function queryStop(firstrun) {
     if (firstrun == true) {

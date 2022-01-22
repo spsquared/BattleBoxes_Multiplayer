@@ -28,7 +28,7 @@ If you can't connect to the server, verify that:
  - You are connected to the same WiFi network as the server
 If you have verified all four of the above, try restarting the server. If your server is running on a dedicated server (like Heroku) check that your link is correct.
 #### The Server is Slow
-There is nothing we can do about this. It could be your connection speed or a slow server unable to run the game at full speed. Press "backslash" ("\\") ingame and in the top-right corner it should list TPS and Ping. If your Ping is high then that is likely the source of your lag. If you TPS is low then the server is lagging. Check that there is nothing eating your computer's resources by opening Task Manager (Windows) by pressing Ctrl+Shift+Esc.
+There is nothing we can do about this. It could be your connection speed or a slow server unable to run the game at full speed. Press "backslash" ("\\") ingame and in the top-right corner it should list TPS and Ping. If your Ping is high then that is likely the source of your lag. If you TPS is low then the server is lagging. If you don't see a TPS or ping indicator it's probably because that feature hasn't been added yet. Check that there is nothing eating your computer's resources by opening Task Manager (Windows) by pressing Ctrl+Shift+Esc.
 
 If you can't resolve your problem after trying these solutions or your problem is not on this page, go to the [Issues](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues) page and [submit a bug report](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer/issues/new?assignees=&labels=bug&template=bug-report.md&title=BUG+-+%5BSummary+here%5D).
 
@@ -107,3 +107,8 @@ Full license can be found in the LICENSE file.
 ## Want to Contribute?
 
 If you would like to contribute to this game, visit the [Github](https://github.com/definitely-nobody-is-here/BattleBoxes_Multiplayer) where you can send a pull request with an application request stating your reason to create a pull request in the "comments" section along with it. If you would like to submit a suggestion then submit it via [this form](https://docs.google.com/forms/d/e/1FAIpQLSfrTWNBDoC5KjXk1TJwQa4oJEZdpiSp0fxqmbCReMZqhdLkqQ/viewform?usp=sf_link). Please refrain from modifying any code that is related to the database, global data structure, or encryption. Modifying such code may and can result in: Account and/or database corruption; data loss; violation of the security policy.
+
+***
+
+Games by [Radioactive64](https://github.com/definitely-nobody-is-here/) and [Maitian](https://github.com/maitian352/):
+<ul><li><a href="https://mountainguarder.herokuapp.com/" target="_blank">Mountain Guarder</a></li><li><a href="https://meadowguarder.herokuapp.com/" target="_blank">Meadow Guarder</a></li><li><a href="https://meadowguarderold.herokuapp.com/" target="_blank">Meadow Guarder Old</a></li><li><a href="https://bobguarder.herokuapp.com/" target="_blank">Bob Guarder</a></li><li><a href="https://battleboxes.herokuapp.com/" target="_blank">BattleBoxes</a></li><li><a href="https://cubieworld.herokuapp.com/" target="_blank">CubieWorld</a></li></ul>
