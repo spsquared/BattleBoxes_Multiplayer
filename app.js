@@ -15,7 +15,9 @@ const bcrypt = require('bcrypt');
 const salt = 10;
 const Cryptr = require('cryptr');
 const { Client } = require('pg');
-const database = new Client({connectionString: new Cryptr(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).key).decrypt(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).url), ssl:{rejectUnauthorized:false}});
+if (process.env.DATABASE_URL) connectionString = process.env.DATABASE_URL;
+else connectionString = new Cryptr(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).key).decrypt(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).url);
+const database = new Client({connectionString: connectionString, ssl:{rejectUnauthorized:false}});
 const spamcheck = require('spam-detection');
 
 require('./server/entity.js');
