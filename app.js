@@ -171,6 +171,9 @@ io.on('connection', function(socket) {
     SOCKET_LIST[socket.id] = socket;
     log('Client connection made.');
     // connection handlers
+    socket.on('error', function() {
+        socket.emit('disconnected');
+    }) 
     socket.on('disconnect', function() {
         for (var i in COLORS[1]) {
             if (COLORS[0][i] == player.color) {
