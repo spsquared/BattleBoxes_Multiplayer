@@ -1,6 +1,8 @@
 # BattleBoxes_Multiplayer
 BattleBoxes, but it's multiplayer! Large maps and free-for-all playing!
 
+**This repository has been archived!**
+
 ***
 
 ## How to Play
