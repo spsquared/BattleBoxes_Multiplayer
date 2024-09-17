@@ -1,0 +1,460 @@
+LOG [14:13] Starting server...
+LOG [14:13] There are 1 servers running on this host.
+LOG [14:13] Server started, listening to port 1000.
+LOG [14:13] console: buh
+ERR [14:13] ERROR: "buh" is not a valid input.
+ERR [14:13] ReferenceError: buh is not defined
+LOG [14:13] console: debug.users
+LOG [14:13] console: debug.users.log
+ERR [14:13] ERROR: "debug.users.log" is not a valid input.
+ERR [14:13] TypeError: Cannot read properties of undefined (reading 'log')
+LOG [14:13] console: SERVER.users.log
+LOG [14:13] console: SERVER.users.log()
+ERR [14:13] YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!
+ERR [14:14] Server was terminated
+LOG [14:14] Closing server...
+LOG [14:14] Saving user data...
+LOG [14:14] Stopping server...
+LOG [14:14] Server stopped.
+LOG [14:14] Starting server...
+LOG [14:14] There are 1 servers running on this host.
+LOG [14:14] Server started, listening to port 1000.
+LOG [14:14] Client connection made.
+LOG [14:15] Player could not login. Reason:INCORRECT_CREDENTIALS
+LOG [14:15] Player could not login. Reason:INCORRECT_CREDENTIALS
+ERR [14:15] Server was terminated
+LOG [14:15] Closing server...
+LOG [14:15] Saving user data...
+LOG [14:15] Stopping server...
+LOG [14:15] Server stopped.
+LOG [14:18] Starting server...
+LOG [14:18] There are 1 servers running on this host.
+LOG [14:18] Server started, listening to port 1000.
+LOG [14:18] Client connection made.
+LOG [14:19] Player with username "Sampleprovider(sp)" logged in.
+LOG [14:19] Player "Sampleprovider(sp)" has disconnected.
+LOG [14:19] Client connection made.
+LOG [14:19] Player with username "Sampleprovider(sp)" logged in.
+LOG [14:19] Player "Sampleprovider(sp)" has disconnected.
+LOG [14:19] Client connection made.
+LOG [14:19] Player "" has disconnected.
+LOG [14:19] Client connection made.
+LOG [14:19] Player with username "Sampleprovider(sp)" logged in.
+LOG [14:19] Player "Sampleprovider(sp)" attempted to join game.
+CHT [14:19] "Sampleprovider(sp)" joined the game.
+CHT [14:21] "Sampleprovider(sp)" left the game.
+LOG [14:21] Player "Sampleprovider(sp)" has disconnected.
+LOG [14:21] Client connection made.
+LOG [14:21] Player with username "Sampleprovider(sp)" logged in.
+LOG [14:21] Player "Sampleprovider(sp)" attempted to join game.
+CHT [14:21] "Sampleprovider(sp)" joined the game.
+CHT [14:22] "Sampleprovider(sp)" left the game.
+LOG [14:22] Player "Sampleprovider(sp)" has disconnected.
+LOG [14:22] Client connection made.
+LOG [14:22] Player with username "Sampleprovider(sp)" logged in.
+LOG [14:22] Player "Sampleprovider(sp)" attempted to join game.
+CHT [14:22] "Sampleprovider(sp)" joined the game.
+LOG [14:22] Sampleprovider(sp): SERVer
+ERR [14:22] ERROR: "SERVer" is not a valid input.
+ERR [14:22] ReferenceError: SERVer is not defined
+LOG [14:22] Sampleprovider(sp): SERVER
+LOG [14:22] [object Object]
+LOG [14:22] Sampleprovider(sp): SERVER.users
+LOG [14:22] [object Object]
+LOG [14:22] Sampleprovider(sp): for (var buh of SERVER) console.log(buh, SERVER[buh])
+ERR [14:22] ERROR: "for (var buh of SERVER) console.log(buh, SERVER[buh])" is not a valid input.
+ERR [14:22] SyntaxError: Unexpected token 'for'
+LOG [14:23] Sampleprovider(sp): () => for (var buh of SERVER) console.log(buh, SERVER[buh])
+ERR [14:23] ERROR: "() => for (var buh of SERVER) console.log(buh, SERVER[buh])" is not a valid input.
+ERR [14:23] SyntaxError: Unexpected token 'for'
+LOG [14:23] Sampleprovider(sp): var a = () => {for (var buh of SERVER) console.log(buh, SERVER[buh])} a()
+ERR [14:23] ERROR: "var a = () => {for (var buh of SERVER) console.log(buh, SERVER[buh])} a()" is not a valid input.
+ERR [14:23] SyntaxError: Unexpected token 'var'
+LOG [14:23] Sampleprovider(sp): a = () => {for (var buh of SERVER) console.log(buh, SERVER[buh])} a()
+ERR [14:23] ERROR: "a = () => {for (var buh of SERVER) console.log(buh, SERVER[buh])} a()" is not a valid input.
+ERR [14:23] SyntaxError: Unexpected identifier 'a'
+LOG [14:24] Sampleprovider(sp): self
+LOG [14:24] [object Object]
+LOG [14:24] Sampleprovider(sp): self.noclip = true
+LOG [14:24] true
+LOG [14:24] Sampleprovider(sp): new Bot(0, 0)
+LOG [14:24] [object Object]
+LOG [14:24] Sampleprovider(sp): new Bot(40, 40)
+LOG [14:24] [object Object]
+LOG [14:24] Sampleprovider(sp): Bot
+LOG [14:24] function(targetOtherBots) {
+    var self = new Entity();
+    self.halfsize = 16;
+    self.Wpressed = false;
+    self.Spressed = false;
+    self.Apressed = false;
+    self.Dpressed = false;
+    self.maxCPS = 10;
+    self.lastclick = 0;
+    self.secondary = {
+        id: null,
+        maxCPS: 0,
+        lastclick: 0
+    };
+    self.hp = 5;
+    self.score = 0;
+    self.alive = true;
+    self.invincible = false;
+    self.modifiers = {
+        moveSpeed: 1,
+        jumpHeight: 1,
+        bulletSpeed: 1,
+        bulletRate: 1,
+        bulletDamage: 1,
+        homingBullets: false
+    };
+    var j = 0;
+    for (var i in COLORS[1]) {
+        if (COLORS[1][i] == 1) {
+            j++;
+        }
+    }
+    self.color = COLORS[0][j];
+    COLORS[1][j] = 1;
+    var k = 0;
+    for (var i in BOT_LIST) {
+        k++;
+    }
+    self.name = 'BOT_' + k;
+    var pack = {
+        id: self.id,
+        name: self.name,
+        color: self.color
+    };
+    io.emit('newplayer', pack);
+    try {
+        self.pathfinder = new Pathfind.AStarFinder({
+            allowDiagonal: true,
+            dontCrossCorners: true
+        });
+        self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
+        for (var i in MAPS[CURRENT_MAP]) {
+            for (var j in MAPS[CURRENT_MAP][i]) {
+                if (MAPS[CURRENT_MAP][i][j] == 1) {
+                    self.grid.setWalkableAt(j, i, false);
+                }
+            }
+        }
+        // for (var i = -1; 1 < MAPS[CURRENT_MAP].width; i++) {
+        //     self.grid.setWalkableAt(i, -1, false);
+        // }
+        // for (var i = -1; 1 < MAPS[CURRENT_MAP].height; i++) {
+        //     self.grid.setWalkableAt(-1, i, false);
+        // }
+    } catch (err) {
+        error(err);
+    }
+    self.attackBots = targetOtherBots;
+    self.lastpath = 0;
+
+    self.update = function() {
+        self.collide();
+        if (self.alive && self.lastpath > 250/(1000/TPS)) self.path();
+        self.updatePos();
+        self.lastclick++;
+        self.lastpath++;
+        if (self.hp < 1 && self.alive) self.death();
+    }
+    self.updatePos = function() {
+        if (self.Dpressed) {
+            self.xspeed += 1*self.modifiers.moveSpeed;
+        }
+        if (self.Apressed) {
+            self.xspeed -= 1*self.modifiers.moveSpeed;
+        }
+        if (self.Wpressed && self.colliding.bottom && !self.colliding.left && !self.colliding.right) {
+            self.yspeed = 15*self.modifiers.jumpHeight;
+        }
+        if (self.Wpressed && self.Apressed && self.colliding.left) {
+            self.yspeed = 15*self.modifiers.jumpHeight;
+            self.xspeed = 15;
+        }
+        if (self.Wpressed && self.Dpressed && self.colliding.right) {
+            self.yspeed = 15*self.modifiers.jumpHeight;
+            self.xspeed = -15;
+        }
+        self.yspeed -= 0.75;
+        self.xspeed *= 0.9;
+        if (self.yspeed < -30) {
+            self.yspeed = -30;
+        }
+        if (self.x < 16) {
+            self.x = 16;
+            self.xspeed = 0;
+        }
+        if (self.x+16 > (MAPS[CURRENT_MAP].width*40)) {
+            self.x = MAPS[CURRENT_MAP].width*40-16;
+            self.xspeed = 0;
+        }
+        if (self.y+32 > (MAPS[CURRENT_MAP].height*40)+40) {
+            if (self.invincible) {
+                self.respawn(MAPS[CURRENT_MAP].spawns[0].x, MAPS[CURRENT_MAP].spawns[0].y);
+            } else {
+                self.death();
+            }
+        }
+        self.x += self.xspeed;
+        self.y -= self.yspeed;
+    }
+    self.death = function() {
+        if (self.alive) {
+            self.alive = false;
+            remainingPlayers--;
+            io.emit('playerdied', self.id);
+            insertChat(self.name + ' died.', '#FF0000');
+            TrackedData.update();
+            if (remainingPlayers < 2 && round.inProgress) {
+                endRound();
+            }
+        }
+    }
+    self.respawn = function(x, y) {
+        self.Wpressed = false;
+        self.Spressed = false;
+        self.Apressed = false;
+        self.Dpressed = false;
+        self.xspeed = 0;
+        self.yspeed = 0;
+        self.x = x;
+        self.y = y;
+        // self.alive = true;
+        self.hp = 5;
+        self.modifiers = {
+            moveSpeed: 1,
+            jumpHeight: 1,
+            bulletSpeed: 1,
+            bulletRate: 1,
+            bulletDamage: 1,
+            homingBullets: false
+        };
+        self.secondary = {
+            id: null,
+            maxCPS: 0,
+            lastclick: 0
+        };
+        try {
+            self.grid = new Pathfind.Grid(Object.create(MAPS[CURRENT_MAP]));
+        } catch (err) {
+            error(err);
+        }
+        setTimeout(function() {
+            self.alive = true;
+        }, 3000);
+    }
+    self.shoot = function(player) {
+        if (round.inProgress && self.alive && self.lastclick > ((1000/self.maxCPS)/(1000/TPS))) {
+            self.lastclick = 0;
+            new Bullet(player.x+(Math.floor(Math.random()*21)-10), player.y+(Math.floor(Math.random()*21)-10), self.x, self.y, self.id, self.color, false, self.modifiers.bulletSpeed, self.modifiers.bulletDamage, self.modifiers.homingBullets, false, false);
+            if (self.modifiers.bulletDamage == 100) self.modifiers.bulletDamage == 1;
+        }
+    }
+    self.path = function() {
+        self.lastpath = 0;
+        var closestplayer = null;
+        var players = [];
+        for (var i in PLAYER_LIST) {
+            if (PLAYER_LIST[i].ingame && PLAYER_LIST[i].alive) players.push(PLAYER_LIST[i]);
+        }
+        if (self.attackBots) {
+            for (var i in BOT_LIST) {
+                if (BOT_LIST[i].alive) players.push(BOT_LIST[i]);
+            }
+        }
+        for (var i in players) {
+            if (closestplayer == null || self.getDistance(self.x, self.y, players[i].x, players[i].y) < self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y)) {
+                if (players[i].id != self.id) closestplayer = players[i];
+            }
+        }
+        if (closestplayer != null) {
+            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 960) {
+                // /*
+                try {
+                    var gridbackup = self.grid.clone();
+                    var path = self.pathfinder.findPath(Math.floor(self.x/40), Math.floor(self.y/40), Math.floor(closestplayer.x/40), Math.floor(closestplayer.y/40), self.grid);
+                    var waypoints = Pathfind.Util.compressPath(path);
+                    // var waypoints = path;
+                    self.grid = gridbackup;
+                    if (waypoints[0]) {
+                        self.Wpressed = false;
+                        self.Apressed = false;
+                        self.Dpressed = false;
+                        var px = Math.floor(self.x/40);
+                        var py = Math.floor(self.y/40);
+                        if (waypoints[1][1] < py) {
+                            self.Wpressed = true;
+                        }
+                        if (waypoints[1][0] < px) {
+                            self.Apressed = true;
+                        }
+                        if (waypoints[1][0] > px) {
+                            self.Dpressed = true;
+                        }
+                        // var tempx = px-3;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Apressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px-2;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Apressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px-1;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Apressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px+1;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Dpressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px+2;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Dpressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        // var tempx = px+3;
+                        // var tempy = py;
+                        // if (tempx > -1) if (MAPS[CURRENT_MAP][tempy][tempx] == 1) {
+                        //     self.Dpressed = true;
+                        //     self.Wpressed = true;
+                        // }
+                        if (self.colliding.left) {
+                            Apressed = true;
+                            Wpressed = true;
+                        }
+                        if (self.colliding.right) {
+                            Dpressed = true;
+                            Wpressed = true;
+                        }
+                    }
+                } catch (err) {
+                    // console.error(err);
+                }
+                // */
+            }
+            if (self.getDistance(self.x, self.y, closestplayer.x, closestplayer.y) < 20) {
+                self.Apressed = false;
+                self.Dpressed = false;
+                self.Wpressed = false;
+            }
+            self.shoot(closestplayer);
+        }
+    }
+    self.getDistance = function(x1, y1, x2, y2) {
+        return Math.sqrt((Math.pow(x1-x2, 2)) + (Math.pow(y1-y2, 2)));
+    }
+    self.validateLineOfSight = function(targetx, targety) {
+        var ray = {
+            x: self.x,
+            y: self.y,
+            xspeed: 0,
+            yspeed: 0
+        };
+        ray.angle = Math.atan2(-(ray.y-targetx), -(ray.x-targety));
+        ray.xspeed = Math.cos(ray.angle)*20;
+        ray.yspeed = Math.sin(ray.angle)*20;
+        for (var i = 0; i <= 1000; i++) {
+            ray.x += ray.xspeed;
+            ray.y += ray.yspeed;
+            if (self.getDistance(ray.x, ray.y, targetx, targety) <= 16) {
+                return true;
+            }
+            var rx = Math.floor(ray.x/40);
+            var ry = Math.floor(ray.y/40);
+            if (rx > -1 && rx < (MAPS[CURRENT_MAP].width+1) && ry > -1 && ry < (MAPS[CURRENT_MAP].height+1)) {
+                if (MAPS[CURRENT_MAP][ry][rx] == 1) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+    
+    BOT_LIST[self.id] = self;
+    return self;
+}
+LOG [14:24] Sampleprovider(sp): new Bot
+LOG [14:24] [object Object]
+LOG [14:25] Sampleprovider(sp): ready
+ERR [14:25] ERROR: "ready" is not a valid input.
+ERR [14:25] ReferenceError: ready is not defined
+LOG [14:25] Sampleprovider(sp): gameInProgress
+ERR [14:25] ERROR: "gameInProgress" is not a valid input.
+ERR [14:25] ReferenceError: gameInProgress is not defined
+LOG [14:26] Sampleprovider(sp): round
+LOG [14:26] [object Object]
+LOG [14:26] Sampleprovider(sp): gameinprogress
+ERR [14:26] ERROR: "gameinprogress" is not a valid input.
+ERR [14:26] ReferenceError: gameinprogress is not defined
+LOG [14:26] Sampleprovider(sp): gameinProgress
+LOG [14:26] false
+LOG [14:26] Sampleprovider(sp): gameinProgress = true
+LOG [14:26] true
+LOG [14:26] Sampleprovider(sp): startGame()
+LOG [14:26] Successfully executed command
+CHT [14:26] Round 1!
+CHT [14:26] Game started!
+CHT [14:26] Round 2!
+CHT [14:26] Player "Sampleprovider(sp)" got the achievement "Overachiever"!
+CHT [14:26] Sampleprovider(sp) died.
+CHT [14:26] Player "Sampleprovider(sp)" got the achievement "YOU DIED!"!
+CHT [14:26] BOT_0 died.
+LOG [14:27] Sampleprovider(sp): endRound
+LOG [14:27] function() {
+    io.emit('roundend');
+    round.inProgress = false;
+    var nextround = true;
+    var ingamePlayers = [];
+    for (var i in PLAYER_LIST) {
+        ingamePlayers.push({isplayer:true, data:PLAYER_LIST[i]});
+    }
+    for (var i in BOT_LIST) {
+        ingamePlayers.push({isplayer:false, data:BOT_LIST[i]});
+    }
+    for (var i in ingamePlayers) {
+        var localplayer = ingamePlayers[i].data;
+        if (localplayer.alive) {
+            localplayer.score++;
+            if (localplayer.score > 9) {
+                if (ingamePlayers[i].isplayer) {
+                    localplayer.trackedData.wins++;
+                }
+                endGame(localplayer.id);
+                nextround = false;
+            }
+        }
+    }
+    for (var i in BULLET_LIST) {
+        delete BULLET_LIST[i];
+    }
+    for (var i in LOOT_BOXES) {
+        delete LOOT_BOXES[i];
+    }
+    if (remainingPlayers != 0 && nextround && gameinProgress) {
+        setTimeout(function () {
+            startRound();
+        }, 1000);
+    }
+}
+LOG [14:27] Sampleprovider(sp): endRound()
+LOG [14:27] Successfully executed command
+CHT [14:27] Round 3!
+CHT [14:28] "Sampleprovider(sp)" left the game.
+LOG [14:28] Player "Sampleprovider(sp)" has disconnected.
+LOG [14:28] Client connection made.
+LOG [14:28] console: endGame()
+CHT [14:28] Game was cut short.
+CHT [14:28] BOT_1 died.
+CHT [14:28] BOT_2 died.

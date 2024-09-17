@@ -9,15 +9,8 @@ const app = express();
 const server = require('http').Server(app);
 const fs = require('fs');
 const readline = require('readline');
-const prompt = readline.createInterface({input: process.stdin, output: process.stdout});
+const prompt = readline.createInterface({ input: process.stdin, output: process.stdout });
 const lineReader = require('line-reader');
-const bcrypt = require('bcrypt');
-const salt = 10;
-const Cryptr = require('cryptr');
-const { Client } = require('pg');
-if (process.env.DATABASE_URL) connectionString = process.env.DATABASE_URL;
-else connectionString = new Cryptr(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).key).decrypt(require('ini').parse(fs.readFileSync('./server/key.ini', 'utf-8', 'r')).url);
-const database = new Client({connectionString: connectionString, ssl:{rejectUnauthorized:false}});
 const spamcheck = require('spam-detection');
 
 require('./server/entity.js');
@@ -27,11 +20,11 @@ MAPS = [];
 CURRENT_MAP = 0;
 OPS = require('./server/ops.json').ops;
 
-app.get('/', function(req, res) {res.sendFile(__dirname + '/client/index.html');});
-app.use('/client',express.static(__dirname + '/client'));
+app.get('/', function (req, res) { res.sendFile(__dirname + '/client/index.html'); });
+app.use('/client', express.static(__dirname + '/client'));
 
 // init functions
-getMap = function(name) {
+getMap = function (name) {
     var data1 = require('./' + name);
     var data2 = [];
     data2.name = data1.name;
@@ -40,23 +33,23 @@ getMap = function(name) {
     data2.height = data1.height;
     var j = 0;
     for (var i in data1.data) {
-        data2[j][i-(j*data1.width)] = data1.data[i];
-        if (i-(j*data1.width) > data1.width-2) {
+        data2[j][i - (j * data1.width)] = data1.data[i];
+        if (i - (j * data1.width) > data1.width - 2) {
             j++;
             data2[j] = [];
         }
     }
     data2.spawns = [];
     for (var i in data1.spawns) {
-        data2.spawns[i] = {x:null, y:null};
-        data2.spawns[i].x = (data1.spawns[i].x*40)+20;
-        data2.spawns[i].y = (data1.spawns[i].y*40)+20;
+        data2.spawns[i] = { x: null, y: null };
+        data2.spawns[i].x = (data1.spawns[i].x * 40) + 20;
+        data2.spawns[i].y = (data1.spawns[i].y * 40) + 20;
     }
     data2.lootspawns = [];
     for (var i in data1.lootspawns) {
-        data2.lootspawns[i] = {x:null, y:null};
-        data2.lootspawns[i].x = (data1.lootspawns[i].x*40)+20;
-        data2.lootspawns[i].y = (data1.lootspawns[i].y*40)+20;
+        data2.lootspawns[i] = { x: null, y: null };
+        data2.lootspawns[i].x = (data1.lootspawns[i].x * 40) + 20;
+        data2.lootspawns[i].y = (data1.lootspawns[i].y * 40) + 20;
     }
     MAPS[MAPS.length] = data2;
 }
@@ -76,7 +69,6 @@ TPS = 0;
 TPS_COUNTER = 0;
 var port;
 try {
-    database.connect();
 } catch (err) {
     error('\nFATAL ERROR:');
     error(err);
@@ -91,25 +83,24 @@ if (process.env.PORT) {
     logColor('Server started, listening to port ' + port + '.', '\x1b[32m', 'log');
     console.log('\n-----------------------------------------------------------------------\n');
 } else {
-    fs.open('./server/PORTS.txt', 'a+', function(err) {
+    fs.open('./server/PORTS.txt', 'a+', function (err) {
         if (err) stop(err);
         lineReader.open('./server/PORTS.txt', function (err, reader) {
             if (err) stop(err);
-            reader.nextLine(function(err, line) {
+            reader.nextLine(function (err, line) {
                 if (err) stop(err);
-                if (line >=100) {
+                if (line >= 100) {
                     console.warn('\x1b[31m%s\x1b[0m', '\n--------------------------------------------------------------------------------\nWARNING: YOU HAVE OVER 100 INSTANCES RUNNING. THIS MAY CAUSE ISSUES. STOPPING...\n--------------------------------------------------------------------------------\n');
-                    database.end();
                     prompt.close();
                     process.abort();
                 }
-                ports = parseInt(line)+1;
+                ports = parseInt(line) + 1;
                 logColor('There are ' + ports + ' servers running on this host.', '\x1b[32m', 'log');
                 var portsstring = ports.toString();
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
                 var i;
                 port = 1000
-                for (i = 1; i < ports; i++) {port += 100;}
+                for (i = 1; i < ports; i++) { port += 100; }
                 server.listen(port);
                 logColor('Server started, listening to port ' + port + '.', '\x1b[32m', 'log');
                 console.log('\n-----------------------------------------------------------------------\n');
@@ -118,43 +109,14 @@ if (process.env.PORT) {
     });
 }
 
-// user login data handlers
-async function getCredentials(usrname) {
-    try {
-        var data = await database.query('SELECT username, password FROM users;');
-        for (var i in data.rows) {
-            if (data.rows[i].username == usrname) {
-                return {usrname:data.rows[i].username, psword:data.rows[i].password};
-            }
-        }
-        return false;
-    } catch (err) {
-        stop(err);
-    }
-}
-async function writeCredentials(username, password, userData) {
-    try {
-        var encryptedpassword = bcrypt.hashSync(password, salt);
-    } catch (err) {
-        stop(err);
-    }
-    database.query('INSERT INTO users (username, password, data) VALUES ($1, $2, $3);', [username, encryptedpassword, userData], function(err, res) {if (err) stop(err);});
-}
-async function deleteCredentials(username) {
-    database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err);});
-}
-async function updateCredentials(username, password) {
-    database.query('UPDATE users SET password=$2 WHERE username=$1;', [username, password], function(err, res) {if (err) stop(err);});
-}
-
 // Enable TEST_BOT by removing the double slashes (//)
 // TEST_BOT = new Bot(true);
 // TEST_BOT.respawn(60, 60);
-bottest = function() {
+bottest = function () {
     var i = 0;
-    var botcreate = setInterval(function() {
+    var botcreate = setInterval(function () {
         var localbot = new Bot(true)
-        localbot.respawn(60,60)
+        localbot.respawn(60, 60)
         i++;
         if (i > 6) {
             clearInterval(botcreate)
@@ -163,18 +125,18 @@ bottest = function() {
 }
 
 // client connection
-io = require('socket.io') (server, {});
-io.on('connection', function(socket) {
+io = require('socket.io')(server, {});
+io.on('connection', function (socket) {
     socket.emit('init');
     socket.id = Math.random();
     var player = new Player(socket.id);
     SOCKET_LIST[socket.id] = socket;
     log('Client connection made.');
     // connection handlers
-    socket.on('error', function() {
+    socket.on('error', function () {
         socket.emit('disconnected');
-    }) 
-    socket.on('disconnect', function() {
+    })
+    socket.on('disconnect', function () {
         for (var i in COLORS[1]) {
             if (COLORS[0][i] == player.color) {
                 COLORS[1][i] = 0;
@@ -184,214 +146,44 @@ io.on('connection', function(socket) {
             remainingPlayers--;
             insertChat('"' + player.name + '" left the game.', 'server');
         }
-        if (player.name != null) {
-            database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, player.trackedData], function(err, res) {if (err) console.log(err);});
-        }
         io.emit('deleteplayer', player.id);
         log('Player "' + player.name + '" has disconnected.');
         delete SOCKET_LIST[socket.id];
         delete PLAYER_LIST[player.id];
         player = null;
     });
-    socket.on('timeout', function() {
+    socket.on('timeout', function () {
         log('Player "' + player.name + '" timed out.');
         socket.disconnect();
     });
     //login handlers
-    socket.on('login', async function(cred) {
+    socket.on('login', async function (cred) {
         if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.includes(' ') || cred.psword.includes(' ') > 0) {
             socket.emit('disconnected');
         } else {
-            var fetchedcreds = await getCredentials(cred.usrname);
-            if (fetchedcreds) {
-                if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
-                    var signedin;
-                    for (var i in PLAYER_LIST) {
-                        if (PLAYER_LIST[i].name == cred.usrname) {
-                            signedin = true;
-                        }
-                    }
-                    if (signedin) {
-                        socket.emit('loginFailed', 'alreadyloggedin');
-                        log('Player could not login. Reason:ALREADY_LOGGED_IN');
-                    } else {
-                        player.name = cred.usrname;
-                        socket.name = cred.usrname;
-                        if (cred.usrname == 'null') {
-                            player.color = '#FFFFFF00';
-                        }
-                        try {
-                            // fetch tracked data
-                            var data = await database.query('SELECT username, data FROM users');
-                            for (var i in data.rows) {
-                                if (data.rows[i].username == cred.usrname) {
-                                    var localtrackedData = data.rows[i].data;
-                                    try {
-                                        var checkfornull = localtrackedData;
-                                        if (checkfornull == null) {
-                                            checkfornull = new TrackedData();
-                                        }
-                                        var checkfornull = localtrackedData.achievements;
-                                        if (checkfornull == null) {
-                                            checkfornull = new TrackedData().achievements;
-                                        }
-                                        var checkfornull = localtrackedData.kills;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.deaths;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.wins;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections;
-                                        if (checkfornull == null) {
-                                            checkfornull = new TrackedData().lootboxcollections;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.total;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.lucky;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.unlucky;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.speed;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.jump;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.shield;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.homing;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.firerate;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                        var checkfornull = localtrackedData.lootboxcollections.random;
-                                        if (checkfornull == null) {
-                                            checkfornull = 0;
-                                        }
-                                    } catch (err) {
-                                        error('ERROR: Player trackedData was "' + data.rows[i].data + '" during fetch.');
-                                        try {
-                                            await database.query('UPDATE users SET data=$2 WHERE username=$1;', [player.name, new TrackedData()]);
-                                            localtrackedData = new TrackedData();
-                                        } catch (err) {
-                                            stop(err);
-                                        }
-                                    }
-                                    player.trackedData.kills = localtrackedData.kills;
-                                    player.trackedData.deaths = localtrackedData.deaths;
-                                    player.trackedData.wins = localtrackedData.wins;
-                                    player.trackedData.lootboxcollections.total = localtrackedData.lootboxcollections.total;
-                                    player.trackedData.lootboxcollections.lucky = localtrackedData.lootboxcollections.lucky;
-                                    player.trackedData.lootboxcollections.unlucky = localtrackedData.lootboxcollections.unlucky;
-                                    player.trackedData.lootboxcollections.speed = localtrackedData.lootboxcollections.speed;
-                                    player.trackedData.lootboxcollections.jump = localtrackedData.lootboxcollections.jump;
-                                    player.trackedData.lootboxcollections.shield = localtrackedData.lootboxcollections.shield;
-                                    player.trackedData.lootboxcollections.homing = localtrackedData.lootboxcollections.homing;
-                                    player.trackedData.lootboxcollections.firerate = localtrackedData.lootboxcollections.firerate;
-                                    player.trackedData.lootboxcollections.random = localtrackedData.lootboxcollections.random;
-                                    for (var j in localtrackedData.achievements) {
-                                        var localfetchedachievement = localtrackedData.achievements[j];
-                                        for (var k in player.trackedData.achievements) {
-                                            var localplayerachievement = player.trackedData.achievements[k];
-                                            if (localplayerachievement.id == localfetchedachievement.id) {
-                                                localplayerachievement.aqquired = localfetchedachievement.aqquired;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (err) {
-                            stop(err);
-                        }
-                        socket.emit('inittrackedData', player.trackedData);
-                        socket.emit('loginConfirmed', 'login');
-                        log('Player with username "' + player.name + '" logged in.');
-                    }
-                } else {
-                    socket.emit('loginFailed', 'incorrect');
-                    log('Player could not login. Reason:INCORRECT_CREDENTIALS');
+            var signedin;
+            for (var i in PLAYER_LIST) {
+                if (PLAYER_LIST[i].name == cred.usrname) {
+                    signedin = true;
                 }
-            } else {
-                socket.emit('loginFailed', 'invalidusrname');
-                log('Player could not login. Reason:USER_NOT_FOUND');
             }
-        }
-    });
-    socket.on('signup', async function(cred) {
-        if (cred.usrname == '' || cred.usrname.length > 20 || cred.usrname.includes(' ') || cred.psword.includes(' ') || spamcheck.detect(cred.usrname) == 'spam') {
-            socket.emit('disconnected');
-        } else {
-            var fetchedcreds = await getCredentials(cred.usrname);
-            if (fetchedcreds) {
-                socket.emit('loginFailed', 'usrexists');
-                log('Player could not sign up. Reason:USER_EXISTS');
+            if (signedin) {
+                socket.emit('loginFailed', 'alreadyloggedin');
+                log('Player could not login. Reason:ALREADY_LOGGED_IN');
             } else {
                 player.name = cred.usrname;
                 socket.name = cred.usrname;
                 if (cred.usrname == 'null') {
-                    player.color = "#FFFFFF00";
-                    for (var i in player.trackedData.achievements) {
-                        var localachievement = player.trackedData.achievements[i];
-                        if (localachievement.id == 'null_EasterEgg') {
-                            localachievement.aqquired = true;
-                            log('null got the achievement "' + localachievement.name + '"!');
-                            io.emit('achievement_get', {player:player.name, achievement:localachievement.id});
-                        }
-                    }
+                    player.color = '#FFFFFF00';
                 }
-                await writeCredentials(cred.usrname, cred.psword, player.trackedData);
-                socket.emit('loginConfirmed', 'signup');
-                log('Player "' + player.name + '" signed up.');
+                socket.emit('inittrackedData', player.trackedData);
+                socket.emit('loginConfirmed', 'login');
+                log('Player with username "' + player.name + '" logged in.');
             }
-        }
-    });
-    socket.on('deleteAccount', async function(cred) {
-        if (cred.psword != null) {
-            if (cred.usrname.length > 64) {
-                socket.emit('disconnected');
-            }
-            var fetchedcreds = await getCredentials(cred.usrname);
-            if (fetchedcreds == false) {
-                socket.emit('disconnected');
-                error('Error: Could not delete account. Reason:USER_NOT_FOUND');
-            } else if (bcrypt.compareSync(cred.psword, fetchedcreds.psword)) {
-                deleteCredentials(cred.usrname);
-                socket.emit('loginConfirmed', 'deleted');
-                socket.emit('disconnected');
-                log('Player with username "' + player.name + '" deleted their account.');
-            } else {
-                socket.emit('loginFailed', 'incorrect');
-                log('Player "' + player.name + '" could not delete account. Reason:INCORRECT_CREDENTIALS');
-            }
-        }
-    });
-    socket.on('changePassword', async function(cred) {
-        var fetchedcreds = await getCredentials(cred.usrname);
-        if (bcrypt.compareSync(cred.psword, fetchedcreds.psword) && player.name == cred.usrname) {
-            updateCredentials(cred.usrname, cred.newpsword);
         }
     });
     // game handlers
-    socket.on('joingame', function() {
+    socket.on('joingame', function () {
         log('Player "' + player.name + '" attempted to join game.');
         var j = 0;
         for (var i in PLAYER_LIST) {
@@ -414,8 +206,8 @@ io.on('connection', function(socket) {
             for (var i in MAPS) {
                 pack.push({
                     id: i,
-                    width: (MAPS[i].width*40),
-                    height: (MAPS[i].height*40),
+                    width: (MAPS[i].width * 40),
+                    height: (MAPS[i].height * 40),
                     name: MAPS[i].name
                 });
             }
@@ -459,21 +251,21 @@ io.on('connection', function(socket) {
             log('"' + player.name + '" was not able to join; Reason: Game_Started');
         }
     });
-    socket.on('leavegame', function() {
+    socket.on('leavegame', function () {
         socket.emit('roundend');
         if (player.ingame && player.alive) {
             remainingPlayers--;
         }
         player.ingame = false;
         player.ready = false;
-        setTimeout(function() {
+        setTimeout(function () {
             try {
                 io.emit('deleteplayer', player.id);
-            } catch (err) {}
+            } catch (err) { }
         }, 1000);
         insertChat('"' + player.name + '" left the game.', 'server');
     });
-    socket.on('keyPress', function(key) {
+    socket.on('keyPress', function (key) {
         if (player.alive) {
             if (key.key == 'W') player.Wpressed = key.state;
             if (key.key == 'S') player.Spressed = key.state;
@@ -481,10 +273,10 @@ io.on('connection', function(socket) {
             if (key.key == 'D') player.Dpressed = key.state;
         }
     });
-    socket.on('ready', function() {
+    socket.on('ready', function () {
         player.ready = true;
     });
-    socket.on('click', function(click) {
+    socket.on('click', function (click) {
         if (click.button == 'left' && round.inProgress && player.alive) {
             player.shoot(click.x, click.y);
         }
@@ -495,21 +287,21 @@ io.on('connection', function(socket) {
     // chat handlers
     var messageRate = 0;
     var spamOffenses = 0;
-    setInterval(async function() {
+    setInterval(async function () {
         messageRate--;
         if (messageRate < 0) messageRate = 0;
     }, 5000);
-    setInterval(async function() {
+    setInterval(async function () {
         spamOffenses--;
         if (spamOffenses < 0) spamOffenses = 0;
     }, 10000);
-    socket.on('chatInput', async function(input) {
+    socket.on('chatInput', async function (input) {
         if (input.length > 64) {
             socket.emit('disconnected');
             insertChat('"' + player.name + '" attempted to circumvent the chat message limit.', 'server');
             try {
                 io.emit('deleteplayer', player.id);
-            } catch (err) {}
+            } catch (err) { }
             player.ingame = false;
         } else if (spamcheck.detect(input) == 'spam') {
             spamOffenses++;
@@ -518,7 +310,7 @@ io.on('connection', function(socket) {
                 insertChat('"' + player.name + '" was kicked for spamming.', 'server');
                 try {
                     io.emit('deleteplayer', player.id);
-                } catch (err) {}
+                } catch (err) { }
                 player.ingame = false;
             }
         } else {
@@ -531,23 +323,23 @@ io.on('connection', function(socket) {
                 insertChat('"' + player.name + '" was kicked for spamming.', 'server');
                 try {
                     io.emit('deleteplayer', player.id);
-                } catch (err) {}
+                } catch (err) { }
                 player.ingame = false;
             }
         }
     });
     // debug handlers
-    socket.on('debug', function() {
+    socket.on('debug', function () {
         for (var i in player.trackedData.achievements) {
             var localachievement = player.trackedData.achievements[i];
             if (localachievement.id == 'debug_EasterEgg' && localachievement.aqquired == false) {
                 localachievement.aqquired = true;
                 insertChat('Player "' + player.name + '" got the achievement "' + localachievement.name + '"!', player.color);
-                io.emit('achievement_get', {player:player.name, achievement:localachievement.id});
+                io.emit('achievement_get', { player: player.name, achievement: localachievement.id });
             }
         }
     });
-    socket.on('consoleInput', async function(input) {
+    socket.on('consoleInput', async function (input) {
         log(player.name + ': ' + input);
         if (SERVER.findOP(player.name)) {
             var convertedInput = input;
@@ -560,29 +352,29 @@ io.on('connection', function(socket) {
                 if (msg == undefined) {
                     msg = 'Successfully executed command';
                 }
-                socket.emit('consoleLog', {color:'green', msg:msg});
+                socket.emit('consoleLog', { color: 'green', msg: msg });
                 log(msg);
             } catch (err) {
-                socket.emit('consoleLog', {color:'red', msg:'Error: "' + input + '" is not a valid input.\n' + err});
+                socket.emit('consoleLog', { color: 'red', msg: 'Error: "' + input + '" is not a valid input.\n' + err });
                 error('ERROR: "' + input + '" is not a valid input.');
                 error(err + '');
             }
         } else {
-            socket.emit('consoleLog', {color:'red', msg:'ERROR: NO PERMISSION.'});
+            socket.emit('consoleLog', { color: 'red', msg: 'ERROR: NO PERMISSION.' });
             error('ERROR: NO PERMISSION.');
         }
     });
-    socket.on('ping', async function() {socket.emit('ping');});
+    socket.on('ping', async function () { socket.emit('ping'); });
 });
 
 // server-side tps
-setInterval(function() {
+setInterval(function () {
     // advance game tick
     var players1 = Player.update();
     var players2 = Bot.update();
     var bullets = Bullet.update();
     LootBox.update();
-    var pack = {players:players1.concat(players2), bullets:bullets};
+    var pack = { players: players1.concat(players2), bullets: bullets };
     io.emit('update', pack);
     // round handling
     var j = 0;
@@ -598,7 +390,7 @@ setInterval(function() {
     for (var i in BOT_LIST) {
         j++;
     }
-    if (k > (j-1) && k > 1) {
+    if (k > (j - 1) && k > 1) {
         startGame();
         for (var i in PLAYER_LIST) {
             PLAYER_LIST[i].ready = false;
@@ -611,46 +403,31 @@ setInterval(function() {
         for (var i in BULLET_LIST) {
             delete BULLET_LIST[i];
         }
-        setTimeout(function() {endGame(null);}, 1000);
+        setTimeout(function () { endGame(null); }, 1000);
     }
     TPS_COUNTER++;
-}, 1000/60);
-setInterval(async function() {
+}, 1000 / 60);
+setInterval(async function () {
     TPS = TPS_COUNTER;
     TPS_COUNTER = 0;
 }, 1000);
 
-// 5 minute autosave
-setInterval(function() {
-    for (var i in PLAYER_LIST) {
-        database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData], function(err, res) {if (err) stop(err);});
-    }
-}, 300000);
-
 // console interface
-prompt.on('line', async function(input) {
+prompt.on('line', async function (input) {
     log('console: ' + input);
-    if (input=='stop') {
+    if (input == 'stop') {
         queryStop(true);
-    } else if (input=='Purple') {
+    } else if (input == 'Purple') {
         console.log('Purple exception detected. Purpling...');
         console.log('---------------------------------------------------');
         if (gameinProgress) endGame();
         io.emit('disconnected');
-        for (var i in Player.list) {
-            try {
-                database.query('UPDATE users SET data=$2 WHERE username=$1;', [Player.list[i].name, Player.list[i].trackedData]);
-            } catch (err) {
-                error(err);
-            }
-        }
-        var count = fs.readFileSync('./server/PORTS.txt', {encoding:'utf8', flag:'r'});
-        ports = parseInt(count)-1;
+        var count = fs.readFileSync('./server/PORTS.txt', { encoding: 'utf8', flag: 'r' });
+        ports = parseInt(count) - 1;
         var portsstring = ports.toString();
         fs.writeFileSync('./server/PORTS.txt', portsstring);
-        database.end();
         prompt.close();
-        setTimeout(function() {
+        setTimeout(function () {
             while (true) {
                 console.log('purple');
                 console.warn('purple');
@@ -667,13 +444,13 @@ prompt.on('line', async function(input) {
         }
     }
 });
-prompt.on('close', function() {
+prompt.on('close', function () {
     error('Server was terminated');
     stop();
 });
 function queryStop(firstrun) {
     if (firstrun == true) {
-        prompt.question('Are you sure you want to stop the server? y/n\n> ', function(answer) {
+        prompt.question('Are you sure you want to stop the server? y/n\n> ', function (answer) {
             log('console: ' + answer);
             if (answer == 'y') {
                 stop();
@@ -685,7 +462,7 @@ function queryStop(firstrun) {
             }
         });
     } else {
-        prompt.question('Please enter y or n.\n> ', function(answer) {
+        prompt.question('Please enter y or n.\n> ', function (answer) {
             log('console: ' + answer);
             if (answer == 'y') {
                 stop();
@@ -709,31 +486,23 @@ function stop(stoperr) {
     if (gameinProgress) endGame();
     io.emit('disconnected');
     logColor('Saving user data...', '\x1b[32m', 'log');
-    for (var i in PLAYER_LIST) {
-        try {
-            database.query('UPDATE users SET data=$2 WHERE username=$1;', [PLAYER_LIST[i].name, PLAYER_LIST[i].trackedData]);
-        } catch (err) {
-            error(err);
-        }
-    }
     logColor('Stopping server...', '\x1b[32m', 'log');
-    fs.open('./server/PORTS.txt', 'a+', function(err) {
+    fs.open('./server/PORTS.txt', 'a+', function (err) {
         if (err) console.error(err);
         lineReader.open('./server/PORTS.txt', function (err, reader) {
             if (err) console.error(err);
-            reader.nextLine(function(err, line) {
+            reader.nextLine(function (err, line) {
                 if (err) console.error(err);
-                ports = parseInt(line)-1;
+                ports = parseInt(line) - 1;
                 var portsstring = ports.toString();
                 fs.writeFileSync('./server/PORTS.txt', portsstring);
-                database.end();
                 prompt.close();
                 logColor('Server stopped.', '\x1b[32m', 'log');
                 if (stoperr) {
                     console.log('\x1b[31m%s\x1b[0m', '\nIf this issue persists, please submit a bug report on GitHub with a screenshot of this log.');
                     console.log('\x1b[31m%s\x1b[0m', '\nPress ENTER to exit.');
-                    const stopprompt = readline.createInterface({input: process.stdin, output: process.stdout});
-                    stopprompt.on('line', function(input) {
+                    const stopprompt = readline.createInterface({ input: process.stdin, output: process.stdout });
+                    stopprompt.on('line', function (input) {
                         process.abort();
                     });
                 } else {
@@ -745,28 +514,22 @@ function stop(stoperr) {
 }
 
 // debug functions
-debug = function() {
+debug = function () {
     self = {
         users: {
-            log: async function() {
-                error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
-                return 'YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!';
-                // database.query('SELECT username FROM users', function(err, res) {if (err) stop(err); log(res.rows);});
-                // return res.rows;
+            log: async function () {
+                error('No database!');
+                return 'No database!';
             },
-            remove: async function(username) {
-                error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
-                return 'YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!';
-                // database.query('DELETE FROM users WHERE username=$1;', [username], function(err, res) {if (err) stop(err); log('Removed "' + username + '".');});
-                // return 'Removed "' + username + '".';
+            remove: async function (username) {
+                error('No database!');
+                return 'No database!';
             },
-            reset: async function(username) {
-                error('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!');
-                return 'YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!';
-                // database.query('UPDATE users SET data=$2 WHERE username=$1;', [username, new TrackedData()], function(err, res) {if (err) stop(err); log('Reset "' + username + '".');});
-                // return 'Reset "' + username + '".';
+            reset: async function (username) {
+                error('No database!');
+                return 'No database!';
             },
-            grant: async function(username, id) {
+            grant: async function (username, id) {
                 if (self.findUser(username)) {
                     var localtrackedData = self.findUser(username).trackedData;
                     for (var i in localtrackedData.achievements) {
@@ -784,7 +547,7 @@ debug = function() {
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
-            revoke: async function(username, id) {
+            revoke: async function (username, id) {
                 if (self.findUser(username)) {
                     var localtrackedData = self.findUser(username).trackedData;
                     for (var i in localtrackedData.achievements) {
@@ -804,7 +567,7 @@ debug = function() {
             }
         },
         game: {
-            log: async function() {
+            log: async function () {
                 var pack = [];
                 for (var i in PLAYER_LIST) {
                     pack.push(PLAYER_LIST[i].name);
@@ -816,19 +579,19 @@ debug = function() {
                 }
                 return pack;
             },
-            start: async function() {
+            start: async function () {
                 startGame();
                 for (var i in PLAYER_LIST) {
                     PLAYER_LIST[i].ready = false;
                 }
             },
-            end: async function(name) {
+            end: async function (name) {
                 if (self.findUser(name)) {
                     var localplayer = self.findUser(name);
                     endGame(localplayer.id);
                 }
             },
-            kick: async function(username) {
+            kick: async function (username) {
                 if (self.findUser(username)) {
                     for (var i in SOCKET_LIST) {
                         if (SOCKET_LIST[i].name == username) {
@@ -843,12 +606,12 @@ debug = function() {
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
-            kickall: async function() {
+            kickall: async function () {
                 io.emit('disconnected');
                 log('Kicked all players.');
                 return 'Kicked all players.';
             },
-            kill: async function(username) {
+            kill: async function (username) {
                 if (self.findUser(username)) {
                     self.findUser(username).death();
                     log('Killed "' + username + '".');
@@ -858,7 +621,7 @@ debug = function() {
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
-            tp: async function(username, xORname2, y) {
+            tp: async function (username, xORname2, y) {
                 if (self.findUser(username)) {
                     if (self.findUser(xORname2)) {
                         var localplayer = self.findUser(username);
@@ -868,7 +631,7 @@ debug = function() {
                         log('Teleported "' + username + '" to "' + xORname2 + '".');
                         return 'Teleported "' + username + '" to "' + xORname2 + '".';
                     } else {
-                        if (isNaN(xORname2*10)) {
+                        if (isNaN(xORname2 * 10)) {
                             error('ERROR: Could not find user "' + xORname2 + '".');
                             return 'ERROR: Could not find user "' + xORname2 + '".';
                         } else {
@@ -884,7 +647,7 @@ debug = function() {
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
-            noclip: async function(username) {
+            noclip: async function (username) {
                 if (self.findUser(username)) {
                     var localplayer = self.findUser(username);
                     localplayer.noclip = !localplayer.noclip;
@@ -895,7 +658,7 @@ debug = function() {
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
-            godmode: async function(username) {
+            godmode: async function (username) {
                 if (self.findUser(username)) {
                     var localplayer = self.findUser(username);
                     localplayer.invincible = !localplayer.invincible;
@@ -906,7 +669,7 @@ debug = function() {
                     return 'ERROR: Could not find user "' + username + '".';
                 }
             },
-            yeet: async function() {
+            yeet: async function () {
                 for (var i in PLAYER_LIST) {
                     PLAYER_LIST[i].yspeed = 50;
                 }
@@ -918,10 +681,10 @@ debug = function() {
                 return 'Yeeted all players!';
             }
         },
-        toggleDebugLog: function() {
-            
+        toggleDebugLog: function () {
+
         },
-        findUser: function(username) {
+        findUser: function (username) {
             for (var i in PLAYER_LIST) {
                 if (PLAYER_LIST[i].name == username) {
                     return PLAYER_LIST[i];
@@ -934,7 +697,7 @@ debug = function() {
             }
             return false;
         },
-        findOP: function(username) {
+        findOP: function (username) {
             for (var i in OPS) {
                 if (OPS[i] == username) {
                     return true;
@@ -942,7 +705,7 @@ debug = function() {
             }
             return false;
         },
-        TPS: function() {
+        TPS: function () {
             log(TPS);
             return TPS;
         }
