@@ -445,7 +445,12 @@ prompt.on('line', async function (input) {
     }
 });
 prompt.on('close', function () {
-    error('Server was terminated');
+    error('Console REPL closed, press CTRL+C/CTRL+X again to stop server');
+});
+process.on('SIGINT', () => {
+    stop();
+});
+process.on('SIGTERM', () => {
     stop();
 });
 function queryStop(firstrun) {
